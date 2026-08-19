@@ -1,0 +1,148 @@
+/* Hide the SVG filter definition container */
+.crayon-filters {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.crayon-btn {
+  position: relative;
+  padding: 14px 28px;
+  font-size: 1.2rem;
+  font-family: 'Comic Sans MS', 'Chalkboard SE', 'Segoe Print', 'Bradley Hand', cursive;
+  font-weight: bold;
+  color: #333;
+  background: #fdfbf7;
+  border: 3px dashed #444;
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px; /* Hand-drawn rough shape */
+  cursor: pointer;
+  overflow: visible;
+  outline: none;
+  transition: transform 0.1s ease;
+  /* Accent color used by the crayon fill gradient (overridden per variant) */
+  --crayon-color: #4d7cff;
+}
+
+.crayon-btn.crayon-btn--pink {
+  --crayon-color: #ff4d9d;
+}
+
+.crayon-btn:active {
+  transform: scale(0.96);
+}
+
+/* Clipping wrapper so the waxy fill stays inside the rounded border
+   without clipping the note/arrow that extend outside the button */
+.crayon-fill-clip {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  z-index: 1;
+}
+
+/* The Crayon Color Fill Layer */
+.crayon-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+
+  /* Creates a uniform, packed repeating pencil/crayon stroke pattern diagonally */
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--crayon-color) 0px,
+    var(--crayon-color) 3px,
+    color-mix(in srgb, var(--crayon-color) 85%, transparent) 4px,
+    var(--crayon-color) 5px,
+    var(--crayon-color) 8px
+  );
+
+  /* Mask to animate the fill from top-left to bottom-right diagonally */
+  clip-path: polygon(0 0, 0 0, 0 100%, 0% 100%);
+
+  /* Apply the rough waxy SVG turbulence filter */
+  filter: url(#crayon-texture);
+  opacity: 0.85;
+  transition: clip-path 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Trigger the diagonal coloring-in sweep (on hover, or when filled) */
+.crayon-btn:hover .crayon-fill,
+.crayon-btn.filled .crayon-fill {
+  clip-path: polygon(0 0, 200% 0, 100% 200%, 0% 100%);
+}
+
+.btn-text {
+  position: relative;
+  z-index: 2;
+}
+
+/* Pink accent */
+.crayon-btn.crayon-btn--pink {
+  border-color: rgba(230, 1, 154, 0.7);
+}
+
+/* Design-mode annotations + arrow */
+.crayon-btn .design-handle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: #f8f8f5;
+  border: 1px solid rgba(55, 55, 55, 0.65);
+  z-index: 20;
+  pointer-events: none;
+}
+
+.crayon-btn.crayon-btn--pink .design-handle {
+  border-color: rgba(230, 1, 154, 0.7);
+}
+
+.crayon-btn .design-handle-tl { top: -4px; left: -4px; }
+.crayon-btn .design-handle-tr { top: -4px; right: -4px; }
+.crayon-btn .design-handle-bl { bottom: -4px; left: -4px; }
+.crayon-btn .design-handle-br { bottom: -4px; right: -4px; }
+
+.crayon-btn .design-btn-note {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 34px);
+  transform: translateX(-50%) rotate(-4deg);
+  white-space: nowrap;
+  color: #246bff;
+  font-family: 'Comic Sans MS', 'Segoe Print', 'Bradley Hand', cursive;
+  font-size: 12px;
+  font-weight: 400;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.crayon-btn.crayon-btn--pink .design-btn-note {
+  color: #e6019a;
+}
+
+.crayon-btn .design-btn-arrow {
+  position: absolute;
+  width: 48px;
+  height: 44px;
+  left: 50%;
+  top: calc(100% - 14px);
+  transform: translateX(-18%) rotate(176deg);
+  color: #246bff;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.crayon-btn.crayon-btn--pink .design-btn-arrow {
+  color: #e6019a;
+}
+
+@media (max-width: 640px) {
+  .crayon-btn {
+    padding: 12px 18px;
+    font-size: 1rem;
+  }
+}

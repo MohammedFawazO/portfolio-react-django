@@ -1,0 +1,13 @@
+export { default as WorkspaceIntro } from "./WorkspaceIntro";
+export { default as WorkspaceScene } from "./WorkspaceScene";
+export { default as CameraRig } from "./CameraRig";
+export { default as Lights } from "./Lights";
+export { default as Desk } from "./Desk";
+export { default as MonitorLeft } from "./MonitorLeft";
+export { default as MonitorCenter } from "./MonitorCenter";
+export { default as ScreenCanvas } from "./ScreenCanvas";
+export { default as Keyboard } from "./Keyboard";
+export { default as Mouse } from "./Mouse";
+export { default as Wall } from "./Wall";
+export { default as Floor } from "./Floor";
+export { default as Decorations } from "./Decorations";

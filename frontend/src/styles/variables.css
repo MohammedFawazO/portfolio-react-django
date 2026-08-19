@@ -1,0 +1,140 @@
+:root {
+  /* ============================================================
+     OBSIDIAN / GRAPHITE (dark surfaces)
+     ============================================================ */
+  --bg-primary: #07090B;        /* obsidian : page base */
+  --bg-secondary: #12171C;      /* graphite : standard cards/surfaces */
+  --bg-tertiary: #202830;       /* elevated surface */
+  --bg-hover: #29323A;          /* hover / active surface */
+  --bg-dark: #0B0F13;
+  --bg-dark-hover: #151C23;
+
+  /* ============================================================
+     SOFT WHITE / MIST (light surfaces)
+     ============================================================ */
+  --bg-light: #F5F7F7;
+  --bg-light-secondary: #E8EEF0;
+  --bg-light-surface: #FFFFFF;
+
+  /* ============================================================
+     DEEP TEAL (major brand color, used intentionally)
+     ============================================================ */
+  --color-teal: #0A3332;
+  --color-teal-hover: #164C4A;
+  --color-teal-light: #236966;
+  --color-teal-soft: rgba(35, 105, 102, 0.12);
+
+  /* ============================================================
+     ICE BLUE (accent only)
+     ============================================================ */
+  --color-accent: #6FE7FF;
+  --color-accent-hover: #35C9E8;
+  --color-accent-soft: #B8F2FA;
+  --color-accent-rgb: 111, 231, 255;
+
+  /* ============================================================
+     TEXT : ON DARK
+     ============================================================ */
+  --text-on-dark: #F5F7F7;
+  --text-on-dark-secondary: #AEB9BD;
+  --text-on-dark-muted: #6F7C82;
+
+  /* ============================================================
+     TEXT : ON LIGHT
+     ============================================================ */
+  --text-on-light: #0A3332;
+  --text-on-light-secondary: #405354;
+  --text-on-light-muted: #718082;
+
+  /* ============================================================
+     BORDERS
+     ============================================================ */
+  --border-dark: #29323A;
+  --border-dark-soft: rgba(255, 255, 255, 0.10);
+  --border-light: #D2DCDF;
+  --border-light-soft: rgba(10, 51, 50, 0.10);
+
+  /* ============================================================
+     SHADOWS
+     ============================================================ */
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 15px 40px rgba(0, 0, 0, 0.6);
+  --shadow-xl: 0 30px 80px rgba(0, 0, 0, 0.7);
+  --shadow-cyan: 0 0 20px rgba(111, 231, 255, 0.1);
+  --shadow-teal: 0 20px 60px rgba(10, 51, 50, 0.35);
+
+  /* ============================================================
+     BORDER RADIUS
+     ============================================================ */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+
+  /* ============================================================
+     SPACING SYSTEM
+     ============================================================ */
+  --space-1: 0.5rem;   /* 8 */
+  --space-2: 1rem;     /* 16 */
+  --space-3: 1.5rem;   /* 24 */
+  --space-4: 2rem;     /* 32 */
+  --space-5: 3rem;     /* 48 */
+  --space-6: 4rem;     /* 64 */
+  --space-7: 6rem;     /* 96 */
+  --space-8: 8rem;     /* 128 */
+
+  /* Section vertical rhythm */
+  --section-y: 7rem;        /* 112px desktop */
+  --section-y-sm: 5rem;     /* 80px mobile */
+
+  /* ============================================================
+     ANIMATIONS
+     ============================================================ */
+  --duration-fast: 200ms;
+  --duration-normal: 300ms;
+  --duration-slow: 600ms;
+  --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+  /* ============================================================
+     Z-INDEX
+     ============================================================ */
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+
+  /* ============================================================
+     CONTAINER
+     ============================================================ */
+  --container-max: 1200px;
+  --container-padding: 1.5rem;
+
+  /* ============================================================
+     COMPATIBILITY ALIASES
+     (referenced by shared components: SpotlightNavbar, legacy UI)
+     ============================================================ */
+  --color-primary: #07090B;
+  --color-primary-hover: #151C23;
+  --color-primary-active: #07090B;
+  --color-primary-light: #6FE7FF;          /* = --color-accent */
+  --color-primary-light-hover: #35C9E8;
+  --color-primary-light-rgb: 111, 231, 255;
+  --bg-graphite: #12171C;
+  --bg-elevated: #202830;
+  --text-primary: #F5F7F7;
+  --text-secondary: #AEB9BD;
+  --text-muted: #6F7C82;
+  --text-disabled: #444444;
+  --text-inverse: #07090B;
+  --text-link: #6FE7FF;
+  --border-color: #29323A;
+  --border-focus: #6FE7FF;
+}
