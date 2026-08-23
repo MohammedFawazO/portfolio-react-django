@@ -34,6 +34,7 @@ const MorphyButton = React.forwardRef((
     activeIcon = null,
     blueprint = false,
     decor = null,
+    disableMorph = false,
     ...props
   },
   ref,
@@ -73,7 +74,7 @@ const MorphyButton = React.forwardRef((
     };
   }, []);
 
-  const active = animate === 'reverse' ? !isHovered : isHovered;
+  const active = disableMorph ? false : (animate === 'reverse' ? !isHovered : isHovered);
 
   const userHasTextColor = className?.includes('text-');
 
@@ -90,32 +91,36 @@ const MorphyButton = React.forwardRef((
   return (
     <Comp
       ref={ref}
-      onMouseEnter={() => { pickDir(); setIsHovered(true); }}
-      onMouseLeave={() => setIsHovered(false)}
-      onTouchStart={handleTouchStart}
+      onMouseEnter={disableMorph ? undefined : () => { pickDir(); setIsHovered(true); }}
+      onMouseLeave={disableMorph ? undefined : () => setIsHovered(false)}
+      onTouchStart={disableMorph ? undefined : handleTouchStart}
       className={cn(
         morphyButtonVariants({ size }),
-        blueprint
-          ? 'border-2 border-white bg-[#0a3aa8] backdrop-blur-md'
-          : 'transition-colors duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] border backdrop-blur-md',
-        !blueprint &&
+        disableMorph
+          ? ''
+          : blueprint
+            ? 'border-2 border-white bg-[#0a3aa8] backdrop-blur-md'
+            : 'transition-colors duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] border backdrop-blur-md',
+        !disableMorph && !blueprint &&
           (active
             ? 'border-black dark:border-white'
             : 'border-white/30 shadow-[0_10px_24px_-4px_rgba(0,0,0,0.45),inset_0_1px_1px_rgba(255,255,255,0.35)]'),
         className
       )}
       {...props}>
-      <div
-        className={cn(
-          'absolute inset-0 transition-colors duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] rounded-[inherit]',
-          blueprint ? 'bg-[#0a3aa8]' : baseBg
-        )} />
-      {decor && (
+      {!disableMorph && (
+        <div
+          className={cn(
+            'absolute inset-0 transition-colors duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] rounded-[inherit]',
+            blueprint ? 'bg-[#0a3aa8]' : baseBg
+          )} />
+      )}
+      {!disableMorph && decor && (
         <div className="absolute inset-0 z-[5] pointer-events-none overflow-hidden">
           {decor}
         </div>
       )}
-      {morphStyle === 'dot' ? (
+      {!disableMorph && (morphStyle === 'dot' ? (
         <div
           className={cn(
             'absolute top-1/2 -translate-y-1/2 rounded-full transition-all duration-700 ease-in-out bg-black dark:bg-white',
@@ -133,19 +138,21 @@ const MorphyButton = React.forwardRef((
                 ? cn('opacity-0 scale-50', DIR_MAP[dir])
                 : 'bg-black dark:bg-white opacity-100 translate-x-0 translate-y-0 scale-100'
           )} />
-      )}
+      ))}
       <span
         className={cn(
-          'relative z-10 flex items-center justify-center font-bold transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]',
-          !blueprint && morphStyle === 'dot' && (active ? (dir === 'right' ? '-translate-x-1.5' : 'translate-x-1.5') : 'translate-x-0'),
-          !userHasTextColor &&
-            (blueprint
-              ? 'text-white'
-              : active
-                ? 'text-black dark:text-white'
-                : 'text-white dark:text-black')
+          'relative z-10 flex items-center justify-center font-bold',
+          !disableMorph && !blueprint && morphStyle === 'dot' && (active ? (dir === 'right' ? '-translate-x-1.5' : 'translate-x-1.5') : 'translate-x-0'),
+          disableMorph
+            ? ''
+            : !userHasTextColor &&
+              (blueprint
+                ? 'text-white'
+                : active
+                  ? 'text-black dark:text-white'
+                  : 'text-white dark:text-black')
         )}>
-        {morphStyle === 'icon' ? (
+        {morphStyle === 'icon' && !disableMorph ? (
           <>
             <span>{children}</span>
             <span className={cn('inline-flex items-center justify-center shrink-0 overflow-hidden transition-all duration-600 ease-[cubic-bezier(0.22,1,0.36,1)]', active ? 'ml-1.5 w-auto opacity-100 translate-x-0' : 'ml-0 w-0 opacity-0 -translate-x-2')}>

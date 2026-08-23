@@ -1,14 +1,93 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { Helmet } from 'react-helmet-async'
-import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion'
-import projectService from '../services/projectService'
+import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from 'framer-motion'
 import SectionHeading from '../components/ui/SectionHeading'
 import Container from '../components/ui/Container'
-import Tag from '../components/ui/Tag'
-import Modal from '../components/ui/Modal'
-import Input from '../components/ui/Input'
 import { KineticTextReveal } from '../components/ui/KineticTextReveal'
+import { technologies } from '../components/ui/TechMarquee'
 import { useHeroScroll } from '../context/HeroScrollContext'
+
+// Lookup so the selected-project marquee can reuse the same icons as the
+// hero TechMarquee (matched by name). Alias "html"/"css" to the hero's
+// "HTML5"/"CSS3" logos.
+const TECH_MAP = (() => {
+  const map = Object.fromEntries(
+    technologies.map((t) => [t.name.toLowerCase(), t])
+  )
+  map['html'] = map['html5']
+  map['css'] = map['css3']
+  return map
+})()
+
+const ResponsiveDesignIcon = (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    height="24"
+    width="24"
+  >
+    <desc>Responsive Design 1 Streamline Icon: https://streamlinehq.com</desc>
+    <path fill="#66e1ff" d="M5.78223 14.3914V5.30449c0 -0.79236 0.64234 -1.43471 1.43471 -1.43471H21.5648c0.7923 0 1.4347 0.64235 1.4347 1.43471v9.08691H5.78223Z" strokeWidth="1" />
+    <path fill="#c2f3ff" d="M19.6517 3.86978H7.21694c-0.79237 0 -1.43471 0.64235 -1.43471 1.43471v9.08691h3.34779L19.6517 3.86978Z" strokeWidth="1" />
+    <path fill="#ffffff" d="M5.78223 14.3915H22.9995v2.3912c0 0.7925 -0.6424 1.4348 -1.4347 1.4348H7.21694c-0.79237 0 -1.43471 -0.6423 -1.43471 -1.4348v-2.3912Z" strokeWidth="1" />
+    <path fill="#ffffff" d="M10.5647 6.73929H4.82568c-0.52834 -0.0001 -0.95654 0.4282 -0.95654 0.95654V15.348c0 0.5282 0.4282 0.9565 0.95654 0.9564h5.73902c0.5284 0 0.9566 -0.4282 0.9566 -0.9564V7.69583c0 -0.52834 -0.4282 -0.95654 -0.9566 -0.95654Z" strokeWidth="1" />
+    <path fill="#66e1ff" d="M11.5213 8.65228H3.86914v5.73912h7.65216V8.65228Z" strokeWidth="1" />
+    <path fill="#c2f3ff" d="M10.5647 8.65228H3.86914v5.73912h0.95654l5.73902 -5.73912Z" strokeWidth="1" />
+    <path fill="#ffffff" d="M5.78261 11.5219H1.95654C1.4282 11.5218 1 11.9501 1 12.4784v6.6956c0 0.5283 0.4282 0.9565 0.95654 0.9565h3.82607c0.52824 0 0.95654 -0.4282 0.95654 -0.9565v-6.6956c0 -0.5283 -0.4283 -0.9565 -0.95654 -0.9565Z" strokeWidth="1" />
+    <path fill="#66e1ff" d="M6.73905 13.4349H1v4.7826h5.73905v-4.7826Z" strokeWidth="1" />
+    <path fill="#c2f3ff" d="M1 13.4349v4.7826h0.47827l4.78261 -4.7826H1Z" strokeWidth="1" />
+    <path stroke="#000000" strokeLinecap="round" strokeLinejoin="round" d="M5.85791 4.82623c0.1957 -0.58135 0.74591 -0.96855 1.35917 -0.95645H21.5649c0.8153 0.02392 1.4573 0.70355 1.4347 1.51895V16.6986c0.0226 0.8153 -0.6194 1.4949 -1.4347 1.5189H8.65189" strokeWidth="1" />
+    <path stroke="#000000" strokeLinecap="round" strokeLinejoin="round" d="M10.0864 20.1305h8.6086" strokeWidth="1" />
+    <path stroke="#000000" strokeLinecap="round" strokeLinejoin="round" d="M14.3906 18.2175v1.913" strokeWidth="1" />
+    <path stroke="#000000" strokeLinecap="round" strokeLinejoin="round" d="M13.4341 14.3915h9.5651" strokeWidth="1" />
+    <path stroke="#000000" strokeLinecap="round" strokeLinejoin="round" d="M3.86914 9.60881V7.69583c0 -0.52834 0.4283 -0.95654 0.95654 -0.95654h5.73902c0.5284 0 0.9566 0.4282 0.9566 0.95654V15.348c0 0.5282 -0.4282 0.9564 -0.9566 0.9564H8.65175" strokeWidth="1" />
+    <path stroke="#000000" strokeLinecap="round" strokeLinejoin="round" d="M8.65234 14.3915h2.86956" strokeWidth="1" />
+    <path stroke="#000000" strokeLinecap="round" strokeLinejoin="round" d="M5.78261 11.5219H1.95654C1.4282 11.5218 1 11.9501 1 12.4784v6.6956c0 0.5283 0.4282 0.9565 0.95654 0.9565h3.82607c0.52824 0 0.95654 -0.4282 0.95654 -0.9565v-6.6956c0 -0.5283 -0.4283 -0.9565 -0.95654 -0.9565Z" strokeWidth="1" />
+    <path stroke="#000000" strokeLinecap="round" strokeLinejoin="round" d="M1 18.2175h5.73905" strokeWidth="1" />
+    <path stroke="#000000" strokeLinecap="round" strokeLinejoin="round" d="M1 13.4349h5.73905" strokeWidth="1" />
+    <path stroke="#000000" strokeLinecap="round" strokeLinejoin="round" d="M3.86816 8.65326h7.65214" strokeWidth="1" />
+  </svg>
+)
+
+const spotlightVariants = {
+  hidden: { opacity: 0, scaleY: 0.04, scaleX: 0.25, x: '-50%' },
+  visible: {
+    opacity: 0.82,
+    scaleY: 1,
+    scaleX: 1,
+    x: '-50%',
+    transition: { duration: 0.9, delay: 0.25, ease: 'easeOut' },
+  },
+}
+
+const lightSourceVariants = {
+  hidden: { opacity: 0, scale: 0.12, x: '-50%', y: '-50%' },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    x: '-50%',
+    y: '-50%',
+    transition: { duration: 0.6, ease: 'easeOut' },
+  },
+}
+
+/* Directional slide for the milestone images only.
+   Podium base (podium.png) and shadow (::after) stay fixed. */
+const SWITCH_EASE = [0.22, 1, 0.36, 1]
+const SWITCH_DURATION = 0.6
+
+const slideVariants = {
+  enter: (dirRef) => {
+    const dir = dirRef && typeof dirRef === 'object' ? dirRef.current : dirRef
+    return { x: dir > 0 ? '-16%' : '16%', opacity: 0 }
+  },
+  center: { x: '0%', opacity: 1 },
+  exit: (dirRef) => {
+    const dir = dirRef && typeof dirRef === 'object' ? dirRef.current : dirRef
+    return { x: dir > 0 ? '16%' : '-16%', opacity: 0 }
+  },
+}
 
 const projectDetails = {
   'CarCure': {
@@ -35,6 +114,96 @@ const projectDetails = {
     description: 'Django-based tour package management system with CRUD operations, authentication, booking workflow, and database management.',
     tags: ['Python', 'Django', 'SQLite', 'HTML'],
     highlights: ['CRUD operations', 'Authentication', 'Booking workflow', 'Admin panel'],
+  },
+}
+
+const MILESTONES = [
+  {
+    id: 'jar',
+    title: 'Coming Soon!',
+    badge: '',
+    milestone: '/media/jar-coming soon.png',
+    tilt: false,
+    front: null,
+    caption: true,
+  },
+  {
+    id: 'carcure',
+    title: 'CarCure',
+    eyebrow: 'E-commerce',
+    badge: 'Featured',
+    milestone: '/media/website img.png',
+    tilt: true,
+    front: '/media/carcure.png',
+    caption: true,
+  },
+  {
+    id: 'carcure2',
+    title: 'AL Shamil Turning',
+    eyebrow: 'Portfolio',
+    badge: '',
+    milestone: '/media/website img-2.png',
+    tilt: true,
+    front: '/media/hull machine.png',
+    caption: true,
+  },
+  {
+    id: 'sandra',
+    title: 'Sandra International',
+    eyebrow: 'Portfolio',
+    badge: '',
+    milestone: null,
+    tilt: false,
+    front: null,
+    caption: true,
+  },
+]
+
+// Rich info shown in the right-side console when a milestone is selected.
+const PROJECT_INFO = {
+  jar: {
+    num: '01',
+    name: 'Coming Soon',
+    category: 'In Development',
+    description:
+      'A brand-new platform is currently in the workshop. This slot will showcase the next build the moment it goes live.',
+    highlights: ['Concept & planning', 'Architecture design', 'UI prototyping', 'Stack selection'],
+    stack: ['React', 'Node', 'PostgreSQL'],
+    live: '#',
+    repo: '#',
+  },
+  carcure: {
+    num: '02',
+    name: 'CarCure',
+    category: 'E-commerce · SaaS',
+    description:
+      'Production-grade roadside assistance and spare-parts platform for UAE drivers. Handles SOS requests, service booking, and staff dashboards end to end.',
+    highlights: projectDetails['CarCure'].highlights,
+    stack: projectDetails['CarCure'].tags,
+    live: '#',
+    repo: '#',
+  },
+  carcure2: {
+    num: '03',
+    name: 'AL Shamil Turning',
+    category: 'Corporate Portfolio',
+    description:
+      'Corporate portfolio site for a Fujairah engineering firm, rebuilt with a cleaner UI, faster loads, and a fully responsive layout.',
+    highlights: projectDetails['Al Shamil Turning LLC'].highlights,
+    stack: projectDetails['Al Shamil Turning LLC'].tags,
+    live: '#',
+    repo: '#',
+  },
+  sandra: {
+    num: '04',
+    name: 'Sandra International',
+    category: 'Business Portfolio',
+    description:
+      'Business portfolio website for a UAE startup, built mobile-first with strong SEO and fast page performance.',
+    highlights: projectDetails['Sandra International Website'].highlights,
+    stack: projectDetails['Sandra International Website'].tags,
+    live: '#',
+    repo: '#',
   },
 }
 
@@ -66,13 +235,23 @@ function CountUp({ target, active, suffix = '', delay = 0 }) {
 }
 
 function Projects() {
-  const [projects, setProjects] = useState([])
-  const [selectedProject, setSelectedProject] = useState(null)
-  const [search, setSearch] = useState('')
   const statsRef = useRef(null)
   const titleTextRef = useRef(null)
   const [countStarted, setCountStarted] = useState(false)
   const [vh, setVh] = useState(typeof window !== 'undefined' ? window.innerHeight : 0)
+
+  // Carousel: index of the project currently shown in the center podium
+  const [order, setOrder] = useState(1)
+  // Direction of the last navigation: 1 = forward (next), -1 = backward (prev)
+  // Live ref so enter/exit always read the CURRENT direction (never a frozen value)
+  const directionRef = useRef(0)
+  // Lock to prevent overlapping clicks from desyncing the slide direction
+  const [animating, setAnimating] = useState(false)
+  // Selected milestone (click to focus, others fade out); null = default view
+  const [selectedId, setSelectedId] = useState(null)
+  // True while a side milestone is navigating to center before selection,
+  // so we can suppress hover effects during the move
+  const [navigating, setNavigating] = useState(false)
 
   useEffect(() => {
     const onResize = () => setVh(window.innerHeight)
@@ -88,16 +267,12 @@ function Projects() {
   useEffect(() => {
     heroProgress.set(0)
     const unsub = progress.on('change', (v) => heroProgress.set(v))
-    return () => {
-      unsub()
-      heroProgress.set(0)
-    }
+    return () => { unsub(); heroProgress.set(0) }
   }, [progress, heroProgress])
 
   useEffect(() => {
     const hero = heroRef.current
     if (!hero) return
-
     const updateProgress = () => {
       const rect = hero.getBoundingClientRect()
       const scrollDistance = hero.offsetHeight - window.innerHeight
@@ -105,92 +280,59 @@ function Projects() {
       const p = Math.min(1, Math.max(0, -rect.top / scrollDistance))
       rawProgress.set(p)
     }
-
     window.addEventListener('scroll', updateProgress, { passive: true })
     window.addEventListener('resize', updateProgress)
     updateProgress()
-
     return () => {
       window.removeEventListener('scroll', updateProgress)
       window.removeEventListener('resize', updateProgress)
     }
   }, [rawProgress])
 
-   // ─────────────────────────────────────────────
-   // HANDS
-   // ─────────────────────────────────────────────
-
-    const robotX = useTransform(progress, [0.5, 0.85], ['0vw', '13vw'])
-    const humanX = useTransform(progress, [0.5, 0.85], ['0vw', '-13vw'])
-    const robotScaleVal = useTransform(progress, [0.5, 0.85], [1, 1.35])
-    const humanScaleVal = useTransform(progress, [0.5, 0.85], [1, 1.35])
-    const robotRotate = useTransform(progress, [0, 0.72, 0.85], [-1, 0, 0])
-    const humanRotate = useTransform(progress, [0, 0.72, 0.85], [1, 0, 0])
-
-    // ─────────────────────────────────────────────
-    // CAMERA
-    // ─────────────────────────────────────────────
-
-    const cameraScale = useTransform(progress, [0, 0.72, 0.85], [1, 1.08, 1.08])
-
-    // ─────────────────────────────────────────────
-    // CONNECTION GLOW
-    // ─────────────────────────────────────────────
-
-    const connectionGlow = useTransform(progress, [0.5, 0.65, 0.75, 0.85], [0, 1, 1, 1])
-    const glowScale = useTransform(progress, [0.5, 0.65, 0.75, 0.85], [0.3, 1, 1.2, 1.2])
-
-    // ─────────────────────────────────────────────
-    // TEXT FADE (after connection)
-    // ─────────────────────────────────────────────
-
-    // HERO CONTENT : visible on load, fades out as the scroll animation plays
-    const textFadeOut = useTransform(progress, [0.55, 0.85], [1, 0])
-    const textSlideUp = useTransform(progress, [0.55, 0.85], [0, -24])
-    const textCombinedFade = textFadeOut
-
-    // POST-HERO PAGE : cover triggers ONLY after the hand/star/text animations finish
-    // (progress ~0.85), then slides UP by a full viewport to cover the pinned hero
-    const gridSlide = useTransform(progress, [0.85, 1], [0, -vh])
-    // Gentle grey overlay over the hero images as the panel begins covering it
-    const heroGreyOverlay = useTransform(progress, [0.85, 1], [0, 0.45])
-    // HERO : stays pinned and static while the next panel slides over and covers it
-
-  const filteredProjects = projects.filter(project => {
-    if (!search) return true
-    const q = search.toLowerCase()
-    const details = projectDetails[project.title] || {}
-    const allTags = details.tags || (project.tags ? project.tags.split(',').map(t => t.trim()) : [])
-    return (
-      project.title.toLowerCase().includes(q) ||
-      (details.description || project.description || '').toLowerCase().includes(q) ||
-      allTags.some(t => t.toLowerCase().includes(q))
-    )
-  })
+  const robotX = useTransform(progress, [0.5, 0.85], ['0vw', '13vw'])
+  const humanX = useTransform(progress, [0.5, 0.85], ['0vw', '-13vw'])
+  const robotScaleVal = useTransform(progress, [0.5, 0.85], [1, 1.35])
+  const humanScaleVal = useTransform(progress, [0.5, 0.85], [1, 1.35])
+  const robotRotate = useTransform(progress, [0, 0.72, 0.85], [-1, 0, 0])
+  const humanRotate = useTransform(progress, [0, 0.72, 0.85], [1, 0, 0])
+  const cameraScale = useTransform(progress, [0, 0.72, 0.85], [1, 1.08, 1.08])
+  const connectionGlow = useTransform(progress, [0.5, 0.65, 0.75, 0.85], [0, 1, 1, 1])
+  const glowScale = useTransform(progress, [0.5, 0.65, 0.75, 0.85], [0.3, 1, 1.2, 1.2])
+  const textFadeOut = useTransform(progress, [0.55, 0.85], [1, 0])
+  const textSlideUp = useTransform(progress, [0.55, 0.85], [0, -24])
+  const textCombinedFade = textFadeOut
+  const gridSlide = useTransform(progress, [0.85, 1], [0, -vh])
+  const heroGreyOverlay = useTransform(progress, [0.85, 1], [0, 0.45])
 
   const stats = useMemo(() => {
-    const techSet = new Set()
-    Object.values(projectDetails).forEach(d => {
-      (d.tags || []).forEach(t => techSet.add(t))
-    })
     return [
       { label: 'Total Projects', value: 4, suffix: '' },
       { label: 'Tech Stack', value: 16, suffix: '+' },
       { label: 'Commercial Builds', value: 2, suffix: '' },
       { label: 'Year Freelance', value: 1, suffix: '+' },
     ]
-  }, [projects])
-
-  useEffect(() => {
-    const timer = setTimeout(() => setCountStarted(true), 2700)
-    return () => clearTimeout(timer)
   }, [])
 
   useEffect(() => {
-    projectService.getAll()
-      .then(res => setProjects(res.data))
-      .catch(err => console.error(err))
+    const timer = setTimeout(() => setCountStarted(true), 2700);
+    return () => clearTimeout(timer);
   }, [])
+
+  // While a milestone is focused, lift the projects section above the fixed
+  // "Let's Connect" chrome and disable that link so it can't intercept clicks
+  // meant for the close (X) button.
+  useEffect(() => {
+    const root = document.documentElement
+    if (selectedId) root.classList.add('project-detail-open')
+    else root.classList.remove('project-detail-open')
+    return () => root.classList.remove('project-detail-open')
+  }, [selectedId])
+
+  const slotFor = (p) => MILESTONES[(p + 1 - order + MILESTONES.length) % MILESTONES.length]
+  const slots = [slotFor(0), slotFor(1), slotFor(2)]
+
+  // Rich console data for the currently selected milestone
+  const info = selectedId ? PROJECT_INFO[selectedId] : null
 
   return (
     <>
@@ -267,11 +409,11 @@ function Projects() {
               <div className="absolute w-72 h-px bg-linear-to-r from-transparent via-[#D8B878] to-transparent left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 blur-[0.5px]" />
               <div className="absolute w-px h-72 bg-linear-to-b from-transparent via-[#D8B878] to-transparent left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 blur-[0.5px]" />
 
-              {/* Diagonal pair : 45° / 135°, medium length */}
+              {/* Diagonal pair : 45 / 135, medium length */}
               <div className="absolute w-56 h-px bg-linear-to-r from-transparent via-[#D8B878]/70 to-transparent left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rotate-45 blur-[0.5px]" />
               <div className="absolute w-56 h-px bg-linear-to-r from-transparent via-[#D8B878]/70 to-transparent left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rotate-135 blur-[0.5px]" />
 
-              {/* Accent sparkle rays : 4 short rays offset 22.5°, white-hot tips */}
+              {/* Accent sparkle rays : 4 short rays offset 22.5, white-hot tips */}
               <div className="absolute w-28 h-px bg-linear-to-r from-transparent via-white/60 to-transparent left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rotate-[22.5deg] blur-[0.5px]" />
               <div className="absolute w-28 h-px bg-linear-to-r from-transparent via-white/60 to-transparent left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rotate-[-22.5deg] blur-[0.5px]" />
               <div className="absolute w-28 h-px bg-linear-to-r from-transparent via-white/60 to-transparent left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rotate-[67.5deg] blur-[0.5px]" />
@@ -459,155 +601,363 @@ function Projects() {
       </div>
 
       {/* Projects Content : slides up from bottom over the hero (redesigned) */}
-      <motion.div id="projects-grid" style={{ y: gridSlide }} className="relative z-30 min-h-screen bg-white pt-20 pb-32 overflow-hidden rounded-t-[40px]">
+      <motion.div id="projects-grid" style={{ y: gridSlide }} className="relative z-30 min-h-screen bg-[linear-gradient(180deg,#1c1f24_0%,#101216_35%,#070809_100%)] pt-10 pb-32 overflow-hidden rounded-t-[40px]">
+
+        {/* Default-state chevrons: functional carousel controls */}
+        {!selectedId && (
+          <>
+            <button
+              type="button"
+              aria-label="Previous project"
+              className="podium-chevron podium-chevron--btn podium-chevron--left"
+              disabled={animating}
+              onClick={() => {
+                if (animating) return
+                directionRef.current = 1
+                setOrder((o) => (o + 1) % MILESTONES.length)
+                setAnimating(true)
+                setTimeout(() => setAnimating(false), 600)
+              }}
+            >
+              <svg viewBox="0 0 24 24">
+                <polyline points="15 5 8 12 15 19" />
+              </svg>
+            </button>
+
+            <button
+              type="button"
+              aria-label="Next project"
+              className="podium-chevron podium-chevron--btn podium-chevron--right"
+              disabled={animating}
+              onClick={() => {
+                if (animating) return
+                directionRef.current = -1
+                setOrder((o) => (o + MILESTONES.length - 1) % MILESTONES.length)
+                setAnimating(true)
+                setTimeout(() => setAnimating(false), 600)
+              }}
+            >
+              <svg viewBox="0 0 24 24">
+                <polyline points="9 5 16 12 9 19" />
+              </svg>
+            </button>
+          </>
+        )}
+
+        {/* Selected-state chevrons: switch directly between milestones
+            (recenter the new milestone + keep detail open, no return to default) */}
+        {selectedId && (
+          <>
+            <button
+              type="button"
+              aria-label="Previous milestone"
+              className="podium-chevron podium-chevron--btn podium-chevron--selected podium-chevron--left"
+              disabled={animating}
+              onClick={() => {
+                if (animating) return
+                const prevId = slots[0].id
+                directionRef.current = 1
+                setOrder((o) => (o + 1) % MILESTONES.length)
+                setSelectedId(prevId)
+                setAnimating(true)
+                setNavigating(true)
+                setTimeout(() => setAnimating(false), 600)
+                setTimeout(() => setNavigating(false), 600)
+              }}
+            >
+              <svg viewBox="0 0 24 24">
+                <polyline points="15 5 8 12 15 19" />
+              </svg>
+            </button>
+
+            <button
+              type="button"
+              aria-label="Next milestone"
+              className="podium-chevron podium-chevron--btn podium-chevron--selected podium-chevron--right"
+              disabled={animating}
+              onClick={() => {
+                if (animating) return
+                const nextId = slots[2].id
+                directionRef.current = -1
+                setOrder((o) => (o + MILESTONES.length - 1) % MILESTONES.length)
+                setSelectedId(nextId)
+                setAnimating(true)
+                setNavigating(true)
+                setTimeout(() => setAnimating(false), 600)
+                setTimeout(() => setNavigating(false), 600)
+              }}
+            >
+              <svg viewBox="0 0 24 24">
+                <polyline points="9 5 16 12 9 19" />
+              </svg>
+            </button>
+          </>
+        )}
+        <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-72 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.10),transparent_70%)]" />
         <Container>
           <div className="relative z-10">
             <SectionHeading
-              tone="light"
-              eyebrow="All Projects"
-              title="Case Studies"
+              tone="dark"
+              title="Milestones"
               subtitle="A selection of applications I've designed, built, and shipped."
-              alignment="left"
+              alignment="center"
+              subtitleClassName="mt-2"
             />
 
-            <div className="max-w-md mb-14">
-              <Input
-                placeholder="Search projects or technologies..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="!bg-white !border !border-[#D2DCDF] !text-[#0A3332] placeholder:!text-[#718082]"
-              />
-            </div>
+            <motion.div
+              className={`podium-stage${navigating ? ' pod-no-hover' : ''}`}
+              style={{ marginTop: '-48px' }}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.35 }}
+            >
 
-            <div className="space-y-8">
-              {filteredProjects.map((project, index) => {
-                const details = projectDetails[project.title] || {}
+              {slots.map((p, i) => {
+                const slotName = ['left', 'center', 'right'][i]
                 return (
-                  <motion.div
-                    key={project.id}
-                    initial={{ opacity: 0, y: 60 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: '-50px' }}
-                    transition={{ duration: 0.7, delay: index * 0.08, ease: [0.16, 1, 0.3, 1] }}
-                    className="group relative bg-[#12171C] border border-[#29323A] rounded-3xl overflow-hidden hover:border-[#6FE7FF]/30 transition-colors duration-400"
+                  <div
+                    key={slotName}
+                    onClick={() => {
+                      if (selectedId || animating) return
+                      const idx = MILESTONES.findIndex((m) => m.id === p.id)
+                      // Slot of the clicked milestone: 0=left, 1=center, 2=right
+                      const slot =
+                        (((idx + order - 1) % MILESTONES.length) + MILESTONES.length) %
+                        MILESTONES.length
+                      if (slot === 1) {
+                        // Already centered — select and slide immediately
+                        setSelectedId(p.id)
+                        return
+                      }
+                      // Bring it to center with one chevron, then select/slide.
+                      // Left slot -> right chevron (next); right slot -> left chevron (prev)
+                      const dir = slot === 0 ? 1 : -1
+                      directionRef.current = dir
+                      setOrder(
+                        (o) =>
+                          (o + (dir === 1 ? 1 : MILESTONES.length - 1)) %
+                          MILESTONES.length
+                      )
+                      setAnimating(true)
+                      setNavigating(true)
+                      setTimeout(() => setAnimating(false), 600)
+                      setTimeout(() => {
+                        setSelectedId(p.id)
+                        // keep hover suppressed until the slide-to-left finishes
+                        setTimeout(() => setNavigating(false), 600)
+                      }, 620)
+                    }}
+                    className={`podium-item podium-${slotName}${
+                      selectedId && selectedId !== p.id ? ' is-dimmed' : ''
+                    }${selectedId === p.id ? ' is-selected' : ''}`}
                   >
-                    <div className="p-8 md:p-12">
-                      <div className="flex flex-wrap items-start justify-between gap-4 mb-5">
-                        <div className="flex items-baseline gap-4">
-                          <span className="font-(family-name:--font-display) text-[20px] text-[#6FE7FF] font-medium leading-none">
-                            {String(index + 1).padStart(2, '0')}
-                          </span>
-                          <h3 className="text-[24px] md:text-[30px] font-medium text-[#F5F7F7] leading-tight font-(family-name:--font-display)">
-                            {project.title}
-                          </h3>
-                        </div>
-                        {project.featured && <Tag variant="teal" size="sm">Featured</Tag>}
-                      </div>
+                    <motion.div className="podium-spotlight" variants={spotlightVariants} />
+                    <motion.div className="podium-light-source" variants={lightSourceVariants} />
+                    <div className="podium-floor-glow" />
+                    <div className="podium-top-light" />
 
-                      <p className="text-[#AEB9BD] mb-8 text-[16px] leading-[1.8] max-w-3xl">
-                        {details.description || project.description}
-                      </p>
+                    <img
+                      src="/media/podium.png"
+                      alt="Project podium"
+                      className="podium-image"
+                    />
 
-                      <div className="grid md:grid-cols-2 gap-8">
-                        {details.highlights && (
-                          <div>
-                            <h4 className="text-[11px] font-medium text-[#6FE7FF] uppercase tracking-[0.18em] font-(family-name:--font-mono) mb-3">
-                              Key Features
-                            </h4>
-                            <div className="flex flex-wrap gap-2">
-                              {details.highlights.map((highlight, i) => (
-                                <Tag key={i} size="sm">{highlight}</Tag>
-                              ))}
+                    {/* Animated milestone image stack — slides, podium/shadow stay put */}
+                    <AnimatePresence initial={false} custom={directionRef}>
+                      <motion.div
+                        key={p.id}
+                        className="podium-image-stack"
+                        custom={directionRef}
+                        variants={slideVariants}
+                        initial="enter"
+                        animate="center"
+                        exit="exit"
+                        transition={{ duration: SWITCH_DURATION, ease: SWITCH_EASE }}
+                      >
+                        {p.milestone ? (
+                          <img
+                            src={p.milestone}
+                            alt={`${p.title} milestone`}
+                            className={`podium-object-back ${p.tilt ? '' : 'is-flat'}`}
+                          />
+                        ) : (
+                          <div
+                            className={`podium-object-back podium-placeholder ${p.tilt ? '' : 'is-flat'}`}
+                          >
+                            <span className="podium-placeholder-eyebrow">{p.eyebrow}</span>
+                            <span className="podium-placeholder-title">{p.title}</span>
+                          </div>
+                        )}
+
+                        {p.front && (
+                          <img
+                            src={p.front}
+                            alt={p.title}
+                            className={`podium-object${p.id === 'carcure2' ? ' podium-object--raised' : ''}`}
+                          />
+                        )}
+
+                        {p.caption && (
+                          <div className="podium-caption">
+                            {p.eyebrow && (
+                              <span className="podium-caption-eyebrow">{p.eyebrow}</span>
+                            )}
+                            <div className="podium-caption-row">
+                              <span className="podium-caption-title">{p.title}</span>
+                              {p.badge && <span className="podium-caption-badge">{p.badge}</span>}
                             </div>
                           </div>
                         )}
+                      </motion.div>
+                    </AnimatePresence>
+                  </div>
+                )
+              })}
 
-                        <div>
-                          <h4 className="text-[11px] font-medium text-[#6FE7FF] uppercase tracking-[0.18em] font-(family-name:--font-mono) mb-3">
-                            Technologies
-                          </h4>
-                          <div className="flex flex-wrap gap-2">
-                            {(details.tags || (project.tags ? project.tags.split(',').map(t => t.trim()) : [])).map((tag, i) => (
-                              <Tag key={i} variant="primary" size="sm">{tag}</Tag>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
+              </motion.div>
 
-                      <div className="flex flex-wrap gap-4 mt-9 pt-7 border-t border-[#29323A]">
-                        {project.link && (
-                          <a
-                            href={project.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 px-5 py-3 bg-[#0A3332] text-[#F5F7F7] text-[13px] font-medium rounded-[10px] hover:bg-[#164C4A] transition-all duration-200"
-                          >
-                            Live Demo
-                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                            </svg>
-                          </a>
-                        )}
-                        {project.github && (
-                          <a
-                            href={project.github}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 px-5 py-3 border border-[#29323A] text-[#F5F7F7] text-[13px] font-medium rounded-[10px] hover:bg-[#202830] hover:border-[#6FE7FF]/40 hover:text-[#6FE7FF] transition-all duration-200"
-                          >
-                            Source Code
-                          </a>
-                        )}
-                        <button
-                          onClick={() => setSelectedProject({ ...project, details })}
-                          className="inline-flex items-center gap-2 px-5 py-3 text-[#AEB9BD] text-[13px] font-medium rounded-[10px] hover:text-[#6FE7FF] transition-colors"
-                        >
-                          Details
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                          </svg>
-                        </button>
+              {/* Tech-stack marquee beneath the selected milestone — matches the
+                  hero TechMarquee styling, constrained to the left half (left → center).
+                  Wrapped in a fixed-height slot so the crossfade never reflows the section. */}
+              <div className="marquee-slot">
+              <AnimatePresence>
+                {selectedId && info && (
+                  <motion.div
+                    key={`marquee-${selectedId}`}
+                    className="project-tech-marquee"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: SWITCH_DURATION, ease: SWITCH_EASE }}
+                  >
+                    <div className="relative overflow-hidden py-4">
+                      <div
+                        className="flex w-max animate-marquee gap-12 whitespace-nowrap"
+                        style={{
+                          maskImage: 'linear-gradient(to right, transparent 0%, #000 8%, #000 92%, transparent 100%)',
+                          WebkitMaskImage: 'linear-gradient(to right, transparent 0%, #000 8%, #000 92%, transparent 100%)',
+                        }}
+                      >
+                        {[...info.stack, ...info.stack].map((tech, i) => {
+                          const match = TECH_MAP[tech.toLowerCase()]
+                          return (
+                            <div key={i} className="flex items-center gap-1.5">
+                              {tech.toLowerCase() === 'responsive design' ? (
+                            <span className="opacity-60">{ResponsiveDesignIcon}</span>
+                          ) : match ? (
+                                match.svg ? (
+                                  <span className="opacity-60">{match.svg}</span>
+                                ) : (
+                                  <img
+                                    src={match.image}
+                                    alt={match.name}
+                                    className="h-5 w-auto opacity-60"
+                                    style={
+                                      match.name === 'GitHub' || match.name === 'Django'
+                                        ? { filter: 'invert(1)' }
+                                        : undefined
+                                    }
+                                  />
+                                )
+                              ) : null}
+                              <span className="text-[#59636E] text-sm font-medium tracking-wide">
+                                {tech}
+                              </span>
+                            </div>
+                          )
+                        })}
                       </div>
                     </div>
                   </motion.div>
-                )
-              })}
-            </div>
-          </div>
-        </Container>
+                )}
+              </AnimatePresence>
+              </div>
 
-        <Modal
-          isOpen={!!selectedProject}
-          onClose={() => setSelectedProject(null)}
-          title={selectedProject?.title}
-          size="lg"
-        >
-          {selectedProject && (
-            <div>
-              <p className="text-[#AEB9BD] mb-4">{selectedProject.details?.description || selectedProject.description}</p>
-              {selectedProject.details?.tags && (
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {selectedProject.details.tags.map((tag, i) => (
-                    <Tag key={i} variant="primary" size="sm">{tag}</Tag>
-                  ))}
-                </div>
-              )}
-              {selectedProject.details?.highlights && (
-                <div>
-                  <h4 className="text-[12px] font-medium text-[#6FE7FF] uppercase tracking-[0.18em] font-(family-name:--font-mono) mb-2">Key Features</h4>
-                  <ul className="space-y-1">
-                    {selectedProject.details.highlights.map((h, i) => (
-                      <li key={i} className="text-[#AEB9BD] text-[14px]">- {h}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+              <AnimatePresence>
+                {selectedId && (
+                  <motion.button
+                    type="button"
+                    aria-label="Close milestone detail"
+                    onClick={() => setSelectedId(null)}
+                    initial={{ opacity: 0, scale: 0.6 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.6 }}
+                    transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                    className="podium-close-btn"
+                  >
+                    <svg viewBox="0 0 24 24" width="20" height="20">
+                      <line x1="5" y1="5" x2="19" y2="19" />
+                      <line x1="19" y1="5" x2="5" y2="19" />
+                    </svg>
+                  </motion.button>
+                )}
+              </AnimatePresence>
+
+              {/* Right-side information console for the selected milestone */}
+              <AnimatePresence>
+                {selectedId && info && (
+                  <motion.div
+                    key={selectedId}
+                    className="podium-console"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: SWITCH_DURATION, ease: SWITCH_EASE }}
+                  >
+                    <div className="console-inner">
+                      <div className="console-head">
+                        <span className="console-num">{info.num}</span>
+                        <div className="console-head-text">
+                          <span className="console-category">{info.category}</span>
+                          <h3 className="console-name">{info.name}</h3>
+                        </div>
+                      </div>
+
+                      <p className="console-desc">{info.description}</p>
+
+                      <ul className="console-highlights">
+                        {info.highlights.map((h) => (
+                          <li key={h}>{h}</li>
+                        ))}
+                      </ul>
+
+                      <div className="console-actions">
+                        <a className="console-btn console-btn--primary" href={info.live} target="_blank" rel="noreferrer">
+                          Live Site
+                          <svg viewBox="0 0 24 24" width="14" height="14"><path d="M7 17L17 7M17 7H8M17 7V16" /></svg>
+                        </a>
+                        <a className="console-btn" href={info.repo} target="_blank" rel="noreferrer">
+                          Repository
+                          <svg viewBox="0 0 24 24" width="14" height="14"><path d="M9 19c-4 1.5-4-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12 12 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21" /></svg>
+                        </a>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
             </div>
-          )}
-        </Modal>
+        </Container>
       </motion.div>
     </>
   )
 }
 
 export default Projects
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

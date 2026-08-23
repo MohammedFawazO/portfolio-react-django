@@ -19,32 +19,28 @@ export function MatrixRain({
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
+    let columns = 0
+    let drops = []
+
+    const setup = () => {
+      const w = width || canvas.offsetWidth
+      const h = height || canvas.offsetHeight
+      canvas.width = w
+      canvas.height = h
+      columns = Math.floor(w / fontSize)
+      drops = new Array(columns).fill(1)
+    }
+
+    setup()
+
     const resizeObserver = new ResizeObserver(() => {
-      if (!width && !height) {
-        canvas.width = canvas.offsetWidth
-        canvas.height = canvas.offsetHeight
-      }
+      if (!width && !height) setup()
     })
     resizeObserver.observe(canvas)
 
-    if (width) canvas.width = width
-    if (height) canvas.height = height
-    if (!width && !height) {
-      canvas.width = canvas.offsetWidth
-      canvas.height = canvas.offsetHeight
-    }
-
-    const w = canvas.width
-    const h = canvas.height
-
-    const columns = Math.floor(w / fontSize)
-    const drops = new Array(columns).fill(1)
-
-    const chars = "ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ1234567890"
+    const chars = "\u30a6\u30a7\u30a8\u30a9\u30aa\u30ab\u30ac\u30ad\u30ae\u30af\u30b0\u30b1\u30b2\u30b3\u30b4\u30b5\u30b6\u30b7\u30b8\u30b9\u30ba\u30bb\u30bc\u30bd\u30be\u30bf\u30c1\u30c2\u30c3\u30c4\u30c5\u30c6\u30c7\u30c8\u30c9\u30ca\u30cb\u30cc\u30cd\u30ce\u30cf\u30d2\u30d3\u30d4\u30d5\u30d6\u30d7\u30d8\u30d9\u30da\u30db\u30dc\u30dd\u30de\u30df\u30e0\u30e1\u30e2\u30e3\u30e4\u30e5\u30e6\u30e7\u30e8\u30e9\u30ea\u30eb\u30ec\u30ed\u30ee\u30ef\u30f2\u30f31234567890"
 
     let isDark = document.documentElement.classList.contains('dark')
-
-    ctx.clearRect(0, 0, w, h)
 
     const draw = () => {
       const currentIsDark = document.documentElement.classList.contains('dark')

@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { cn } from '../../lib/utils'
+import { motion } from 'framer-motion'
 
 const defaultItems = [
   { label: 'Home', href: '/' },
@@ -20,16 +21,6 @@ function DesignModeNavbar({
   const [activeIndex, setActiveIndex] = useState(() =>
     items.findIndex(item => item.href === location.pathname)
   )
-
-  useEffect(() => {
-    const index = items.findIndex(
-      item => item.href === location.pathname
-    )
-
-    if (index !== -1) {
-      setActiveIndex(index)
-    }
-  }, [location.pathname, items])
 
   const handleItemClick = (item, index) => {
     setActiveIndex(index)
@@ -77,38 +68,54 @@ function DesignModeNavbar({
                 >
                   {item.label}
 
-                  {isActive && (
-                    <>
-                      {/* Active underline */}
-                      <span className="design-active-line" />
-
-                      {/* Annotation */}
-                      <span className="design-active-note">
-                        active?
-                      </span>
-
-                      {/* Hand-drawn arrow */}
-                      <svg
-                        className="design-active-arrow"
-                        viewBox="0 0 36 32"
-                        fill="none"
-                        aria-hidden="true"
-                      >
-                        <path
-                          d="M14 3C11 9 21 12 16 18C13 21 19 23 23 26"
-                          stroke="currentColor"
-                          strokeWidth="1.2"
-                          strokeLinecap="round"
+{isActive && (
+                      <>
+                        {/* Active underline */}
+                        <motion.span
+                          className="design-active-line"
+                          initial={{ scaleX: 0 }}
+                          animate={{ scaleX: 1 }}
+                          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
                         />
-                        <path
-                          d="M18 19L23 26L16 25"
-                          stroke="currentColor"
-                          strokeWidth="1.2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </>
+
+                        {/* Annotation */}
+                        <motion.span
+                          className="design-active-note"
+                          initial={{ opacity: 0, scale: 0.75, y: -4 }}
+                          animate={{ opacity: 1, scale: 1, y: 0 }}
+                          transition={{ duration: 0.35, delay: 0.15 }}
+                        >
+                          active?
+                        </motion.span>
+
+                        {/* Hand-drawn arrow */}
+                        <svg
+                          className="design-active-arrow"
+                          viewBox="0 0 36 32"
+                          fill="none"
+                          aria-hidden="true"
+                        >
+                          <motion.path
+                            d="M14 3C11 9 21 12 16 18C13 21 19 23 23 26"
+                            stroke="currentColor"
+                            strokeWidth="1.2"
+                            strokeLinecap="round"
+                            initial={{ pathLength: 0 }}
+                            animate={{ pathLength: 1 }}
+                            transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1], delay: 0.25 }}
+                          />
+                          <motion.path
+                            d="M18 19L23 26L16 25"
+                            stroke="currentColor"
+                            strokeWidth="1.2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            initial={{ pathLength: 0 }}
+                            animate={{ pathLength: 1 }}
+                            transition={{ duration: 0.35, ease: "easeOut", delay: 0.75 }}
+                          />
+                        </svg>
+                      </>
                   )}
                 </Link>
               </li>
@@ -212,29 +219,26 @@ function DesignModeNavbar({
           right: 14px;
           bottom: 6px;
 
-          height: 2px;
+          height: 2.5px;
 
           background: #246bff;
+          border-radius: 1px;
 
           transform:
             rotate(-0.8deg)
             skewX(-8deg);
 
-          transform-origin: center;
+          transform-origin: left center;
         }
 
         /*
          * Small handwritten design annotation.
          */
-        .design-active-note {
-          position: absolute;
-
-          left: 50%;
-          bottom: calc(100% + 18px);
-
-          transform:
-            translateX(-50%)
-            rotate(-4deg);
+         .design-active-note {
+           position: absolute;
+           left: 35%;
+           bottom: calc(100% + 18px);
+           transform: translateX(-50%) rotate(-4deg);
 
           white-space: nowrap;
 

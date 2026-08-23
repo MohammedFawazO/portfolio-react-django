@@ -1,6 +1,46 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { ArrowRight } from 'lucide-react'
+import { BlueprintPillButton } from '@/components/ui/blueprint-pill-button'
+
+// Detect blueprint mode by watching the html class toggled by About.jsx.
+// Keeps the global ConnectButton untouched in every other mode.
+function useBlueprintActive() {
+  const [active, setActive] = useState(false)
+  useEffect(() => {
+    const root = document.documentElement
+    const update = () => setActive(root.classList.contains('about-blueprint-nav'))
+    update()
+    const mo = new MutationObserver(update)
+    mo.observe(root, { attributes: true, attributeFilter: ['class'] })
+    return () => mo.disconnect()
+  }, [])
+  return active
+}
 
 export default function ConnectButton({ className = '' }) {
+  const navigate = useNavigate()
+  const blueprint = useBlueprintActive()
+
+  // In blueprint mode, render the exact BlueprintPillButton (same as the
+  // hero "RESUME" button) so the connect CTA matches it precisely. Pinned
+  // top-right by the parent ConnectSlot, scaled slightly for balance.
+  if (blueprint) {
+    return (
+      <span
+        className="inline-block pointer-events-auto"
+        style={{ transform: 'scale(0.7) translateY(-14px)', transformOrigin: 'top right' }}
+      >
+        <BlueprintPillButton
+          label="LET'S_CONNECT"
+          heightOnRight={false}
+          hoverIcon={<ArrowRight />}
+          onClick={() => navigate('/contact')}
+        />
+      </span>
+    )
+  }
+
   return (
     <Link
       to="/contact"

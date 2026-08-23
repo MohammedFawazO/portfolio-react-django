@@ -7,6 +7,7 @@ function SectionHeading({
   alignment = 'center',
   tone = 'dark',
   className,
+  subtitleClassName,
 }) {
   const isLight = tone === 'light'
 
@@ -54,7 +55,8 @@ function SectionHeading({
       {subtitle && (
         <p
           className={clsx(
-            'text-[17px] font-light max-w-2xl mt-4 leading-relaxed',
+            'text-[17px] font-light max-w-2xl leading-relaxed',
+            subtitleClassName || 'mt-4',
             alignment === 'center' && 'mx-auto',
             subColor
           )}
@@ -67,3 +69,4 @@ function SectionHeading({
 }
 
 export default SectionHeading
+

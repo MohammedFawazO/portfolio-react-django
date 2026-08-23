@@ -186,7 +186,7 @@ body {
     transform: translateX(0);
   }
   to {
-    transform: translateX(-50%);
+  transform: translateX(-50%);
   }
 }
 
@@ -363,4 +363,1498 @@ body {
 @keyframes radarScan {
   '0%, 100%': { top: '0%'; opacity: 0.2; }
   '50%': { top: '100%'; opacity: 0.8; }
+}
+
+@layer utilities {
+  .text-stroke-sketch {
+    -webkit-text-stroke: 1px #0A3332;
+    text-shadow: 0.5px 0.5px 0px rgba(10, 51, 50, 0.2);
+  }
+}
+
+@layer utilities {
+  .caret-blink {
+    animation: caretBlink 1s step-end infinite;
+  }
+}
+@keyframes caretBlink {
+  0% { opacity: 1; }
+  50% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+/* About hero : engineering-note look in blueprint mode */
+.blueprint-hero-type {
+  font-family: 'JetBrains Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  line-height: 1.6;
+  opacity: 0.85;
+}
+/* About hero : terminal look in matrix mode (scoped so it never leaks) */
+.matrix-mode .hero-description {
+  font-family: 'Fira Code', 'Courier New', monospace;
+  color: #a3ffb4;
+  text-shadow: 0 0 5px rgba(0, 255, 100, 0.4);
+  letter-spacing: 1px;
+  line-height: 1.7;
+  text-transform: none;
+  opacity: 1;
+}
+/* About hero : terminal buttons in matrix mode (scoped so it never leaks) */
+.matrix-mode .btn-matrix {
+  background: rgba(0, 20, 5, 0.6);
+  color: #00ff66;
+  font-family: 'Fira Code', monospace;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  padding: 12px 28px;
+  border: 1px solid #00ff66;
+  border-radius: 0px;
+  cursor: pointer;
+  box-shadow: 0 0 18px rgba(0, 255, 102, 0.45);
+  transition: all 0.2s ease-in-out;
+}
+/* Matrix button label : the "Resume" word, with its own [ ] on hover.
+   No reserved width at rest so the label stays dead-center; the padding is
+   only added on hover (when the brackets are visible). */
+.matrix-mode .btn-matrix .matrix-btn-label {
+  position: relative;
+  display: inline-block;
+  white-space: nowrap;
+}
+.matrix-mode .btn-matrix:hover .matrix-btn-label {
+  padding: 0 8px;
+}
+/* "Resume" brackets : appear only on hover, absolutely positioned (no shift) */
+.matrix-mode .btn-matrix .matrix-btn-label::before,
+.matrix-mode .btn-matrix .matrix-btn-label::after {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #00ff66;
+  opacity: 0;
+  pointer-events: none;
+  letter-spacing: normal;
+  transition: opacity 0.16s steps(2, end);
+}
+.matrix-mode .btn-matrix .matrix-btn-label::before {
+  content: '[';
+  left: 0;
+}
+.matrix-mode .btn-matrix .matrix-btn-label::after {
+  content: ']';
+  right: 0;
+}
+.matrix-mode .btn-matrix:hover .matrix-btn-label::before,
+.matrix-mode .btn-matrix:hover .matrix-btn-label::after {
+  opacity: 1;
+}
+/* Matrix resume download icon : lives in its OWN [ ] on the right of the
+   label, revealed on hover. Hidden at rest so "Resume" sits dead-center. */
+.matrix-mode .btn-matrix .matrix-dl-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+.matrix-mode .btn-matrix:hover .matrix-dl-wrap {
+  margin-left: 6px;
+  padding: 0 8px;
+}
+.matrix-mode .btn-matrix .matrix-dl-wrap::before,
+.matrix-mode .btn-matrix .matrix-dl-wrap::after {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #00ff66;
+  opacity: 0;
+  pointer-events: none;
+  letter-spacing: normal;
+  transition: opacity 0.16s steps(2, end);
+}
+.matrix-mode .btn-matrix .matrix-dl-wrap::before {
+  content: '[';
+  left: 0;
+}
+.matrix-mode .btn-matrix .matrix-dl-wrap::after {
+  content: ']';
+  right: 0;
+}
+.matrix-mode .btn-matrix:hover .matrix-dl-wrap::before,
+.matrix-mode .btn-matrix:hover .matrix-dl-wrap::after {
+  opacity: 1;
+}
+.matrix-mode .btn-matrix .matrix-dl-icon {
+  display: inline-block;
+  color: #00ff66;
+  width: 0;
+  height: 14px;
+  margin: 0;
+  opacity: 0;
+  vertical-align: middle;
+  overflow: hidden;
+  transition: opacity 0.16s steps(2, end), transform 0.16s steps(2, end),
+    width 0.16s steps(2, end), margin 0.16s steps(2, end);
+}
+.matrix-mode .btn-matrix:hover .matrix-dl-icon {
+  width: 14px;
+  margin: 0;
+  opacity: 1;
+  transform: translateY(-2px);
+}
+.matrix-mode .btn-matrix span {
+  color: #00ff66;
+}
+.matrix-mode .btn-matrix:hover span {
+  color: #00ff66;
+}
+.matrix-mode .btn-matrix:hover {
+  background: #031a09;
+  color: #00ff66;
+  box-shadow: 0 0 30px rgba(0, 255, 102, 0.75);
+  font-weight: bold;
+}
+.matrix-mode .hero-heading {
+  font-family: 'Fira Code', 'Courier New', monospace;
+  color: #a3ffb4;
+  text-shadow: 0 0 6px rgba(0, 255, 100, 0.5);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.matrix-mode .hero-description span.keyword {
+  color: #00ff66;
+  font-weight: bold;
+  text-shadow: 0 0 8px rgba(0, 255, 102, 0.8);
+}
+
+/* About hero : navbar adopts the code/terminal theme ONLY in code (matrix)
+   mode. Scoped to the body class toggled by About.jsx so it never leaks
+   into design, blueprint or test modes (and never touches the design-mode
+   navbar, which is a different component). */
+html.about-matrix-nav .spotlight-nav {
+  --color-primary-light: #00ff66;
+  --color-primary-light-rgb: 0, 255, 102;
+  background: rgba(0, 20, 5, 0.6) !important;
+  border: 1px solid #00ff66 !important;
+  border-radius: 0 !important;
+  box-shadow: 0 0 18px rgba(0, 255, 102, 0.45) !important;
+  backdrop-filter: blur(12px);
+}
+html.about-matrix-nav .spotlight-nav a {
+  color: #00ff66 !important;
+  font-family: 'Fira Code', 'Courier New', monospace !important;
+  text-transform: uppercase !important;
+  letter-spacing: 2px !important;
+  font-size: 12px !important;
+}
+html.about-matrix-nav .spotlight-nav a:hover {
+  color: #a3ffb4 !important;
+}
+/* Active link gets terminal [ ] brackets instead of the bottom line */
+html.about-matrix-nav .spotlight-nav a.is-active::before {
+  content: '[';
+  margin-right: 4px;
+}
+html.about-matrix-nav .spotlight-nav a.is-active::after {
+  content: ']';
+  margin-left: 4px;
+}
+/* Hide the bottom ambience line in code mode (brackets replace it) */
+html.about-matrix-nav .spotlight-nav > div:nth-of-type(2) {
+  display: none !important;
+}
+
+/* =========================================================
+   BLUEPRINT NAVBAR STYLES - COMMENTED OUT
+   The hand-rolled .bp-deco frame + html.about-blueprint-nav
+   .spotlight-nav rules below were replaced by the REAL
+   BlueprintPillButton clone (className "bp-nav") rendered in
+   SpotlightNavbar.jsx - it inherits every RESUME-button feature
+   (dashed rectangle frame, nested solid/dotted frames, W/H
+   dimension indicators, cursor crosshair, JetBrains Mono links).
+   ========================================================= */
+/*
+/* About hero : navbar adopts the BlueprintPillButton theme ONLY in blueprint
+   mode. Scoped to the body class toggled by About.jsx so it never leaks into
+   design, matrix or test modes (and never touches the design-mode navbar,
+   which is a different component). Replicates BlueprintPillButton exactly:
+   transparent container, dashed cyan RECTANGLE outer border, nested solid +
+   dotted inner frames, W/H dimension indicators, cursor crosshair, cyan mono
+   links with glow (hover -> white), no underline. The cyan spotlight glow is
+   already driven by --color-primary-light. *\/
+/* Decorations are always in the DOM but hidden outside blueprint mode. *\/
+.spotlight-nav .bp-deco {
+  display: none;
+}
+html.about-blueprint-nav .spotlight-nav {
+  background: transparent !important;
+  border: 1px dashed rgba(0, 210, 255, 0.3) !important;
+  border-radius: 0 !important;
+  overflow: visible !important;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 0 15px rgba(0, 210, 255, 0.15) !important;
+}
+/* Decoration wrapper — shown only in blueprint mode *\/
+html.about-blueprint-nav .spotlight-nav .bp-deco {
+  display: block;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+/* Inner solid cyan frame (rounded-lg) *\/
+html.about-blueprint-nav .spotlight-nav .bp-frame-solid {
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  left: 8px;
+  right: 8px;
+  border: 2px solid rgba(0, 210, 255, 0.7);
+  border-radius: 8px;
+}
+/* Inner dotted cyan frame (rounded-md) *\/
+html.about-blueprint-nav .spotlight-nav .bp-frame-dot {
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: 13px;
+  right: 13px;
+  border: 1px dashed rgba(0, 210, 255, 0.4);
+  border-radius: 6px;
+}
+/* W dimension indicator (top, spanning almost the full navbar width) *\/
+html.about-blueprint-nav .spotlight-nav .bp-dim--w {
+  position: absolute;
+  top: -32px;
+  left: 8px;
+  right: 8px;
+  transform: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+html.about-blueprint-nav .spotlight-nav .bp-dim-label {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 10px;
+  color: #00d2ff;
+  margin-bottom: 2px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+html.about-blueprint-nav .spotlight-nav .bp-dim-bar {
+  position: relative;
+  width: 100%;
+  height: 1px;
+  background: #00d2ff;
+  opacity: 0.8;
+}
+html.about-blueprint-nav .spotlight-nav .bp-dim-bar::before {
+  content: '▲';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%) rotate(-90deg);
+  color: #00d2ff;
+  font-size: 8px;
+  line-height: 1;
+}
+html.about-blueprint-nav .spotlight-nav .bp-dim-bar::after {
+  content: '▲';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%) rotate(90deg);
+  color: #00d2ff;
+  font-size: 8px;
+  line-height: 1;
+}
+/* H dimension indicator (left, spanning almost the full navbar height) *\/
+html.about-blueprint-nav .spotlight-nav .bp-dim--h {
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  transform: none;
+  left: -64px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+html.about-blueprint-nav .spotlight-nav .bp-dim-bar-v {
+  position: relative;
+  height: 100%;
+  width: 1px;
+  background: #00d2ff;
+  opacity: 0.8;
+}
+html.about-blueprint-nav .spotlight-nav .bp-dim-bar-v::before {
+  content: '▲';
+  position: absolute;
+  top: -2px;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #00d2ff;
+  font-size: 8px;
+  line-height: 1;
+}
+html.about-blueprint-nav .spotlight-nav .bp-dim-bar-v::after {
+  content: '▲';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translate(-50%, 50%) rotate(180deg);
+  color: #00d2ff;
+  font-size: 8px;
+  line-height: 1;
+}
+/* Cursor crosshair lines (shown on hover, like the hero button) *\/
+html.about-blueprint-nav .spotlight-nav .bp-cross-h {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: var(--spotlight-y, 50%);
+  height: 1px;
+  background: #00d2ff;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+html.about-blueprint-nav .spotlight-nav .bp-cross-v {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--spotlight-x, 50%);
+  width: 1px;
+  background: #00d2ff;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+html.about-blueprint-nav .spotlight-nav:hover .bp-cross-h,
+html.about-blueprint-nav .spotlight-nav:hover .bp-cross-v {
+  opacity: 0.4;
+}
+/* Links: non-active muted white (so cyan active stays dominant), active cyan,
+   JetBrains Mono with glow *\/
+html.about-blueprint-nav .spotlight-nav a {
+  color: rgba(255, 255, 255, 0.55) !important;
+  font-family: 'JetBrains Mono', ui-monospace, monospace !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.15em !important;
+  font-weight: 700 !important;
+  text-shadow: none;
+}
+html.about-blueprint-nav .spotlight-nav a.is-active {
+  color: #00d2ff !important;
+  text-shadow: 0 0 8px rgba(0, 210, 255, 0.6);
+}
+html.about-blueprint-nav .spotlight-nav a:hover {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+/* Remove the bottom ambience underline in blueprint mode *\/
+html.about-blueprint-nav .spotlight-nav > div:nth-of-type(2) {
+  display: none !important;
+}
+*/
+
+/* New (minimal) blueprint-nav link styling for the BlueprintPillButton
+   clone. Scoped to the blueprint body class so other modes are untouched. */
+html.about-blueprint-nav .bp-nav a {
+  color: rgba(255, 255, 255, 0.55);
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-weight: 700;
+  text-shadow: none;
+  transition: color 0.15s ease;
+}
+html.about-blueprint-nav .bp-nav a.is-active {
+  color: #00d2ff;
+  text-shadow: 0 0 8px rgba(0, 210, 255, 0.6);
+}
+html.about-blueprint-nav .bp-nav a:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* About hero : "Let's Connect" button adopts the code/terminal theme in
+   code (matrix) mode only — scoped so other modes are untouched. */
+html.about-matrix-nav a[aria-label="Let's Connect"] {
+  background: rgba(0, 20, 5, 0.6) !important;
+  color: #00ff66 !important;
+  font-family: 'Fira Code', 'Courier New', monospace !important;
+  text-transform: uppercase !important;
+  letter-spacing: 2px !important;
+  font-size: 12px !important;
+  border: 1px solid #00ff66 !important;
+  border-radius: 0 !important;
+  box-shadow: 0 0 18px rgba(0, 255, 102, 0.45) !important;
+}
+html.about-matrix-nav a[aria-label="Let's Connect"]:hover {
+  background: #031a09 !important;
+  color: #00ff66 !important;
+  box-shadow: 0 0 30px rgba(0, 255, 102, 0.75) !important;
+  font-weight: bold;
+}
+/* Chevron movement : choppy/stepped to match the code-mode theme */
+@keyframes chevron-slide-choppy {
+  0%   { transform: translateX(0); }
+  50%  { transform: translateX(5px); }
+  100% { transform: translateX(0); }
+}
+html.about-matrix-nav a[aria-label="Let's Connect"]:hover .connect-chevron {
+  animation: chevron-slide-choppy 0.32s steps(2, end) infinite !important;
+}
+
+/* =========================================================
+   PODIUM STAGE
+   ========================================================= */
+
+.podium-stage {
+  position: relative;
+
+  width: 100%;
+  min-height: 520px;
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+
+  gap: clamp(0px, 2vw, 32px);
+
+  margin-top: -7rem;
+
+  overflow: visible;
+}
+
+
+/* =========================================================
+   INDIVIDUAL PODIUM
+   ========================================================= */
+
+.podium-item {
+  position: relative;
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+
+  /* Explicit width so the podium image, lights and base
+     overlay all scale as one grouped unit */
+  width: 430px;
+
+  isolation: isolate;
+
+  /* Allows the light to extend outside the image */
+  overflow: visible;
+
+  cursor: pointer;
+
+  transition: opacity 0.6s ease, filter 0.6s ease, transform 0.6s ease;
+}
+
+/* When a milestone is selected : the non-selected ones slowly fade out */
+.podium-stage:has(.podium-item.is-selected) .podium-item.is-dimmed {
+  opacity: 0;
+  filter: blur(6px);
+  transform: scale(0.92);
+  pointer-events: none;
+}
+
+/* The selected milestone slides to the left side of the section, keeping its
+   own vertical placement. transform-origin is pinned to the left so the scale
+   grows to the right instead of drifting. */
+.podium-item.is-selected {
+  z-index: 20;
+  transform-origin: left center;
+}
+
+/* While a milestone is selected (or navigating to center on select), block
+   hover on every podium so the cursor sitting over the stage can't trigger
+   the blur/tilt/overlay/spotlight hover effects mid-transition. */
+.podium-stage.pod-no-hover .podium-item {
+  pointer-events: none;
+}
+
+.podium-left.is-selected {
+  transform: translateY(-130px) translateX(0) scale(1.3);
+}
+.podium-center.is-selected {
+  transform: translateY(-30px) translateX(-30vw) scale(1.3);
+}
+.podium-right.is-selected {
+  transform: translateY(-130px) translateX(-44vw) scale(1.3);
+}
+
+/* When selected, drop the overhead light cone + source lower so they sit
+   closer to the enlarged podium instead of floating high above it. */
+.podium-item.is-selected .podium-spotlight {
+  top: -28%;
+}
+
+.podium-item.is-selected .podium-light-source {
+  top: -28%;
+}
+
+/* Also nudge the top-surface reflection down to follow the bigger podium. */
+.podium-item.is-selected .podium-top-light {
+  top: 46%;
+}
+
+/* Close (X) button shown when a milestone is selected */
+.podium-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 0;
+  z-index: 30;
+
+  width: 44px;
+  height: 44px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(10, 12, 16, 0.6);
+  backdrop-filter: blur(12px);
+
+  color: #f3f0ea;
+  cursor: pointer;
+
+  transition: background 0.25s ease, transform 0.25s ease, border-color 0.25s ease;
+}
+
+.podium-close-btn:hover {
+  background: rgba(216, 184, 120, 0.18);
+  border-color: rgba(216, 184, 120, 0.6);
+  transform: scale(1.08);
+}
+
+.podium-close-btn svg {
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  fill: none;
+}
+
+/* While a milestone detail is focused, hide the fixed "Let's Connect" link.
+   It is stacked above the close button (z-50) and routes to /contact, so it
+   would otherwise intercept clicks meant for the X close button. */
+html.project-detail-open a[aria-label="Let's Connect"] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Lift the whole projects section (and its close button) above the z-50
+   navbar/connect chrome while a detail is open. The grid lives inside <main>
+   (z-10), so raising the grid alone isn't enough — the root-level fixed
+   navbar would still paint above it and swallow clicks on the X button.
+   Raising <main> itself puts the entire detail view above the chrome. */
+html.project-detail-open main {
+  z-index: 60;
+}
+
+html.project-detail-open #projects-grid {
+  z-index: 60;
+}
+
+
+/* =========================================================
+   SELECTED MILESTONE — RIGHT-SIDE INFORMATION CONSOLE
+   (garage/showroom "information console", no white card)
+   ========================================================= */
+
+.podium-console {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 15;
+
+  width: 44%;
+  height: 100%;
+
+  display: flex;
+  align-items: stretch;
+
+  pointer-events: none;
+}
+
+.podium-console .console-inner {
+  pointer-events: auto;
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 18px;
+
+  padding: 8px 4px;
+}
+
+.console-head {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.console-num {
+  font-family: 'Michroma', sans-serif;
+  font-size: 2.4rem;
+  line-height: 1;
+  color: #6fe7ff;
+  text-shadow: 0 0 18px rgba(111, 231, 255, 0.4);
+}
+
+.console-head-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.console-category {
+  font-family: 'Michroma', sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(243, 240, 234, 0.55);
+}
+
+.console-name {
+  font-family: 'Michroma', sans-serif;
+  font-size: 1.5rem;
+  line-height: 1.1;
+  color: #f3f0ea;
+  margin: 0;
+}
+
+.console-desc {
+  margin: 0;
+  max-width: 48ch;
+
+  font-size: 0.9rem;
+  font-weight: 300;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.console-highlights {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 18px;
+}
+
+.console-highlights li {
+  position: relative;
+  padding-left: 18px;
+
+  font-size: 0.82rem;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.console-highlights li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 6px;
+  height: 6px;
+  background: #6fe7ff;
+  box-shadow: 0 0 8px rgba(111, 231, 255, 0.6);
+  transform: rotate(45deg);
+}
+
+.console-label {
+  display: block;
+  margin-bottom: 10px;
+
+  font-family: 'Michroma', sans-serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(243, 240, 234, 0.5);
+}
+
+.console-stack-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.console-chip {
+  font-family: 'Michroma', sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6fe7ff;
+  border: 1px solid rgba(111, 231, 255, 0.3);
+  background: rgba(111, 231, 255, 0.06);
+  padding: 5px 10px;
+  border-radius: 4px;
+}
+
+.console-actions {
+  display: flex;
+  gap: 14px;
+  margin-top: 4px;
+}
+
+.console-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  font-family: 'Michroma', sans-serif;
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: #f3f0ea;
+
+  padding: 10px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.03);
+
+  transition: border-color 0.25s ease, color 0.25s ease, background 0.25s ease;
+}
+
+.console-btn svg {
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.console-btn:hover {
+  border-color: rgba(111, 231, 255, 0.5);
+  color: #6fe7ff;
+}
+
+.console-btn--primary {
+  background: rgba(111, 231, 255, 0.12);
+  border-color: rgba(111, 231, 255, 0.5);
+  color: #6fe7ff;
+}
+
+.console-btn--primary:hover {
+  background: rgba(111, 231, 255, 0.2);
+}
+
+
+
+
+/* =========================================================
+   SELECTED MILESTONE — TECH-STACK MARQUEE
+   Mirrors the hero TechMarquee; constrained to the left half
+   (left edge → center vertical line) so it sits under the milestone.
+   ========================================================= */
+
+.marquee-slot {
+  position: relative;
+  height: 70px;
+}
+
+.project-tech-marquee {
+  position: absolute;
+  left: -8vw;
+  top: -55px;
+  width: calc(53% + 8vw);
+}
+
+
+/* =========================================================
+   PODIUM IMAGE
+   ========================================================= */
+
+.podium-image {
+  position: relative;
+  z-index: 5;
+
+  width: 100%;
+  height: auto;
+
+  display: block;
+
+  object-fit: contain;
+
+  /* Shrink visible height from the top, anchored at the bottom */
+  transform: scaleY(0.95);
+  transform-origin: bottom center;
+
+  /* No shadow */
+  filter: none;
+}
+
+.podium-object {
+  position: absolute;
+  z-index: 6;
+
+  left: 29%;
+  bottom: 32%;
+
+  width: 37%;
+  height: auto;
+
+  transform: translateX(-50%);
+
+  object-fit: contain;
+  pointer-events: none;
+
+  transition: opacity 0.45s ease;
+}
+
+.podium-object-back {
+  position: absolute;
+  z-index: 5;
+
+  left: 57%;
+  bottom: 53%;
+
+  width: 72%;
+  height: auto;
+
+  transform: translateX(-50%) perspective(700px) rotateY(-52deg);
+
+  object-fit: contain;
+  pointer-events: none;
+
+  box-sizing: border-box;
+  border: 2px solid #000000;
+  border-radius: 16px;
+
+  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+              width 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+              left 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Placeholder shown on a podium when a milestone has no screenshot yet,
+   so the slot never renders as a blank/broken image. */
+.podium-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+
+  background: linear-gradient(135deg, rgba(111, 231, 255, 0.10), rgba(10, 12, 16, 0.65));
+  border: 1px solid rgba(111, 231, 255, 0.4);
+  box-shadow: 0 0 30px rgba(111, 231, 255, 0.18), inset 0 0 22px rgba(111, 231, 255, 0.10);
+  border-radius: 14px;
+
+  padding: 14px;
+}
+
+.podium-placeholder-eyebrow {
+  font-family: 'Michroma', sans-serif;
+  font-size: 0.55rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(243, 240, 234, 0.6);
+}
+
+.podium-placeholder-title {
+  font-family: 'Michroma', sans-serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6fe7ff;
+  text-shadow: 0 0 12px rgba(111, 231, 255, 0.45);
+}
+
+/* =========================================================
+   CENTER PODIUM HOVER INTERACTION
+   ========================================================= */
+
+/* Tilted web image straightens on hover */
+.podium-item.podium-center:hover .podium-object-back:not(.is-flat) {
+  transform: translateX(-50%) perspective(700px) rotateY(0deg) scaleY(1.3);
+  width: 69%;
+  left: 50%;
+  bottom: 56%;
+}
+
+/* CarCure image fades out on hover */
+.podium-item:hover .podium-object {
+  opacity: 0;
+}
+
+/* Right podium: same straighten + shrink + shift on hover */
+.podium-item.podium-right:hover .podium-object-back:not(.is-flat) {
+  transform: translateX(-50%) perspective(700px) rotateY(0deg);
+  width: 69%;
+  left: 50%;
+}
+
+/* Caption under the podium (hidden until hover) */
+.podium-caption {
+  position: absolute;
+  z-index: 12;
+  left: 50%;
+  bottom: -20px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5px;
+
+  transform: translateX(-50%) translateY(26px);
+
+  opacity: 0;
+  pointer-events: none;
+
+  transition: opacity 0.45s ease, transform 0.45s ease;
+}
+
+.podium-caption-eyebrow {
+  font-family: 'Michroma', sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #6fe7ff;
+  text-shadow: 0 0 10px rgba(111, 231, 255, 0.45);
+}
+
+.podium-caption-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.podium-item.podium-left:hover .podium-caption,
+.podium-item.podium-center:hover .podium-caption,
+.podium-item.podium-right:hover .podium-caption {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* In selected state keep the caption / "Featured" badge hidden on hover */
+.podium-item.is-selected .podium-caption {
+  opacity: 0 !important;
+  pointer-events: none;
+}
+
+.podium-caption-title {
+  font-family: 'Michroma', sans-serif;
+  font-size: 1.35rem;
+  letter-spacing: 0.04em;
+  color: #ffffff;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.podium-caption-badge {
+  font-family: 'Michroma', sans-serif;
+  font-size: 0.42rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+
+  padding: 2px 6px;
+  border-radius: 999px;
+
+  color: #062a30;
+  background: #6fe7ff;
+  box-shadow: 0 0 14px rgba(111, 231, 255, 0.55);
+}
+
+/* =========================================================
+   DECORATIVE CHEVRON NAV (non-functional)
+   Positioned relative to the full-width section so it
+   never affects the podium stage sizing.
+   ========================================================= */
+
+.podium-chevron {
+  position: absolute;
+  top: 58%;
+  z-index: 20;
+
+  width: 58px;
+  height: 58px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: none;
+  background: transparent;
+  cursor: default;
+  pointer-events: none;
+
+  color: #ffffff;
+
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.podium-chevron--btn {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.podium-chevron--btn:hover {
+  opacity: 0.6;
+}
+
+.podium-chevron--selected {
+  top: 44%;
+}
+
+.podium-chevron--left {
+  left: clamp(24px, 3vw, 64px);
+  transform: translateY(-50%);
+}
+
+.podium-chevron--right {
+  right: clamp(24px, 3vw, 64px);
+  transform: translateY(-50%);
+}
+
+.podium-chevron svg {
+  width: 32px;
+  height: 32px;
+
+  display: block;
+
+  stroke: currentColor;
+  stroke-width: 2.4;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Flat milestone (no tilt, no border) — e.g. the "coming soon" jar */
+.podium-object-back.is-flat {
+  left: 50%;
+  bottom: 38%;
+
+  width: 39%;
+
+  transform: translateX(-50%);
+
+  border: none;
+  border-radius: 0;
+}
+
+/* Thin oval overlay, same width as the podium image,
+   sitting at its base */
+.podium-item::after {
+  content: "";
+
+  position: absolute;
+  left: 50%;
+  bottom: 15%;
+
+  /* Fixed width so the shadow does NOT scale with the podium */
+  width: 340px;
+  height: 84px;
+
+  transform: translateX(-50%);
+
+  border-radius: 50%;
+
+  background: radial-gradient(
+    ellipse at center,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 1) 55%,
+    rgba(0, 0, 0, 0) 82%
+  );
+
+  filter: blur(3px);
+
+  z-index: 4;
+
+  pointer-events: none;
+}
+
+/* Center podium overlay stays fixed */
+.podium-item.podium-center::after {
+  bottom: 42px;
+
+  width: 400px;
+}
+
+/* Left and right podium overlays moved down a little more */
+.podium-item.podium-left::after,
+.podium-item.podium-right::after {
+  bottom: 30px;
+
+  width: 290px;
+  height: 64px;
+}
+
+/* =========================================================
+   WHITE TOP SPOTLIGHT (realistic beam)
+   ========================================================= */
+
+.podium-spotlight {
+  position: absolute;
+  z-index: 1;
+  top: -52%;
+  left: 50%;
+  width: 138%;
+  height: 120%;
+  transform-origin: 50% 0%;
+  pointer-events: none;
+  opacity: 0.82;
+
+  /* Conic gradient creates the cone angles naturally */
+  background: conic-gradient(
+    from 145deg at 50% 0%,
+    transparent 0deg,
+    rgba(255, 255, 255, 0.58) 35deg,
+    transparent 70deg
+  );
+
+  /* Straight top edge + straight slanted sides (no bottle-neck pinch) */
+  clip-path: polygon(
+    24% 0%,
+    76% 0%,
+    100% 100%,
+    0% 100%
+  );
+
+  /* Rounds the bottom of the light into a soft pool while
+     keeping the straight top border */
+  -webkit-mask-image: radial-gradient(ellipse 82% 96% at 50% 22%, white 52%, transparent 88%),
+                      linear-gradient(to right, transparent, white 8%, white 92%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image: radial-gradient(ellipse 82% 96% at 50% 22%, white 52%, transparent 88%),
+              linear-gradient(to right, transparent, white 8%, white 92%, transparent);
+  mask-composite: intersect;
+
+  filter: blur(15px);
+}
+
+
+/* =========================================================
+   LIGHT SOURCE (bulb at the apex of the beam)
+   ========================================================= */
+
+.podium-light-source {
+  position: absolute;
+
+  z-index: 2;
+
+  top: -52%;
+  left: 50%;
+
+  width: 30px;
+  height: 4px;
+
+  border-radius: 0 0 50% 50%;
+
+  background: linear-gradient(
+    to right,
+    #ffffff 0%,
+    #ffffff 100%
+  );
+
+  /* Glow + downward-only bloom, sharper so the line stays defined */
+  box-shadow:
+    0 0 6px 1px rgba(255, 255, 255, 0.85),
+    0 12px 18px 4px rgba(255, 255, 255, 0.28);
+
+  filter: blur(0.7px);
+
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   SOFT WHITE FLOOR GLOW
+   ========================================================= */
+
+.podium-floor-glow {
+  position: absolute;
+
+  z-index: 0;
+
+  left: 50%;
+  bottom: 1%;
+
+  width: 105%;
+  height: 30%;
+
+  transform: translateX(-50%);
+
+  background:
+    radial-gradient(
+      ellipse at center,
+      rgba(255, 255, 255, 0.75) 0%,
+      rgba(255, 255, 255, 0.42) 30%,
+      rgba(255, 255, 255, 0.14) 58%,
+      rgba(255, 255, 255, 0) 82%
+    );
+
+  filter: blur(26px);
+
+  opacity: 1;
+
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   WHITE REFLECTION ON TOP OF PODIUM
+   ========================================================= */
+
+.podium-top-light {
+  position: absolute;
+
+  z-index: 6;
+
+  /*
+    This sits over the top surface of the podium.
+    Adjust these values depending on the transparent PNG.
+  */
+  top: 38%;
+  left: 50%;
+
+  width: 42%;
+  height: 16%;
+
+  transform: translate(-50%, -50%);
+
+  background:
+    radial-gradient(
+      ellipse at center,
+      rgba(255, 255, 255, 0.42) 0%,
+      rgba(255, 255, 255, 0.18) 35%,
+      rgba(255, 255, 255, 0.05) 58%,
+      transparent 75%
+    );
+
+  filter: blur(10px);
+
+  mix-blend-mode: screen;
+
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   DIFFERENT PODIUM SIZES / POSITIONS
+   ========================================================= */
+
+/* LEFT */
+.podium-left {
+  width: min(41vw, 520px);
+
+  transform:
+    translateY(-60px)
+    scale(0.96);
+}
+
+
+/* CENTER */
+.podium-center {
+  width: min(53vw, 750px);
+
+  transform:
+    translateY(40px)
+    scale(1);
+}
+
+
+/* RIGHT */
+.podium-right {
+  width: min(41vw, 520px);
+
+  transform:
+    translateY(-60px)
+    scale(0.96);
+}
+
+
+/* =========================================================
+   SUBTLE DEPTH DIFFERENCE
+   ========================================================= */
+
+.podium-left,
+.podium-right {
+  opacity: 0.92;
+}
+
+.podium-center {
+  z-index: 10;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+  .podium-stage {
+    min-height: 420px;
+
+    gap: 0;
+  }
+
+  .podium-left,
+  .podium-right {
+    width: 30vw;
+  }
+
+  .podium-center {
+    width: 38vw;
+
+    transform: translateY(40px);
+  }
+
+  .podium-spotlight {
+    width: 60%;
+  }
+
+  .podium-floor-glow {
+  width: 94%;
+  }
+}
+
+
+@media (max-width: 640px) {
+
+  .podium-stage {
+    min-height: 340px;
+
+    gap: 0;
+  }
+
+  .podium-left,
+  .podium-right {
+    width: 31vw;
+  }
+
+  .podium-center {
+    width: 42vw;
+
+    transform: translateY(28px);
+  }
+
+  .podium-spotlight {
+    top: -20%;
+    height: 70%;
+
+    filter: blur(14px);
+  }
+
+  .podium-floor-glow {
+    height: 20%;
+    filter: blur(15px);
+  }
+
+  .podium-top-light {
+    filter: blur(7px);
+  }
+
+  .podium-left.is-selected {
+    transform: translateY(-130px) translateX(0) scale(1.1);
+  }
+  .podium-center.is-selected {
+    transform: translateY(-30px) translateX(-30vw) scale(1.1);
+  }
+  .podium-right.is-selected {
+    transform: translateY(-130px) translateX(-44vw) scale(1.1);
+  }
+}
+
+
+@media (max-width: 1100px) {
+  .podium-console {
+    width: 52%;
+  }
+  .console-num {
+    font-size: 2rem;
+  }
+  .console-name {
+    font-size: 1.3rem;
+  }
+  .console-highlights {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .podium-console {
+    width: 62%;
+  }
+  .console-num {
+    font-size: 1.6rem;
+  }
+  .console-name {
+    font-size: 1.1rem;
+  }
+  .console-desc {
+    font-size: 0.82rem;
+  }
+  .console-actions {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .console-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Wrapper around the milestone images so they can slide
+   independently of the (fixed) podium base and shadow */
+.podium-image-stack {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 6;
+}
+
+
+
+
+
+
+
+
+
+/* Left podium: straighten tilted web image on hover too */
+.podium-item.podium-left:hover .podium-object-back:not(.is-flat) {
+  transform: translateX(-50%) perspective(700px) rotateY(0deg);
+  width: 69%;
+  left: 50%;
+}
+
+/* Smooth opacity for the focus/dim effect */
+.podium-item {
+  transition: opacity 0.6s ease, filter 0.6s ease, transform 0.6s ease;
+}
+
+/* While one podium is hovered (and nothing is selected), dim the other two
+   to focus attention. This is disabled once a milestone is selected, so the
+   hidden milestones stay hidden until the user returns to the default view. */
+.podium-stage:not(:has(.podium-item.is-selected)):has(.podium-item:hover)
+  .podium-item:not(:hover) {
+  opacity: 0.35;
+  filter: blur(3px);
+}
+
+/* Raise AL Shamil Turning's front overlay a little higher than the default */
+.podium-object--raised {
+  bottom: 45%;
+  width: 32%;
+  left: 32%;
+}
+.podium-item.podium-left .podium-caption-eyebrow,
+.podium-item.podium-right .podium-caption-eyebrow {
+  margin-top: 8px;
 }

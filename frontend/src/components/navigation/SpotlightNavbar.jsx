@@ -2,6 +2,22 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { animate, motion, useReducedMotion } from 'framer-motion'
 import { cn } from '../../lib/utils'
+import { BlueprintPillButton } from '../ui/blueprint-pill-button'
+
+// Detect blueprint mode by watching the html class toggled by About.jsx.
+// Keeps the global navbar untouched in every other mode.
+function useBlueprintActive() {
+  const [active, setActive] = useState(false)
+  useEffect(() => {
+    const root = document.documentElement
+    const update = () => setActive(root.classList.contains('about-blueprint-nav'))
+    update()
+    const mo = new MutationObserver(update)
+    mo.observe(root, { attributes: true, attributeFilter: ['class'] })
+    return () => mo.disconnect()
+  }, [])
+  return active
+}
 
 const defaultItems = [
   { label: 'Home', href: '/' },
@@ -51,6 +67,8 @@ function SpotlightNavbar({ items = defaultItems, className, onItemClick, animati
   const spotlightX = useRef(0)
   const ambienceX = useRef(0)
 
+  const blueprint = useBlueprintActive()
+
   useEffect(() => {
     const idx = items.findIndex(item => item.href === location.pathname)
     if (idx !== -1) setActiveIndex(idx)
@@ -63,9 +81,11 @@ function SpotlightNavbar({ items = defaultItems, className, onItemClick, animati
     const handleMouseMove = (e) => {
       const rect = nav.getBoundingClientRect()
       const x = e.clientX - rect.left
+      const y = e.clientY - rect.top
       setHoverX(x)
       spotlightX.current = x
       nav.style.setProperty('--spotlight-x', `${x}px`)
+      nav.style.setProperty('--spotlight-y', `${y}px`)
     }
 
     const handleMouseLeave = () => {
@@ -131,6 +151,38 @@ function SpotlightNavbar({ items = defaultItems, className, onItemClick, animati
 
   const anim = entranceAnimations[animationKey] || entranceAnimations.flipIn
 
+  // In blueprint mode, the navbar is the EXACT same BlueprintPillButton used
+  // by the hero RESUME button — same dashed rectangle frame, nested solid +
+  // dotted frames, W/H dimension indicators (real measured size), cursor
+  // crosshair and JetBrains Mono links — with the 5 nav links living inside
+  // it as children. Every other mode keeps the untouched spotlight navbar.
+  if (blueprint) {
+    return (
+      <div className={cn('relative flex justify-center z-50', className)} style={{ paddingTop: '24px' }}>
+        <BlueprintPillButton className="bp-nav" heightOnRight={false}>
+          <ul className="relative flex items-center h-full px-2 gap-0.5 z-[10]">
+            {items.map((item, idx) => (
+              <li key={idx} className="relative h-full flex items-center justify-center">
+                <Link
+                  to={item.href}
+                  data-index={idx}
+                  onClick={() => handleItemClick(item, idx)}
+                  className={cn(
+                    'px-2 py-1.5 text-sm font-medium transition-colors duration-200 rounded-full',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00d2ff]',
+                    activeIndex === idx ? 'is-active' : ''
+                  )}
+                >
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </BlueprintPillButton>
+      </div>
+    )
+  }
+
   return (
     <div className={cn('relative flex justify-center z-50', className)} style={{ paddingTop: '40px' }}>
       <motion.nav
@@ -156,7 +208,7 @@ function SpotlightNavbar({ items = defaultItems, className, onItemClick, animati
                   'px-3 py-2 text-sm font-medium transition-colors duration-200 rounded-full',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--border-focus)]',
                   activeIndex === idx
-                    ? 'text-[var(--color-primary-light)]'
+                    ? 'is-active text-[var(--color-primary-light)]'
                     : 'text-[var(--text-secondary)] hover:text-[var(--color-primary-light)]'
                 )}
               >
@@ -195,6 +247,7 @@ function SpotlightNavbar({ items = defaultItems, className, onItemClick, animati
       <style>{`
         .spotlight-nav {
           --spotlight-x: 50%;
+          --spotlight-y: 50%;
           --ambience-x: 50%;
         }
       `}</style>

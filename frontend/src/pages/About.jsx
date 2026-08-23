@@ -24,11 +24,35 @@ const ARROW_A = { main: 'M14 3C11 9 21 12 16 18C13 21 19 23 23 26', head: 'M18 1
 const ARROW_B = { main: 'M10 5C16 1 13 11 22 13C31 15 15 19 24 23C29 26 17 27 27 30', head: 'M22 24L27 30L19 29', w: 58, h: 52 }
 const ARROW_C = { main: 'M15 7C11 11 21 12 17 18C14 23 23 22 19 28', head: 'M15 23L19 28L13 27', w: 40, h: 38 }
 
+function TypingLoader({ text = 'icons/illustrations loading...', className = '' }) {
+  const [count, setCount] = useState(0)
+  useEffect(() => {
+    let i = 0
+    let timer
+    const tick = () => {
+      i = (i + 1) % (text.length + 1)
+      setCount(i)
+      timer = setTimeout(tick, i === text.length ? 1200 : 80)
+    }
+    timer = setTimeout(tick, 300)
+    return () => clearTimeout(timer)
+  }, [text])
+  return (
+    <span
+      className={`inline-flex items-center text-[13px] tracking-wide text-[#5b6b6e] ${className}`}
+      style={{ fontFamily: '"Comic Sans MS", "Comic Sans", "Chalkboard SE", "Comic Neue", cursive' }}
+    >
+      <span className="whitespace-pre">{text.slice(0, count)}</span>
+      <span className="caret-blink ml-[2px] inline-block w-[0.55ch] h-[1.05em] bg-current align-middle" />
+    </span>
+  )
+}
+
 function HoverColorAnnot({ label = 'hover color?', color = '#246bff', style, arrow, arrowStyle }) {
   const { main = ARROW_A.main, head = ARROW_A.head, w = ARROW_A.w, h = ARROW_A.h } = arrow || {}
   return (
     <div
-      className="pointer-events-none select-none z-[80]"
+      className="pointer-events-none select-none z-80"
       style={style}
       aria-hidden="true"
     >
@@ -48,8 +72,8 @@ function HoverColorAnnot({ label = 'hover color?', color = '#246bff', style, arr
         fill="none"
         style={{ width: w, height: h, color, overflow: 'visible', transform: 'rotate(180deg)', display: 'block', margin: '0 auto', ...arrowStyle }}
       >
-        <path d={main} stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-        <path d={head} stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d={main} stroke="currentColor" strokeWidth="1.2" strokeLinecap="square" />
+        <path d={head} stroke="currentColor" strokeWidth="1.2" strokeLinecap="square" strokeLinejoin="round" />
       </svg>
     </div>
   )
@@ -164,6 +188,26 @@ function About() {
       root.style.removeProperty('--text-secondary')
     }
   }, [showBlueprint, showMatrix])
+
+  // Toggle a body class while in code (matrix) mode so the global navbar can
+  // adopt the terminal/code theme. Scoped via CSS to only affect the navbar
+  // in this mode — design, blueprint and test modes never set this class.
+  useEffect(() => {
+    const root = document.documentElement
+    if (showMatrix) root.classList.add('about-matrix-nav')
+    else root.classList.remove('about-matrix-nav')
+    return () => root.classList.remove('about-matrix-nav')
+  }, [showMatrix])
+
+  // Toggle a body class while in blueprint mode so the global navbar can
+  // adopt the blueprint hero-button theme. Scoped via CSS to only affect the
+  // navbar in this mode — design, matrix and test modes never set this class.
+  useEffect(() => {
+    const root = document.documentElement
+    if (showBlueprint) root.classList.add('about-blueprint-nav')
+    else root.classList.remove('about-blueprint-nav')
+    return () => root.classList.remove('about-blueprint-nav')
+  }, [showBlueprint])
 
   useEffect(() => {
     setDesignModeActive(showDesign)
@@ -292,7 +336,7 @@ function About() {
         ? testCanvasRef.current
         : inkCanvasRef.current
       ictx.clearRect(0, 0, cw, ch)
-      ictx.fillStyle = showDesign ? '#2b2b2b' : showMatrix ? '#000000' : '#001428'
+      ictx.fillStyle = showDesign ? '#ffffff' : showMatrix ? '#000000' : '#001428'
       ictx.fillRect(0, 0, cw, ch)
       if (showDesign) drawDesignInk(ictx, cw, ch, activeImg)
       else drawInkCover(ictx, cw, ch, activeImg, showTest ? 0.92 : showMatrix ? 0.95 : 1.07, 0)
@@ -356,7 +400,7 @@ function About() {
   const swooshShadow =
     '10px 10px 0px #07bccc, 15px 15px 0px #e601c0, 20px 20px 0px #e9019a, 25px 25px 0px #f40468, 45px 45px 10px #f40468'
   const swooshClass =
-    'relative z-[70] inline-block cursor-pointer font-[family-name:Poppins] font-bold italic text-xl md:text-2xl tracking-widest text-[#0A3332] transition-all duration-200'
+    'relative z-70 inline-block cursor-pointer font-[family-name:Poppins] font-bold italic text-xl md:text-2xl tracking-widest text-[#0A3332] transition-all duration-200'
 
   return (
     <>
@@ -367,7 +411,7 @@ function About() {
 
 
       {/* Hero */}
-      <section className={"relative pt-[1.5rem] md:pt-[2rem] pb-0 md:pb-[0.125rem] overflow-hidden transition-colors duration-700 ease-out " + (showMatrix ? "bg-black" : showBlueprint ? "bg-[#001428]" : "bg-[#F5F7F7]")}>
+      <section className={"relative pt-6 md:pt-8 pb-0 md:pb-0.5 overflow-hidden transition-colors duration-700 ease-out " + (showMatrix ? "bg-black matrix-mode" : showBlueprint ? "bg-[#001428]" : "bg-[#F5F7F7]")}>
         {/* Design-mode graph-paper grid covering the whole hero */}
         {showDesign && (
           <div className="design-hero-grid absolute inset-0 z-0 pointer-events-none" />
@@ -398,7 +442,7 @@ function About() {
         `}</style>
         {designModeActive && (
           <div
-            className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 z-[80] pointer-events-none select-none opacity-60"
+            className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 z-80 pointer-events-none select-none opacity-60"
             aria-hidden="true"
           >
             <div className="relative w-9 h-9 border-2 border-black">
@@ -412,24 +456,21 @@ function About() {
               >
                 T
               </span>
-              <span className="absolute -left-[6px] -top-[6px] w-2.5 h-2.5 bg-white border border-black" />
-              <span className="absolute -right-[6px] -top-[6px] w-2.5 h-2.5 bg-white border border-black" />
-              <span className="absolute -left-[6px] -bottom-[6px] w-2.5 h-2.5 bg-white border border-black" />
-              <span className="absolute -right-[6px] -bottom-[6px] w-2.5 h-2.5 bg-white border border-black" />
+              <span className="absolute -left-1.5 -top-1.5 w-2.5 h-2.5 bg-white border border-black" />
+              <span className="absolute -right-1.5 -top-1.5 w-2.5 h-2.5 bg-white border border-black" />
+              <span className="absolute -left-1.5 -bottom-1.5 w-2.5 h-2.5 bg-white border border-black" />
+              <span className="absolute -right-1.5 -bottom-1.5 w-2.5 h-2.5 bg-white border border-black" />
             </div>
           </div>
         )}
         {designModeActive && (
-          <HoverColorAnnot label="try logo here?" arrow={ARROW_A} style={{ position: 'absolute', left: '2rem', top: '5rem' }} />
-        )}
-        {designModeActive && (
-          <HoverColorAnnot label="background idea?" color="#e6019a" arrow={ARROW_A} style={{ position: 'absolute', left: '44rem', bottom: '5rem', arrowStyle: { transform: 'rotate(225deg)' } }} />
+          <HoverColorAnnot label="try logo here?" arrow={ARROW_A} style={{ position: 'absolute', left: '2rem', top: '3.5rem' }} />
         )}
         <div
           className="absolute pointer-events-none"
           style={{ top: '-15%', right: '-5%', width: '650px', height: '650px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(35,105,102,0.10) 0%, transparent 70%)' }}
         />
-        <div className={"absolute inset-0 z-[45] pointer-events-none overflow-hidden transition-opacity duration-500 ease-out " + (showMatrix ? "opacity-100" : "opacity-0")}>
+        <div className={"absolute inset-0 z-45 pointer-events-none overflow-hidden transition-opacity duration-500 ease-out " + (showMatrix ? "opacity-100" : "opacity-0")}>
           <MatrixRain variant="cyan" fixedColor="#03A062" />
         </div>
         <AnimatePresence>
@@ -442,27 +483,194 @@ function About() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.7, ease: 'easeOut' }}
             >
-              <AliveBlueprintBackground className="absolute inset-0 !min-h-0 !flex-none" />
+              <AliveBlueprintBackground className="absolute inset-0 min-h-0! flex-none!" />
             </motion.div>
           )}
         </AnimatePresence>
         <Container size="lg">
           <div className="grid md:grid-cols-2 gap-10 md:gap-16 items-center">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} className={"relative z-[70]" + (showBlueprint ? " mt-16" : "")}>
-              <h1 className={"font-[family-name:var(--font-display)] text-[24px] sm:text-[34px] md:text-[46px] leading-[1.02] font-semibold tracking-tight uppercase whitespace-nowrap transition-colors duration-700 ease-out " + (showMatrix || showBlueprint ? "text-white" : "text-[#0A3332]")}>
-                Mohammed Fawaz O
-              </h1>
-              <p className={"text-[18px] md:text-[20px] font-light mt-5 max-w-xl leading-relaxed transition-colors duration-700 ease-out " + (showMatrix || showBlueprint ? "text-white/80" : "text-[#405354]")}>
-                Python Full Stack Developer from{' '}
-                <span className="relative inline-block">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} className={"relative z-70 transition-[padding,margin] duration-700 ease-out" + (showMatrix || showBlueprint || showTest ? " pl-6 md:pl-12" : "") + (showBlueprint ? " mt-16" : "")}>
+              {designModeActive && (
+                <div className="absolute left-1 top-0 -translate-y-full z-80 flex items-center pointer-events-none">
+                  <TypingLoader />
+                </div>
+              )}
+              {designModeActive ? (
+                <svg
+                  viewBox="0 0 1200 350"
+                  className="w-full max-w-130 sm:max-w-145 md:max-w-157.5 lg:max-w-170 h-auto overflow-visible shrink-0"
+                  aria-label="Mohammed Fawaz O"
+                >
+                  <defs>
+                    <pattern
+                      id="blueprintHatch"
+                      width="9"
+                      height="9"
+                      patternUnits="userSpaceOnUse"
+                      patternTransform="rotate(0)"
+                    >
+                      <line
+                        x1="0"
+                        y1="9"
+                        x2="9"
+                        y2="0"
+                        stroke="#263238"
+                        strokeWidth="1.2"
+                      />
+                    </pattern>
+
+                    <filter id="roughText">
+                      <feTurbulence
+                        type="fractalNoise"
+                        baseFrequency="0.025"
+                        numOctaves="2"
+                        seed="4"
+                        result="noise"
+                      />
+                      <feDisplacementMap
+                        in="SourceGraphic"
+                        in2="noise"
+                        scale="1.4"
+                      />
+                    </filter>
+                    <filter id="markerRough" filterUnits="userSpaceOnUse" x="0" y="0" width="1200" height="350">
+                      <feTurbulence
+                        type="fractalNoise"
+                        baseFrequency="0.012 0.06"
+                        numOctaves="3"
+                        seed="7"
+                        result="noise"
+                      />
+                      <feDisplacementMap
+                        in="SourceGraphic"
+                        in2="noise"
+                        scale="7"
+                        xChannelSelector="R"
+                        yChannelSelector="G"
+                        result="disp"
+                      />
+                      <feGaussianBlur in="disp" stdDeviation="0.5" />
+                    </filter>
+                    <filter id="mohammFill" x="-20%" y="-20%" width="140%" height="140%">
+                      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="4" result="rn" />
+                      <feDisplacementMap in="SourceGraphic" in2="rn" scale="1.6" result="rough" />
+                      <feTurbulence type="fractalNoise" baseFrequency="0.45" numOctaves="2" seed="5" result="n" />
+                      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 8 -3.5" result="mask" />
+                      <feFlood floodColor="#ffffff" result="white" />
+                      <feComposite in="white" in2="mask" operator="in" result="spots" />
+                      <feComposite in="spots" in2="rough" operator="in" result="spotsIn" />
+                      <feMerge>
+                        <feMergeNode in="rough" />
+                        <feMergeNode in="spotsIn" />
+                      </feMerge>
+                    </filter>
+                    <filter id="mohammSolid" x="-20%" y="-20%" width="140%" height="140%">
+                      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="4" result="rn" />
+                      <feDisplacementMap in="SourceGraphic" in2="rn" scale="1.6" />
+                    </filter>
+                  </defs>
+
+                  <line
+                    x1="15"
+                    y1="10"
+                    x2="1185"
+                    y2="10"
+                    stroke="#B7C2C7"
+                    strokeWidth="1"
+                    strokeDasharray="5 5"
+                  />
+
+                  <text
+                    x="20"
+                    y="140"
+                    fontFamily="var(--font-display)"
+                    fontSize="120"
+                    fontWeight="800"
+                    letterSpacing="1.5"
+                    fill="#28282B"
+                    stroke="#263238"
+                    strokeWidth="4"
+                    paintOrder="stroke"
+                    filter="url(#mohammFill)"
+                  >
+                    <tspan fill="#28282B">MOHAM</tspan><tspan fill="#A9A9A9">MED</tspan>
+                  </text>
+                  <text
+                    x="20"
+                    y="140"
+                    fontFamily="var(--font-display)"
+                    fontSize="120"
+                    fontWeight="800"
+                    letterSpacing="1.5"
+                    fill="#28282B"
+                    stroke="#263238"
+                    strokeWidth="4"
+                    paintOrder="stroke"
+                    filter="url(#mohammSolid)"
+                  >
+                    MOH
+                  </text>
+                  <path
+                    d="M740 150 C 850 157, 960 145, 1040 153 S 1120 147, 1160 150"
+                    fill="none"
+                    stroke="#38BDF8"
+                    strokeWidth="25"
+                    strokeLinecap="square"
+                    opacity="0.82"
+                    filter="url(#markerRough)"
+                  />
+
+                  <text
+                    x="20"
+                    y="315"
+                    fontFamily="var(--font-display)"
+                    fontSize="130"
+                    fontWeight="800"
+                    letterSpacing="2.5"
+                    fill="none"
+                    stroke="#9CA3AF"
+                    strokeWidth="0.5"
+                    paintOrder="stroke"
+                  >
+                    FAWAZ O
+                  </text>
+
+                  <rect
+                    x="12"
+                    y="16"
+                    width="1176"
+                    height="318"
+                    fill="none"
+                    stroke="#AAB6BC"
+                    strokeWidth="1"
+                    strokeDasharray="4 5"
+                  />
+
+                  <rect x="7" y="11" width="10" height="10" fill="#FFFFFF" stroke="#2477D4" />
+                  <rect x="1183" y="11" width="10" height="10" fill="#FFFFFF" stroke="#2477D4" />
+                  <rect x="7" y="329" width="10" height="10" fill="#FFFFFF" stroke="#2477D4" />
+                  <rect x="1183" y="329" width="10" height="10" fill="#FFFFFF" stroke="#2477D4" />
+
+                </svg>
+              ) : (
+                <h1 className={"font-(family-name:--font-display) leading-[1.02] font-semibold tracking-tight uppercase whitespace-nowrap transition-[color,font-size,letter-spacing,opacity] duration-700 ease-out " + (showMatrix ? "text-[34px] sm:text-[50px] md:text-[66px] text-white blueprint-hero-type hero-heading" : showBlueprint ? "text-[24px] sm:text-[36px] md:text-[48px] text-white blueprint-hero-type" : "text-[22px] sm:text-[32px] md:text-[42px] text-[#0A3332]")}>
+                  Mohammed Fawaz O
+                </h1>
+              )}
+              <p className={"text-[18px] md:text-[20px] font-light mt-2 max-w-xl leading-relaxed transition-[color,font-size,margin,letter-spacing,opacity] duration-700 ease-out " + (showMatrix ? "text-white/80 blueprint-hero-type hero-description" : showBlueprint ? "text-white/80 blueprint-hero-type" : "text-[#405354]")}>
+                {showBlueprint ? (<span className="inline-block border border-dashed border-[#00d2ff] px-2 py-0.5 text-[#00d2ff]">Python</span>) : showMatrix ? (<span className="keyword">Python</span>) : 'Python'} Full Stack Developer from{' '}
+                <span className="relative inline-block whitespace-nowrap">
                   Kerala, India
                   {designModeActive && (
-                    <svg
+                    <motion.svg
                       className="kerala-oval"
                       viewBox="0 0 200 80"
                       fill="none"
                       preserveAspectRatio="none"
                       aria-hidden="true"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.3 }}
                       style={{
                         position: 'absolute',
                         inset: '-10px -22px',
@@ -472,48 +680,62 @@ function About() {
                         pointerEvents: 'none',
                       }}
                     >
-                      <path
+                      <motion.path
                         d="M20 46 C10 24 58 8 104 10 C158 12 193 26 183 49 C174 71 130 75 90 70 C48 65 14 62 24 42"
                         stroke="#54B7E8"
-                        strokeWidth="2"
-                        strokeLinecap="round"
+                        strokeWidth="2.2"
+                        strokeLinecap="square"
                         strokeLinejoin="round"
+                        initial={{ pathLength: 0 }}
+                        animate={{ pathLength: 1 }}
+                        transition={{ duration: 1.1, ease: [0.4, 0, 0.2, 1] }}
                       />
-                      <path
+                      <motion.path
                         d="M62 73 C112 80 166 73 185 47"
                         stroke="#54B7E8"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
+                        strokeWidth="1.6"
+                        strokeLinecap="square"
                         strokeLinejoin="round"
+                        initial={{ pathLength: 0 }}
+                        animate={{ pathLength: 1 }}
+                        transition={{ duration: 0.8, ease: "easeOut", delay: 0.4 }}
                       />
-                      <path
+                      <motion.path
                         d="M30 36 C72 16 132 12 172 23"
                         stroke="#54B7E8"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
+                        strokeWidth="1.6"
+                        strokeLinecap="square"
                         strokeLinejoin="round"
+                        initial={{ pathLength: 0 }}
+                        animate={{ pathLength: 1 }}
+                        transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
                       />
-                    </svg>
+                    </motion.svg>
                   )}
                 </span>
                 , building{' '}
                 <span className="relative inline-block">
                   {designModeActive && (
-                    <span
+                    <motion.span
                       aria-hidden="true"
+                      initial={{ scaleX: 0, opacity: 0 }}
+                      animate={{ scaleX: 1, opacity: 1 }}
+                      transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
                       style={{
                         position: 'absolute',
                         left: '-4px',
                         right: '-4px',
-                        top: '38%',
-                        height: '52%',
+                        top: '32%',
+                        height: '58%',
                         background:
-                          'linear-gradient(100deg, rgba(245,196,66,0) 0%, rgba(245,196,66,0.55) 9%, rgba(247,205,90,0.6) 90%, rgba(245,196,66,0) 100%)',
-                        transform: 'rotate(-1.2deg)',
-                        borderRadius: '3px',
+                          'linear-gradient(105deg, rgba(255, 215, 0, 0) 0%, rgba(250, 204, 21, 0.75) 6%, rgba(255, 226, 80, 0.88) 50%, rgba(245, 185, 20, 0.7) 94%, rgba(245, 185, 20, 0) 100%)',
+                        transform: 'rotate(-1deg)',
+                        transformOrigin: 'left center',
+                        borderRadius: '2px 4px 3px 5px',
                         mixBlendMode: 'multiply',
                         pointerEvents: 'none',
                         zIndex: 0,
+                        boxShadow: '0 1px 4px rgba(250, 204, 21, 0.3)',
                       }}
                     />
                   )}
@@ -522,37 +744,79 @@ function About() {
                 web applications
                 with{' '}
                 <span className="relative inline-block">
-                  Django, React
-                  {designModeActive && (
-                    <span
-                      aria-hidden="true"
-                      style={{
-                        position: 'absolute',
-                        left: '2px',
-                        right: '2px',
-                        bottom: '2px',
-                        height: '2px',
-                        background: '#246bff',
-                        transform: 'rotate(-0.8deg) skewX(-8deg)',
-                        transformOrigin: 'center',
-                        pointerEvents: 'none',
-                      }}
-                    />
+                  {showBlueprint ? (
+                    <span className="inline-block border border-dashed border-[#00d2ff] px-2 py-0.5 text-[#00d2ff]">Django,</span>
+                  ) : showMatrix ? (
+                    <span className="keyword">Django,</span>
+                  ) : (
+                    <span className="relative inline-block">
+                      Django,
+                      {designModeActive && (
+                        <motion.span
+                          aria-hidden="true"
+                          initial={{ scaleX: 0, opacity: 0 }}
+                          animate={{ scaleX: 1, opacity: 1 }}
+                          transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1], delay: 0.25 }}
+                          style={{
+                            position: 'absolute',
+                            left: '2px',
+                            right: '2px',
+                            bottom: '2px',
+                            height: '2.5px',
+                            background: '#246bff',
+                            transform: 'rotate(-0.8deg) skewX(-8deg)',
+                            transformOrigin: 'left center',
+                            borderRadius: '1px',
+                            pointerEvents: 'none',
+                          }}
+                        />
+                      )}
+                    </span>
+                  )}
+                  {' '}
+                  {showBlueprint ? (
+                    <span className="inline-block border border-dashed border-[#00d2ff] px-2 py-0.5 text-[#00d2ff]">React,</span>
+                  ) : showMatrix ? (
+                    <span className="keyword">React,</span>
+                  ) : (
+                    <span className="relative inline-block">
+                      React,
+                      {designModeActive && (
+                        <motion.span
+                          aria-hidden="true"
+                          initial={{ scaleX: 0, opacity: 0 }}
+                          animate={{ scaleX: 1, opacity: 1 }}
+                          transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1], delay: 0.25 }}
+                          style={{
+                            position: 'absolute',
+                            left: '2px',
+                            right: '2px',
+                            bottom: '2px',
+                            height: '2.5px',
+                            background: '#246bff',
+                            transform: 'rotate(-0.8deg) skewX(-8deg)',
+                            transformOrigin: 'left center',
+                            borderRadius: '1px',
+                            pointerEvents: 'none',
+                          }}
+                        />
+                      )}
+                    </span>
                   )}
                 </span>
-                , and clean architecture.
+                 and clean architecture.
               </p>
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                className="mt-5"
+                className={"mt-5 transition-[margin] duration-700 ease-out" + (showMatrix || showBlueprint || showTest ? " -ml-6 md:-ml-12" : "")}
               >
                 <AnimatePresence mode="wait">
                   {showDesign ? (
                     <motion.div
                       key="design"
-                      className="flex flex-wrap items-center gap-4"
+                      className="flex flex-wrap items-center gap-4 mt-6"
                       initial={{ opacity: 0, scale: 1.45, filter: 'blur(8px)', x: -24 }}
                       animate={{ opacity: 1, scale: 1, filter: 'blur(0px)', x: 0 }}
                       exit={{ opacity: 0, scale: 0.65, filter: 'blur(10px)', x: 24 }}
@@ -572,7 +836,7 @@ function About() {
                         exit={{ opacity: 0, scale: 0.65, filter: 'blur(10px)', x: 24 }}
                         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                       >
-                        <CrayonButton label="Resume" href="/media/resume.pdf" download accent="pink" note="outline color?" />
+                        <CrayonButton label="Resume" href="/media/resume.pdf" download accent="pink" note="outline color?" hoverDownload className="crayon-resume" />
                       </motion.div>
                     </motion.div>
                   ) : (
@@ -588,7 +852,7 @@ function About() {
                           {showBlueprint ? (
                             <motion.div
                               key="bp"
-                              className="flex items-center mt-2"
+                              className="flex items-center -mt-4"
                               initial={{ opacity: 0, scale: 0.97, filter: 'blur(6px)' }}
                               animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
                               exit={{ opacity: 0, scale: 0.97, filter: 'blur(6px)' }}
@@ -596,22 +860,29 @@ function About() {
                             >
                               <BlueprintPillButton label="VIEW_MY_WORK" onClick={() => navigate('/projects')} />
                               <div className="w-12" />
-                              <BlueprintPillButton label="RESUME" onClick={handleResumeDownload} heightOnRight hoverIcon={<Download />} />
+                              <span className="-ml-2"><BlueprintPillButton label="RESUME" onClick={handleResumeDownload} heightOnRight hoverIcon={<Download />} /></span>
                             </motion.div>
                           ) : (
                             <motion.div
                               key="def"
-                              className="flex items-center gap-4"
+                              className={"flex items-center justify-end gap-4" + (showMatrix ? " ml-12" : "")}
                               initial={{ opacity: 0, scale: 0.97, filter: 'blur(6px)' }}
                               animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
                               exit={{ opacity: 0, scale: 0.97, filter: 'blur(6px)' }}
                               transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
                             >
-                              <MorphyButton onClick={() => navigate('/projects')} className="px-4" morphStyle="icon" morphDir="down-left" activeIcon={<ArrowRight />} blueprint={showBlueprint}>
-                                View My Work
+                              <MorphyButton onClick={() => navigate('/projects')} className={"px-4" + (showMatrix ? " btn-matrix" : "")} morphStyle="icon" morphDir="down-left" activeIcon={<ArrowRight />} blueprint={showBlueprint} disableMorph={showMatrix}>
+                                {showMatrix ? <span className="matrix-btn-label">View My Work</span> : "View My Work"}
                               </MorphyButton>
-                              <MorphyButton onClick={handleResumeDownload} className="px-4" morphStyle="icon" activeIcon={<Download />} morphDir="down" blueprint={showBlueprint}>
-                                Resume
+                              <MorphyButton onClick={handleResumeDownload} className={"px-4 -ml-3" + (showMatrix ? " btn-matrix" : "")} morphStyle="icon" activeIcon={<Download />} morphDir="down" blueprint={showBlueprint} disableMorph={showMatrix}>
+                                {showMatrix ? (
+                                  <>
+                                    <span className="matrix-btn-label">Resume</span>
+                                    <span className="matrix-dl-wrap">
+                                      <Download className="matrix-dl-icon" />
+                                    </span>
+                                  </>
+                                ) : "Resume"}
                               </MorphyButton>
                             </motion.div>
                           )}
@@ -626,15 +897,15 @@ function About() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-              className="relative z-[60] flex justify-end mt-10 md:mt-[17.4mm]"
+              className="relative z-60 flex justify-end mt-10 md:mt-[17.4mm]"
             >
               <div
                 ref={groupRef}
-                className={"about-photo-group group relative w-full max-w-[500px]" + (showBlueprint ? " bp-on" : "")}
+                className={"about-photo-group group relative w-full max-w-125" + (showBlueprint ? " bp-on" : "")}
                 onMouseMove={handleMove}
                 onMouseLeave={handleLeave}
               >
-                <div className="relative overflow-hidden min-h-[400px]">
+                <div className="relative overflow-hidden min-h-100">
                   {(showBlueprint || showMatrix || showDesign || showTest) && (
                     <canvas
                       ref={canvasRef}
@@ -653,12 +924,12 @@ function About() {
                       trailRef.current = [];
                       if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
                     }}
-                    className="relative z-20 w-full h-full min-h-[400px] object-cover cursor-pointer"
+                    className="relative z-20 w-full h-full min-h-100 object-cover cursor-pointer"
                   />
                   <div
                     aria-hidden="true"
                     className={
-                      "pointer-events-none absolute bottom-0 left-0 right-0 z-[21] h-[4px] bg-gradient-to-r from-transparent via-[#0A3332] to-transparent transition-opacity duration-700 ease-out " +
+                      "pointer-events-none absolute bottom-0 left-0 right-0 z-21 h-1 bg-linear-to-r from-transparent via-[#0A3332] to-transparent transition-opacity duration-700 ease-out " +
                       (showBlueprint || showMatrix || showDesign || showTest
                         ? "opacity-0"
                         : "opacity-100 animate-[photoBorderIn_0.8s_ease-out]")
@@ -720,7 +991,7 @@ function About() {
                   aria-pressed={showDesign}
                   className={"about-photo-btn about-photo-btn--design w-11 h-11 rounded-full backdrop-blur-md bg-white/15 border border-white/50 flex items-center justify-center shadow-[0_4px_14px_rgba(0,0,0,0.25)] hover:bg-white/30 hover:scale-110" + (showDesign ? " is-active ring-2 ring-white scale-105 bg-white/25" : "") + (showBlueprint || showMatrix || showTest ? " opacity-0 scale-50 pointer-events-none is-hidden" : "")}
                 >
-                  <svg viewBox="0 0 38 57" aria-hidden="true" className="w-[22px] h-[33px]">
+                  <svg viewBox="0 0 38 57" aria-hidden="true" className="w-5.5 h-8.25">
                     <path fill="#1abcfe" d="M19 28.5a9.5 9.5 0 1 1 19 0 9.5 9.5 0 0 1-19 0z" />
                     <path fill="#0acf83" d="M0 47.5a9.5 9.5 0 0 1 9.5-9.5H19v9.5a9.5 9.5 0 1 1-19 0z" />
                     <path fill="#ff7262" d="M19 0v19h9.5a9.5 9.5 0 1 0 0-19H19z" />
@@ -735,7 +1006,7 @@ function About() {
                   aria-pressed={showTest}
                   className={"about-photo-btn about-photo-btn--red w-11 h-11 rounded-full backdrop-blur-md bg-[#D2042D]/80 border border-white/50 text-[#F5F7F7] flex items-center justify-center shadow-[0_4px_14px_rgba(0,0,0,0.25)] hover:bg-[#B00325] hover:scale-110" + (showTest ? " is-active ring-2 ring-white scale-105" : "") + (showBlueprint || showMatrix || showDesign ? " opacity-0 scale-50 pointer-events-none is-hidden" : "")}
                 >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="w-[22px] h-[22px]">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="square" strokeLinejoin="round" aria-hidden="true" className="w-5.5 h-5.5">
                     <ellipse cx="12" cy="14" rx="5" ry="7" />
                     <path d="M12 7 V21" />
                     <circle cx="12" cy="5" r="2.2" />
@@ -747,14 +1018,68 @@ function About() {
             </motion.div>
           </div>
         </Container>
+        {designModeActive && (
+          <div className="absolute bottom-28 left-[60%] -translate-x-1/2 z-80 pointer-events-none select-none">
+            <div className="relative inline-flex flex-col items-center">
+              <motion.span
+                initial={{ opacity: 0, scale: 0.75, y: -4 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ duration: 0.35, delay: 0.15 }}
+                style={{
+                  color: '#e6019a',
+                  fontFamily: "'Comic Sans MS', 'Segoe Print', 'Bradley Hand', cursive",
+                  fontSize: '16px',
+                  transform: 'rotate(-4deg)',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                background idea?
+              </motion.span>
+              <svg
+                viewBox="0 0 36 32"
+                fill="none"
+                aria-hidden="true"
+                style={{
+                  width: '32px',
+                  height: '29px',
+                  color: '#e6019a',
+                  overflow: 'visible',
+                  transform: 'translateX(-60%) rotate(-4deg)',
+                  display: 'block',
+                  margin: '0 auto',
+                }}
+              >
+                <motion.path
+                  d="M14 3C11 9 21 12 16 18C13 21 19 23 23 26"
+                  stroke="currentColor"
+                  strokeWidth="1.2"
+                  strokeLinecap="square"
+                  initial={{ pathLength: 0 }}
+                  animate={{ pathLength: 1 }}
+                  transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1], delay: 0.25 }}
+                />
+                <motion.path
+                  d="M18 19L23 26L16 25"
+                  stroke="currentColor"
+                  strokeWidth="1.2"
+                  strokeLinecap="square"
+                  strokeLinejoin="round"
+                  initial={{ pathLength: 0 }}
+                  animate={{ pathLength: 1 }}
+                  transition={{ duration: 0.35, ease: "easeOut", delay: 0.75 }}
+                />
+              </svg>
+            </div>
+          </div>
+        )}
       </section>
 
       {/* Story + Quick Info */}
-      <section className="bg-[#F5F7F7] py-[4rem] md:py-[5rem]">
+      <section className="bg-[#F5F7F7] py-16 md:py-20">
         <Container size="lg">
           <div className="grid md:grid-cols-2 gap-12 mb-20">
             <motion.div custom={0.1} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-              <h3 className="text-[20px] font-medium text-[#0A3332] mb-5 font-[family-name:var(--font-display)]">My Story</h3>
+              <h3 className="text-[20px] font-medium text-[#0A3332] mb-5 font-(family-name:--font-display)">My Story</h3>
               <div className="space-y-4 text-[#405354] leading-[1.85] text-[16px]">
                 <p>
                   I started my programming journey with Python because I enjoyed solving logical problems. There was something satisfying about writing code that actually did something useful.
@@ -772,7 +1097,7 @@ function About() {
             </motion.div>
 
             <motion.div custom={0.2} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-              <h3 className="text-[20px] font-medium text-[#0A3332] mb-5 font-[family-name:var(--font-display)]">Quick Info</h3>
+              <h3 className="text-[20px] font-medium text-[#0A3332] mb-5 font-(family-name:--font-display)">Quick Info</h3>
               <div className="space-y-4">
                 {[
                   { label: 'Name', value: 'Mohammed Fawaz O' },
@@ -780,8 +1105,8 @@ function About() {
                   { label: 'Education', value: 'Bachelor of Computer Applications (BCA)' },
                   { label: 'Focus', value: 'Django, React, REST APIs, Production Applications' },
                 ].map((info) => (
-                  <Card key={info.label} variant="light" className="!p-5">
-                    <p className="text-[11px] text-[#718082] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] mb-1">{info.label}</p>
+                  <Card key={info.label} variant="light" className="p-5!">
+                    <p className="text-[11px] text-[#718082] uppercase tracking-[0.18em] font-mono mb-1">{info.label}</p>
                     <p className="text-[#0A3332] font-medium">{info.value}</p>
                   </Card>
                 ))}
@@ -795,8 +1120,8 @@ function About() {
             <StaggerChildren className="grid md:grid-cols-3 lg:grid-cols-5 gap-4">
               {Object.entries(skills).map(([category, items]) => (
                 <StaggerItem key={category}>
-                  <Card variant="light" className="!p-6 h-full">
-                    <h4 className="text-[11px] font-medium text-[#236966] mb-4 uppercase tracking-[0.18em] font-[family-name:var(--font-mono)]">{category}</h4>
+                  <Card variant="light" className="p-6! h-full">
+                    <h4 className="text-[11px] font-medium text-[#236966] mb-4 uppercase tracking-[0.18em] font-mono">{category}</h4>
                     <div className="flex flex-wrap gap-2">
                       {items.map((skill) => (
                         <Badge key={skill} variant="light">{skill}</Badge>
@@ -814,8 +1139,8 @@ function About() {
             <StaggerChildren className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               {philosophy.map((item, index) => (
                 <StaggerItem key={index}>
-                  <Card variant="teal" className="!p-6 h-full">
-                    <h4 className="text-[18px] font-medium text-[#F5F7F7] mb-2 font-[family-name:var(--font-display)]">{item.title}</h4>
+                  <Card variant="teal" className="p-6! h-full">
+                    <h4 className="text-[18px] font-medium text-[#F5F7F7] mb-2 font-(family-name:--font-display)">{item.title}</h4>
                     <p className="text-[#B8F2FA] text-[14px] leading-[1.7]">{item.description}</p>
                   </Card>
                 </StaggerItem>
@@ -826,13 +1151,13 @@ function About() {
       </section>
 
       {/* Mission : Teal feature band */}
-      <section className="bg-[#0A3332] py-[5rem] md:py-[6rem]">
+      <section className="bg-[#0A3332] py-20 md:py-24">
         <Container size="lg">
           <div className="text-center max-w-3xl mx-auto">
-            <span className="text-[11px] font-[family-name:var(--font-mono)] text-[#6FE7FF] uppercase tracking-[0.3em] font-medium">
+            <span className="text-[11px] font-mono text-[#6FE7FF] uppercase tracking-[0.3em] font-medium">
               My Mission
             </span>
-            <h3 className="font-[family-name:var(--font-display)] text-[34px] md:text-[44px] leading-[1.1] font-semibold text-[#F5F7F7] mt-4 mb-5">
+            <h3 className="font-(family-name:--font-display) text-[34px] md:text-[44px] leading-[1.1] font-semibold text-[#F5F7F7] mt-4 mb-5">
               Software that actually works.
             </h3>
             <p className="text-[#B8F2FA] text-[18px] font-light leading-[1.7]">

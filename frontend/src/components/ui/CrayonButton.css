@@ -140,9 +140,36 @@
   color: #e6019a;
 }
 
+/* Design mode only: nudge the Resume hover-download icon a touch further
+   from the label to add a little space between them. The button padding stays
+   symmetric so the label remains centered. Scoped to .crayon-resume, which is
+   only ever rendered in design mode. */
+.crayon-btn.crayon-resume .crayon-hover-download {
+  right: 4px;
+}
+
 @media (max-width: 640px) {
   .crayon-btn {
     padding: 12px 18px;
     font-size: 1rem;
   }
+}
+
+/* Hand-drawn download doodle, revealed on hover (resume button) */
+.crayon-hover-download {
+  position: absolute;
+  top: 50%;
+  right: 7px;
+  transform: translateY(-50%) rotate(4deg);
+  width: 26px;
+  height: 26px;
+  color: #ffffff;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.crayon-btn:hover .crayon-hover-download {
+  opacity: 1;
 }

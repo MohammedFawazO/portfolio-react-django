@@ -12,14 +12,14 @@ function Contact() {
         <meta name="description" content="Get in touch with Mohammed Fawaz O for web development projects and opportunities." />
       </Helmet>
 
-      <div className="min-h-screen bg-[#F5F7F7] py-[8rem] md:py-[10rem] pt-[9rem] relative overflow-hidden">
+      <div className="min-h-screen bg-[#F5F7F7] py-32 md:py-40 pt-36 relative overflow-hidden">
         <div
           className="absolute pointer-events-none"
           style={{ top: '-15%', right: '-5%', width: '650px', height: '650px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(35,105,102,0.10) 0%, transparent 70%)' }}
         />
         <Container size="lg">
           <div className="mb-16">
-            <h1 className="font-[family-name:var(--font-display)] text-[44px] md:text-[68px] leading-[1.02] font-semibold text-[#0A3332] tracking-tight max-w-3xl">
+            <h1 className="font-(family-name:--font-display) text-[44px] md:text-[68px] leading-[1.02] font-semibold text-[#0A3332] tracking-tight max-w-3xl">
               Let's build something together.
             </h1>
             <p className="text-[17px] text-[#405354] font-light mt-5 max-w-xl leading-relaxed">
@@ -36,8 +36,8 @@ function Contact() {
                   { label: 'Availability', value: 'Open to freelance & full-time' },
                   { label: 'Location', value: 'Kerala, India (Working remotely worldwide)' },
                 ].map((info) => (
-                  <Card key={info.label} variant="light" className="!p-5">
-                    <p className="text-[11px] text-[#718082] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] mb-1">{info.label}</p>
+                  <Card key={info.label} variant="light" className="p-5!">
+                    <p className="text-[11px] text-[#718082] uppercase tracking-[0.18em] font-mono mb-1">{info.label}</p>
                     <p className="text-[#0A3332] font-medium">{info.value}</p>
                   </Card>
                 ))}
@@ -49,7 +49,7 @@ function Contact() {
               </p>
             </div>
 
-            <Card variant="standard" className="!p-8 md:!p-10">
+            <Card variant="standard" className="p-8! md:p-10!">
               <ContactForm />
             </Card>
           </div>
