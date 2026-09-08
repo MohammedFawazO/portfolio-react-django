@@ -1,41 +1,63 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Download } from 'lucide-react'
 import { BlueprintPillButton } from '@/components/ui/blueprint-pill-button'
+import GlitchScanGridButton from '@/components/ui/glitch-scan-grid-button'
 
-// Detect blueprint mode by watching the html class toggled by About.jsx.
-// Keeps the global ConnectButton untouched in every other mode.
-function useBlueprintActive() {
+function useModeClass(className) {
   const [active, setActive] = useState(false)
   useEffect(() => {
     const root = document.documentElement
-    const update = () => setActive(root.classList.contains('about-blueprint-nav'))
+    const update = () => setActive(root.classList.contains(className))
     update()
     const mo = new MutationObserver(update)
     mo.observe(root, { attributes: true, attributeFilter: ['class'] })
     return () => mo.disconnect()
-  }, [])
+  }, [className])
   return active
 }
 
 export default function ConnectButton({ className = '' }) {
   const navigate = useNavigate()
-  const blueprint = useBlueprintActive()
+  const blueprint = useModeClass('about-blueprint-nav')
+  const test = useModeClass('about-test-nav')
 
-  // In blueprint mode, render the exact BlueprintPillButton (same as the
-  // hero "RESUME" button) so the connect CTA matches it precisely. Pinned
-  // top-right by the parent ConnectSlot, scaled slightly for balance.
+  const handleResumeDownload = () => {
+    const a = document.createElement('a')
+    a.href = '/media/resume.pdf'
+    a.download = 'Mohammed-Fawaz-O-Resume.pdf'
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+  }
+
   if (blueprint) {
     return (
       <span
         className="inline-block pointer-events-auto"
-        style={{ transform: 'scale(0.7) translateY(-14px)', transformOrigin: 'top right' }}
+        style={{ transform: 'scale(0.75) translateY(-14px)', transformOrigin: 'top right' }}
       >
         <BlueprintPillButton
-          label="LET'S_CONNECT"
+          label="GET_RESUME"
           heightOnRight={false}
-          hoverIcon={<ArrowRight />}
-          onClick={() => navigate('/contact')}
+          hoverIcon={<Download />}
+          onClick={handleResumeDownload}
+        />
+      </span>
+    )
+  }
+
+  if (test) {
+    return (
+      <span
+        className="inline-block pointer-events-auto"
+        style={{ transform: 'scale(0.85) translateY(-8px)', transformOrigin: 'top right' }}
+      >
+        <GlitchScanGridButton
+          label="GET_RESUME.EXE"
+          badge="GET//PDF"
+          index={3}
+          onClick={handleResumeDownload}
         />
       </span>
     )
@@ -44,7 +66,7 @@ export default function ConnectButton({ className = '' }) {
   return (
     <Link
       to="/contact"
-      aria-label="Let's Connect"
+      aria-label="Get Resume"
       className={[
         'inline-flex items-center h-11 px-5 rounded-full',
         'backdrop-blur-[24px] border border-[rgba(255,255,255,0.1)]',
@@ -55,30 +77,29 @@ export default function ConnectButton({ className = '' }) {
       ].join(' ')}
     >
       <style>{`
-        @keyframes chevron-slide {
-          0%, 100% { transform: translateX(0); }
-          50% { transform: translateX(4px); }
-        }
-        .connect-btn:hover .connect-chevron {
-          animation: chevron-slide 0.8s ease-in-out infinite;
-        }
       `}</style>
-      <span className="connect-btn flex items-center gap-2">
-        Let's Connect
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="connect-chevron"
-        >
-          <path d="m9 18 6-6-6-6" />
-        </svg>
+      <span className="connect-btn inline-flex items-center gap-1.5">
+        <span className="connect-btn-label-wrap">
+          <span className="connect-btn-label">Get Resume</span>
+        </span>
+        <span className="connect-btn-icon-wrap">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="connect-chevron"
+          >
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+        </span>
       </span>
     </Link>
   )

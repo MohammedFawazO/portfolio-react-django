@@ -25,13 +25,14 @@ export default function EntryIntro() {
   const overflowRef = useRef('')
   const revealTimeRef = useRef(0)
 
-  const WHEEL_STEP = 0.12
-  const CLICK_STEP = 0.12
+  const WHEEL_STEP = 0.08
+  const CLICK_STEP = 0.08
   const ZOOM_COMPLETE = 0.6
-  const WHEEL_COOLDOWN = 60
+  const WHEEL_COOLDOWN = 16
   const SHAPE_REVEAL_MS = 750
   const OVERLAY_REMOVE_MS = 120
   const TRANSITION_DONE = 3500
+  const MAX_ZOOM = 1
 
   useEffect(() => {
     if (!isHome) {
@@ -52,13 +53,22 @@ export default function EntryIntro() {
     const onWheel = (e) => {
       e.preventDefault()
       const now = Date.now()
-      if (now - lastWheelRef.current < WHEEL_COOLDOWN) return
       const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY
+      const ady = Math.abs(dy)
+      const isTrackpad = e.deltaMode === 0 && ady < 50
+      const since = now - lastWheelRef.current
+      if (since < WHEEL_COOLDOWN && !(isTrackpad && since < 80)) return
       lastWheelRef.current = now
       if (!revealedRef.current) {
         revealRef.current?.()
       } else if (now - revealTimeRef.current >= SHAPE_REVEAL_MS) {
-        advanceRef.current?.(Math.sign(dy) * WHEEL_STEP)
+        const intensity = isTrackpad
+          ? Math.min(1, ady / 30)
+          : Math.min(1, ady / 100)
+        const step = isTrackpad
+          ? WHEEL_STEP * (0.5 + intensity * 0.8)
+          : WHEEL_STEP * (0.4 + intensity * 0.6)
+        advanceRef.current?.(Math.sign(dy) * step)
       }
     }
     window.addEventListener('wheel', onWheel, { passive: false })
@@ -144,8 +154,8 @@ export default function EntryIntro() {
             className="w-full h-full"
             style={{
               transformOrigin: zoomOrigin,
-              transform: `scale(${1 + zoomProgress * 18})`,
-              transition: 'transform 0.12s ease-out',
+              transform: `scale(${1 + Math.min(zoomProgress, ZOOM_COMPLETE) * 18})`,
+              transition: 'transform 0.55s cubic-bezier(0.22, 1, 0.36, 1)',
               willChange: 'transform',
               backfaceVisibility: 'hidden',
             }}

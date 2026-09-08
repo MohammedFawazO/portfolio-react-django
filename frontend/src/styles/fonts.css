@@ -6,3 +6,51 @@
   font-style: normal;
   font-display: swap;
 }
+
+/* Pixel Digivolve : pixelated font for the test-mode hero heading */
+@font-face {
+  font-family: 'Pixel Digivolve';
+  src: url('/fonts/Pixel Digivolve.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Pixel Digivolve';
+  src: url('/fonts/Pixel Digivolve Italic.otf') format('opentype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* ByteBounce : pixel font for the test-mode description */
+@font-face {
+  font-family: 'ByteBounce';
+  src: url('/fonts/ByteBounce.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Test-mode scope: apply Pixel Digivolve to ALL headings & buttons (but not
+   body copy). Pixel-rendering keeps the glyphs sharp. */
+html.about-test-nav h1,
+html.about-test-nav h2,
+html.about-test-nav h3,
+html.about-test-nav h4,
+html.about-test-nav h5,
+html.about-test-nav h6,
+html.about-test-nav button,
+html.about-test-nav [role="button"] {
+  font-family: 'Pixel Digivolve', 'Press Start 2P', var(--font-display), monospace !important;
+  letter-spacing: 0.06em;
+  image-rendering: pixelated;
+  -webkit-font-smoothing: none;
+  font-smooth: never;
+}
+
+/* ByteBounce — applied to the description paragraph in test mode */
+html.about-test-nav .desc-bytebounce {
+  font-family: 'ByteBounce', 'Pixel Digivolve', monospace !important;
+  letter-spacing: 0.04em;
+}

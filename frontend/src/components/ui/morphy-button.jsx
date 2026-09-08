@@ -9,7 +9,7 @@ const morphyButtonVariants = cva(
   {
     variants: {
       size: {
-        default: 'h-9 px-6 py-2',
+        default: 'h-11 px-5 py-3',
         sm: 'h-8 px-5 text-xs',
         lg: 'h-10 px-10',
       },
@@ -35,6 +35,8 @@ const MorphyButton = React.forwardRef((
     blueprint = false,
     decor = null,
     disableMorph = false,
+    nudgeAxis = 'y',
+    hoverNarrow = false,
     ...props
   },
   ref,
@@ -96,11 +98,12 @@ const MorphyButton = React.forwardRef((
       onTouchStart={disableMorph ? undefined : handleTouchStart}
       className={cn(
         morphyButtonVariants({ size }),
+        hoverNarrow && active && !disableMorph && 'px-5',
         disableMorph
           ? ''
           : blueprint
             ? 'border-2 border-white bg-[#0a3aa8] backdrop-blur-md'
-            : 'transition-colors duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] border backdrop-blur-md',
+            : 'transition-colors duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] border backdrop-blur-md',
         !disableMorph && !blueprint &&
           (active
             ? 'border-black dark:border-white'
@@ -111,7 +114,7 @@ const MorphyButton = React.forwardRef((
       {!disableMorph && (
         <div
           className={cn(
-            'absolute inset-0 transition-colors duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] rounded-[inherit]',
+            'absolute inset-0 transition-colors duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] rounded-[inherit]',
             blueprint ? 'bg-[#0a3aa8]' : baseBg
           )} />
       )}
@@ -123,7 +126,7 @@ const MorphyButton = React.forwardRef((
       {!disableMorph && (morphStyle === 'dot' ? (
         <div
           className={cn(
-            'absolute top-1/2 -translate-y-1/2 rounded-full transition-all duration-700 ease-in-out bg-black dark:bg-white',
+            'absolute top-1/2 -translate-y-1/2 rounded-full transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] bg-black dark:bg-white',
             'w-[200%] h-[200%] -left-full',
             active && dotActiveClass,
             dotClassName
@@ -131,17 +134,17 @@ const MorphyButton = React.forwardRef((
       ) : (
         <div
           className={cn(
-            'absolute inset-0 rounded-[inherit] transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]',
+            'absolute inset-0 rounded-[inherit] transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)]',
             blueprint
               ? 'opacity-0'
               : active
-                ? cn('opacity-0 scale-50', DIR_MAP[dir])
+                ? cn('opacity-0 scale-0', DIR_MAP[dir])
                 : 'bg-black dark:bg-white opacity-100 translate-x-0 translate-y-0 scale-100'
           )} />
       ))}
       <span
         className={cn(
-          'relative z-10 flex items-center justify-center font-bold',
+          'relative z-10 flex items-center justify-center font-medium',
           !disableMorph && !blueprint && morphStyle === 'dot' && (active ? (dir === 'right' ? '-translate-x-1.5' : 'translate-x-1.5') : 'translate-x-0'),
           disableMorph
             ? ''
@@ -155,8 +158,8 @@ const MorphyButton = React.forwardRef((
         {morphStyle === 'icon' && !disableMorph ? (
           <>
             <span>{children}</span>
-            <span className={cn('inline-flex items-center justify-center shrink-0 overflow-hidden transition-all duration-600 ease-[cubic-bezier(0.22,1,0.36,1)]', active ? 'ml-1.5 w-auto opacity-100 translate-x-0' : 'ml-0 w-0 opacity-0 -translate-x-2')}>
-              <span className={cn('inline-flex', active && 'animate-[iconNudge_1s_ease-in-out_infinite]')}>{activeIcon}</span>
+            <span className={cn('inline-flex items-center justify-center shrink-0 overflow-hidden transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] ml-2 w-auto opacity-100 translate-x-0')}>
+              <span className={cn('inline-flex [&_svg]:size-3.5', active && (nudgeAxis === 'x' ? 'animate-[iconNudgeX_1s_ease-in-out_infinite]' : 'animate-[iconNudge_1s_ease-in-out_infinite]'))}>{activeIcon}</span>
             </span>
           </>
         ) : children}

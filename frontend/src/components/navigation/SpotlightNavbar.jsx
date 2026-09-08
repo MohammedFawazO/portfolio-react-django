@@ -1,8 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { Link, useLocation } from 'react-router-dom'
-import { animate, motion, useReducedMotion } from 'framer-motion'
+import { animate, AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { cn } from '../../lib/utils'
 import { BlueprintPillButton } from '../ui/blueprint-pill-button'
+
+const SCRAMBLE_CHARS = '!@#$%^&*()_+-=[]{}|;:,.<>?/\\~0123456789ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿ'
 
 // Detect blueprint mode by watching the html class toggled by About.jsx.
 // Keeps the global navbar untouched in every other mode.
@@ -11,6 +14,20 @@ function useBlueprintActive() {
   useEffect(() => {
     const root = document.documentElement
     const update = () => setActive(root.classList.contains('about-blueprint-nav'))
+    update()
+    const mo = new MutationObserver(update)
+    mo.observe(root, { attributes: true, attributeFilter: ['class'] })
+    return () => mo.disconnect()
+  }, [])
+  return active
+}
+
+// Detect test mode by watching the html class toggled by About.jsx.
+function useTestModeActive() {
+  const [active, setActive] = useState(false)
+  useEffect(() => {
+    const root = document.documentElement
+    const update = () => setActive(root.classList.contains('about-test-nav'))
     update()
     const mo = new MutationObserver(update)
     mo.observe(root, { attributes: true, attributeFilter: ['class'] })
@@ -55,6 +72,92 @@ const entranceAnimations = {
   },
 }
 
+export function MobileMenu({ items, activeIndex, onItemClick, variant = 'default' }) {
+  const [open, setOpen] = useState(false)
+  const isTest = variant === 'test'
+
+  // Portaled out of the nav's `fixed`/`z-50` stacking context so that
+  // `mix-blend-mode: difference` can blend against the real page backdrop.
+  const button = (
+    <label className={cn('hamburger liquid-glass !fixed top-10 right-5 z-[60] md:hidden w-11 h-11 rounded-full flex items-center justify-center cursor-pointer', open && 'is-open', isTest && '!bg-[#070204] !border !border-[#D2042D]')}>
+      <input
+        type="checkbox"
+        checked={open}
+        onChange={(e) => setOpen(e.target.checked)}
+        aria-label={open ? 'Close menu' : 'Open menu'}
+        aria-expanded={open}
+      />
+      <svg viewBox="0 0 32 32" className={isTest ? '[&_*]:!stroke-[#D2042D]' : ''}>
+        <path className="line line-top-bottom" d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22" />
+        <path className="line" d="M7 16 27 16" />
+      </svg>
+    </label>
+  )
+
+  return (
+    <>
+      {typeof document !== 'undefined' && createPortal(button, document.body)}
+
+      <div className="md:hidden w-full flex justify-end pr-5 relative">
+        <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -8, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.98 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className={cn(
+              'absolute right-5 top-full mt-3 w-56 rounded-2xl border backdrop-blur-xl p-2 shadow-2xl',
+              isTest
+                ? 'border-[#D2042D]/40 bg-[rgba(7,2,4,0.95)]'
+                : 'border-white/10 bg-[rgba(10,12,15,0.92)]'
+            )}
+          >
+            <ul className="flex flex-col">
+              {items.map((item, idx) => (
+                <li key={idx}>
+                  <Link
+                    to={item.href}
+                    onClick={() => {
+                      setOpen(false)
+                      onItemClick?.(item, idx)
+                    }}
+                    className={cn(
+                      'block px-4 py-3 rounded-xl text-sm font-medium transition-colors duration-200',
+                      activeIndex === idx
+                        ? isTest ? 'bg-[#D2042D]/20 text-[#FF3B47]' : 'bg-white/10 text-white'
+                        : isTest ? 'text-[#D2042D]/70 hover:bg-[#D2042D]/10 hover:text-[#FF3B47]' : 'text-white/70 hover:bg-white/5 hover:text-white'
+                    )}
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      </div>
+    </>
+  )
+}
+
+export function useIsMobile(breakpoint = 768) {
+  const getIsMobile = () =>
+    typeof window !== 'undefined' && window.innerWidth < breakpoint
+
+  const [isMobile, setIsMobile] = useState(getIsMobile)
+
+  useEffect(() => {
+    const update = () => setIsMobile(getIsMobile())
+    update()
+    window.addEventListener('resize', update)
+    return () => window.removeEventListener('resize', update)
+  }, [breakpoint])
+
+  return isMobile
+}
+
 function SpotlightNavbar({ items = defaultItems, className, onItemClick, animationKey = 'flipIn' }) {
   const navRef = useRef(null)
   const location = useLocation()
@@ -68,6 +171,46 @@ function SpotlightNavbar({ items = defaultItems, className, onItemClick, animati
   const ambienceX = useRef(0)
 
   const blueprint = useBlueprintActive()
+  const testMode = useTestModeActive()
+  const isMobile = useIsMobile()
+  const [hoveredIdx, setHoveredIdx] = useState(null)
+  const [displayLabels, setDisplayLabels] = useState({})
+  const scrambleRef = useRef(null)
+
+  const scrambleText = useCallback((text, progress) => {
+    return text.split('').map((ch, i) => {
+      if (ch === ' ' || ch === '/' || ch === '.') return ch
+      if (i < progress * text.length) return ch
+      return SCRAMBLE_CHARS[Math.floor(Math.random() * SCRAMBLE_CHARS.length)]
+    }).join('')
+  }, [])
+
+  useEffect(() => {
+    if (!testMode) return
+    if (hoveredIdx === null) {
+      if (scrambleRef.current) clearInterval(scrambleRef.current)
+      setDisplayLabels({})
+      return
+    }
+
+    const label = items[hoveredIdx]?.label || ''
+    const target = label.toUpperCase()
+    let progress = 0
+
+    scrambleRef.current = setInterval(() => {
+      progress += 0.15
+      if (progress >= 1) {
+        clearInterval(scrambleRef.current)
+        setDisplayLabels(prev => ({ ...prev, [hoveredIdx]: target }))
+      } else {
+        setDisplayLabels(prev => ({ ...prev, [hoveredIdx]: scrambleText(target, progress) }))
+      }
+    }, 40)
+
+    return () => {
+      if (scrambleRef.current) clearInterval(scrambleRef.current)
+    }
+  }, [hoveredIdx, items, testMode, scrambleText])
 
   useEffect(() => {
     const idx = items.findIndex(item => item.href === location.pathname)
@@ -128,21 +271,18 @@ function SpotlightNavbar({ items = defaultItems, className, onItemClick, animati
         const itemRect = activeItem.getBoundingClientRect()
         const targetX = itemRect.left - navRect.left + itemRect.width / 2
 
-        animate(ambienceX.current, targetX, {
-          type: 'spring',
-          stiffness: 200,
-          damping: 20,
-          onUpdate: (v) => {
-            ambienceX.current = v
-            nav.style.setProperty('--ambience-x', `${v}px`)
-          },
-        })
+        // Snap the CSS var to the active link immediately so the underline
+        // never sits at the previous (stale) value (e.g. showing Projects
+        // when the active link is About after a mode-switch remount).
+        ambienceX.current = targetX
+        nav.style.setProperty('--ambience-x', `${targetX}px`)
       }
     }
 
+    positionAmbience()
     const timeout = setTimeout(positionAmbience, 800)
     return () => clearTimeout(timeout)
-  }, [activeIndex])
+  }, [activeIndex, blueprint])
 
   const handleItemClick = (item, index) => {
     setActiveIndex(index)
@@ -158,44 +298,139 @@ function SpotlightNavbar({ items = defaultItems, className, onItemClick, animati
   // it as children. Every other mode keeps the untouched spotlight navbar.
   if (blueprint) {
     return (
-      <div className={cn('relative flex justify-center z-50', className)} style={{ paddingTop: '24px' }}>
-        <BlueprintPillButton className="bp-nav" heightOnRight={false}>
-          <ul className="relative flex items-center h-full px-2 gap-0.5 z-[10]">
-            {items.map((item, idx) => (
-              <li key={idx} className="relative h-full flex items-center justify-center">
-                <Link
-                  to={item.href}
-                  data-index={idx}
-                  onClick={() => handleItemClick(item, idx)}
-                  className={cn(
-                    'px-2 py-1.5 text-sm font-medium transition-colors duration-200 rounded-full',
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00d2ff]',
-                    activeIndex === idx ? 'is-active' : ''
-                  )}
-                >
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </BlueprintPillButton>
+      <div className={cn('relative z-50 w-full', className)} style={{ paddingTop: '24px' }}>
+        {!isMobile && (
+          <div className="flex justify-center">
+            <BlueprintPillButton className="bp-nav" heightOnRight={false}>
+              <ul className="relative flex items-center h-full px-2 gap-0.5 z-[10]">
+                {items.map((item, idx) => (
+                  <li key={idx} className="relative h-full flex items-center justify-center">
+                    <Link
+                      to={item.href}
+                      data-index={idx}
+                      onClick={() => handleItemClick(item, idx)}
+                      className={cn(
+                        'px-2 py-1.5 text-sm font-medium transition-colors duration-200 rounded-full',
+                        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00d2ff]',
+                        activeIndex === idx ? 'is-active' : ''
+                      )}
+                    >
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </BlueprintPillButton>
+          </div>
+        )}
+
+        {isMobile && <MobileMenu items={items} activeIndex={activeIndex} onItemClick={handleItemClick} />}
+      </div>
+    )
+  }
+
+  if (testMode) {
+    return (
+      <div className={cn('relative z-50 w-full', className)} style={{ paddingTop: '24px' }}>
+        {!isMobile && (
+          <div className="flex justify-center">
+            <div className="relative px-7 py-3 sm:px-8 sm:py-3.5 rounded-none bg-[#080204]/95 backdrop-blur-md border border-[#D2042D]/40 shadow-[0_4px_14px_rgba(0,0,0,0.5),inset_0_0_10px_rgba(210,4,45,0.06)]">
+              <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <div className="absolute inset-0 bg-[repeating-linear-gradient(0deg,transparent,transparent_2px,rgba(210,4,45,0.03)_2px,rgba(210,4,45,0.03)_4px)]" />
+                <div className="scanline-animation absolute inset-0 bg-gradient-to-b from-transparent via-[#D2042D]/5 to-transparent animate-[scanline_4s_linear_infinite]" />
+              </div>
+              <ul className="relative flex items-center h-full gap-0.5 z-[10]">
+                {items.map((item, idx) => (
+                  <li key={idx} className="relative h-full flex items-center justify-center">
+                    <Link
+                      to={item.href}
+                      data-index={idx}
+                      onClick={() => handleItemClick(item, idx)}
+                      onMouseEnter={() => setHoveredIdx(idx)}
+                      onMouseLeave={() => setHoveredIdx(null)}
+                      className={cn(
+                        'relative px-3 py-1.5 text-[14px] font-bold tracking-[0.1em] uppercase transition-colors duration-200 rounded-none overflow-hidden',
+                        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D2042D]',
+                        activeIndex === idx
+                          ? 'text-[#D2042D] drop-shadow-[0_0_8px_rgba(255,59,71,0.85)]'
+                          : 'text-[#E5E7EB] hover:text-white'
+                      )}
+                      style={{ fontFamily: "'Pixel Digivolve', monospace" }}
+                    >
+                      <span className="relative z-10">{displayLabels[idx] || item.label}</span>
+                      {activeIndex === idx && (
+                        <span className="absolute inset-0 pointer-events-none overflow-hidden">
+                          <span className="absolute inset-x-0 h-10 pointer-events-none animate-[navScanline_2.5s_ease-in-out_infinite]" style={{ top: 0, background: 'linear-gradient(180deg, transparent 0%, rgba(255,59,71,0.35) 65%, rgba(255,59,71,0.95) 100%)' }}>
+                            <span className="absolute bottom-0 inset-x-0 h-[2px]" style={{ background: '#FF3B47', boxShadow: '0 0 8px #FF3B47, 0 0 16px #D2042D' }} />
+                          </span>
+                        </span>
+                      )}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              <span className="absolute top-0 left-0 w-3 h-3 border-t border-l border-[#D2042D]/70" />
+              <span className="absolute top-0 right-0 w-3 h-3 border-t border-r border-[#D2042D]/70" />
+              <span className="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-[#D2042D]/70" />
+              <span className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-[#D2042D]/70" />
+              <span className="absolute bottom-1 right-2.5 text-[8px] font-mono tracking-widest text-[#D2042D]/50">//nav</span>
+            </div>
+          </div>
+        )}
+        <style>{`
+          @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+          }
+          @keyframes navScanline {
+            0% { transform: translateY(-100%); }
+            40% { transform: translateY(200%); }
+            40.01% { transform: translateY(200%); }
+            60% { transform: translateY(200%); }
+            60.01% { transform: translateY(-100%); }
+            100% { transform: translateY(-100%); }
+          }
+          .moving-stripes {
+            width: 100%;
+            height: 50px;
+            background: linear-gradient(
+              45deg,
+              #8B0000 25%,
+              #000000 25%,
+              #000000 50%,
+              #8B0000 50%,
+              #8B0000 75%,
+              #000000 75%,
+              #000000
+            );
+            background-size: 40px 40px;
+            animation: moveStripes 2s linear infinite;
+          }
+          @keyframes moveStripes {
+            from { background-position: 0 0; }
+            to { background-position: 40px 0; }
+          }
+        `}</style>
+        {isMobile && <MobileMenu items={items} activeIndex={activeIndex} onItemClick={handleItemClick} variant="test" />}
       </div>
     )
   }
 
   return (
-    <div className={cn('relative flex justify-center z-50', className)} style={{ paddingTop: '40px' }}>
-      <motion.nav
-        ref={navRef}
-        initial={shouldReduceMotion ? { opacity: 1 } : anim.initial}
-        animate={anim.animate}
-        transition={anim.transition}
-        className={cn(
-          'spotlight-nav relative h-11 rounded-full overflow-hidden',
-          'backdrop-blur-[24px] border border-[rgba(255,255,255,0.1)]',
-          'bg-[rgba(255,255,255,0.05)] shadow-[0_8px_32px_rgba(0,0,0,0.4)]'
-        )}
-      >
+    <div className={cn('relative w-full', className)} style={{ paddingTop: '40px' }}>
+      {!isMobile && (
+        <div className="flex justify-center">
+          <motion.nav
+          ref={navRef}
+          initial={shouldReduceMotion ? { opacity: 1 } : anim.initial}
+          animate={anim.animate}
+          transition={anim.transition}
+          className={cn(
+            'spotlight-nav relative z-50 h-11 rounded-full overflow-hidden',
+            'backdrop-blur-[24px] border border-[rgba(255,255,255,0.1)]',
+            'bg-[rgba(255,255,255,0.05)] shadow-[0_8px_32px_rgba(0,0,0,0.4)]'
+          )}
+        >
         {/* Content */}
         <ul className="relative flex items-center h-full px-2 gap-0 z-[10]">
           {items.map((item, idx) => (
@@ -244,13 +479,17 @@ function SpotlightNavbar({ items = defaultItems, className, onItemClick, animati
         />
       </motion.nav>
 
-      <style>{`
+        <style>{`
         .spotlight-nav {
           --spotlight-x: 50%;
           --spotlight-y: 50%;
           --ambience-x: 50%;
         }
       `}</style>
+      </div>
+      )}
+
+      {isMobile && <MobileMenu items={items} activeIndex={activeIndex} onItemClick={handleItemClick} />}
     </div>
   )
 }

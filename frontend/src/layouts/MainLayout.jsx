@@ -17,11 +17,11 @@ function NavbarSlot() {
   const isProjects = location.pathname === '/projects'
   const heroProgress = useContext(HeroScrollContext)
   const navFade = useTransform(heroProgress, [0, 0.55, 0.85], [1, 1, 0])
-  const navSlide = useTransform(heroProgress, [0, 0.55, 0.85], [0, 0, -24])
+  const navSlide = useTransform(heroProgress, [0, 0.55, 0.85], [0, 0, 0])
 
   const wrapperClass = isProjects
-    ? "z-50 flex justify-center fixed top-0 left-0 right-0"
-    : "z-50 flex justify-center absolute top-0 left-0 right-0"
+    ? "z-50 flex justify-center top-0 left-0 right-0 fixed"
+    : "z-50 flex justify-center top-0 left-0 right-0 min-md:absolute max-md:fixed"
   const transition = { duration: 0.4, ease: 'easeInOut' }
 
   return (
@@ -65,7 +65,7 @@ function ConnectSlot() {
   const isProjects = location.pathname === '/projects'
   const heroProgress = useContext(HeroScrollContext)
   const navFade = useTransform(heroProgress, [0, 0.55, 0.85], [1, 1, 0])
-  const navSlide = useTransform(heroProgress, [0, 0.55, 0.85], [0, 0, -24])
+  const navSlide = useTransform(heroProgress, [0, 0.55, 0.85], [0, 0, 0])
 
   // Watch the blueprint body class (toggled by About.jsx) so the connect CTA
   // can be pinned to the bottom of the page in blueprint mode only — every
@@ -89,7 +89,7 @@ function ConnectSlot() {
       {designModeActive ? (
         <motion.div
           key="design"
-          className="absolute right-9 top-14 z-50 pointer-events-none"
+          className="absolute right-9 top-14 z-50 pointer-events-none max-md:hidden"
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 8 }}
@@ -100,14 +100,16 @@ function ConnectSlot() {
       ) : (
         <motion.div
           key="default-connect"
-          // Blueprint mode: bottom-right, low z-index, wrapper ignores pointer
-          // events so it never blocks the hero photo's hover animations. Only
-          // the actual button (pointer-events-auto) is clickable.
+          // Blueprint mode: pinned to the top-right of the hero section, with a high
+          // z-index (z-70) so it stays above the about-photo-group (z-60) and
+          // remains clickable. The wrapper uses pointer-events-none so it
+          // never blocks the hero photo's hover animations — only the
+          // actual button (pointer-events-auto) is clickable.
           className={blueprint
-            ? "fixed right-6 top-6 z-30 pointer-events-none"
+            ? "fixed right-6 top-6 z-100 pointer-events-none max-md:hidden"
             : isProjects
-              ? "fixed right-6 top-10 z-50"
-              : "absolute right-6 top-10 z-50"}
+              ? "fixed right-6 top-10 z-50 max-md:hidden"
+              : "absolute right-6 top-10 z-50 max-md:hidden"}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 8 }}

@@ -19,45 +19,44 @@ export default function DesignModeConnectButton({
         {/* Actual CTA */}
         <Link
           to="/contact"
-          aria-label="Let's Connect"
+          aria-label="Get Resume"
           className="design-connect-button"
         >
           <span className="design-connect-label">
-            Let's Connect
+            Get Resume
           </span>
         </Link>
 
-        {/* Separate arrow button */}
-        <Link
-          to="/contact"
-          aria-label="Go to contact"
+        {/* Separate download button */}
+        <button
+          type="button"
+          aria-label="Download resume"
           className="design-connect-arrow"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const a = document.createElement('a');
+            a.href = '/media/resume.pdf';
+            a.download = 'Mohammed-Fawaz-O-Resume.pdf';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+          }}
         >
           <svg
-            viewBox="0 0 42 28"
+            viewBox="0 0 24 24"
             fill="none"
+            stroke="currentColor"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
             aria-hidden="true"
           >
-            <path
-              d="M3 14
-                 C10 13.5 17 14.5 25 14
-                 C29 14 33 14 38 14"
-              stroke="currentColor"
-              strokeWidth="3.5"
-              strokeLinecap="round"
-            />
-
-            <path
-              d="M29 6
-                 C32 9 35 11 39 14
-                 C35 17 32 19 29 22"
-              stroke="currentColor"
-              strokeWidth="3.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
           </svg>
-        </Link>
+        </button>
 
         {showAnnotations && (
           <>

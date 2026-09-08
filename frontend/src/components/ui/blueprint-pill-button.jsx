@@ -15,6 +15,10 @@ export const BlueprintPillButton = ({
   // + labels reflect the actual rendered size (not fixed magic numbers).
   const btnRef = useRef(null);
   const [size, setSize] = useState({ w: 0, h: 0 });
+  // Refs to the crosshair lines so we can update them synchronously inside
+  // mousemove (no React state lag = no visible offset from the cursor tip).
+  const hLineRef = useRef(null);
+  const vLineRef = useRef(null);
   useLayoutEffect(() => {
     const el = btnRef.current;
     if (!el) return;
@@ -29,24 +33,50 @@ export const BlueprintPillButton = ({
   }, []);
 
   const handleMouseMove = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    setCoords({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    });
+    // Walk up from the event target to find the button's actual rect. This
+    // ensures the cursor position is always measured against the button's
+    // local (unscaled) coordinate system, regardless of which child element
+    // the cursor is currently over (text, icon, etc.) and regardless of any
+    // CSS transform on an ancestor (e.g. ConnectButton's scale-0.7 wrapper).
+    const target = e.currentTarget;
+    const rect = target.getBoundingClientRect();
+    let parent = target.parentElement;
+    let scaleX = 1;
+    let scaleY = 1;
+    while (parent) {
+      const t = getComputedStyle(parent).transform;
+      if (t && t !== 'none') {
+        const m = t.match(/matrix\(([^)]+)\)/);
+        if (m) {
+          const parts = m[1].split(',').map(parseFloat);
+          scaleX *= parts[0];
+          scaleY *= parts[3];
+        }
+      }
+      parent = parent.parentElement;
+    }
+    const x = (e.clientX - rect.left) / scaleX;
+    const y = (e.clientY - rect.top) / scaleY;
+    if (hLineRef.current) hLineRef.current.style.top = `${y}px`;
+    if (vLineRef.current) vLineRef.current.style.left = `${x}px`;
+    setCoords({ x, y });
   };
 
   const hasChildren = !!children;
 
-  // Crosshair that follows the cursor across the (real, measured) target.
+  // Crosshair : full-length lines that meet exactly at the cursor tip.
+  // Position is updated via refs on every mousemove (synchronously) so the
+  // lines never visibly lag behind the cursor.
   const crosshair = isHovered && (
     <>
       <div
-        className="absolute left-0 right-0 h-[1px] bg-[#00d2ff] opacity-40 pointer-events-none"
+        ref={hLineRef}
+        className="absolute left-0 right-0 h-[1px] bg-[#00d2ff] opacity-50 pointer-events-none"
         style={{ top: coords.y }}
       />
       <div
-        className="absolute top-0 bottom-0 w-[1px] bg-[#00d2ff] opacity-40 pointer-events-none"
+        ref={vLineRef}
+        className="absolute top-0 bottom-0 w-[1px] bg-[#00d2ff] opacity-50 pointer-events-none"
         style={{ left: coords.x }}
       />
     </>
@@ -120,7 +150,7 @@ export const BlueprintPillButton = ({
                 {label}
                 {isHovered && hoverIcon && (
                   <span className={"inline-flex items-center text-[#00d2ff] ml-2 transition-all duration-200 " + (isHovered ? "opacity-100 w-auto animate-[iconNudge_1s_ease-in-out_infinite]" : "opacity-0 w-0")}>
-                    {hoverIcon}
+                    <span className="inline-flex [&_svg]:size-3.5">{hoverIcon}</span>
                   </span>
                 )}
               </span>

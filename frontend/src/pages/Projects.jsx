@@ -239,6 +239,9 @@ function Projects() {
   const titleTextRef = useRef(null)
   const [countStarted, setCountStarted] = useState(false)
   const [vh, setVh] = useState(typeof window !== 'undefined' ? window.innerHeight : 0)
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== 'undefined' ? window.innerWidth < 768 : false
+  )
 
   // Carousel: index of the project currently shown in the center podium
   const [order, setOrder] = useState(1)
@@ -254,7 +257,10 @@ function Projects() {
   const [navigating, setNavigating] = useState(false)
 
   useEffect(() => {
-    const onResize = () => setVh(window.innerHeight)
+    const onResize = () => {
+      setVh(window.innerHeight)
+      setIsMobile(window.innerWidth < 768)
+    }
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
   }, [])
@@ -298,6 +304,14 @@ function Projects() {
   const cameraScale = useTransform(progress, [0, 0.72, 0.85], [1, 1.08, 1.08])
   const connectionGlow = useTransform(progress, [0.5, 0.65, 0.75, 0.85], [0, 1, 1, 1])
   const glowScale = useTransform(progress, [0.5, 0.65, 0.75, 0.85], [0.3, 1, 1.2, 1.2])
+
+  /* Mobile-only hand motion: before converging, the left hand pushes further
+     left and the right hand further right (so they clear the heading), then
+     they only start moving toward each other once clear of the heading. */
+  const robotXMobile = useTransform(progress, [0, 0.45, 0.6, 0.85], ['0vw', '-16vw', '-16vw', '-1vw'])
+  const humanXMobile = useTransform(progress, [0, 0.45, 0.6, 0.85], ['0vw', '16vw', '16vw', '1vw'])
+  const connectionGlowMobile = useTransform(progress, [0.6, 0.7, 0.8, 0.85], [0, 1, 1, 1])
+  const glowScaleMobile = useTransform(progress, [0.6, 0.7, 0.8, 0.85], [0.3, 1, 1.2, 1.2])
   const textFadeOut = useTransform(progress, [0.55, 0.85], [1, 0])
   const textSlideUp = useTransform(progress, [0.55, 0.85], [0, -24])
   const textCombinedFade = textFadeOut
@@ -351,24 +365,24 @@ function Projects() {
       </div>
 
       {/* Virtual camera : hands + connection star, zoomed on scroll (above text) */}
-      <motion.div style={{ scale: cameraScale, transformOrigin: 'center 45%' }} className="absolute inset-0 z-20 pointer-events-none">
+       <motion.div style={{ scale: cameraScale, transformOrigin: 'center 45%' }} className="absolute inset-0 z-20 max-md:z-0 pointer-events-none">
            {/* Hands layer */}
           <div className="absolute inset-0 pointer-events-none">
             {/* Robot */}
-            <div className="hand-robot absolute -left-16 top-[65%] -translate-y-1/2 pointer-events-none">
+            <div className="hand-robot absolute -left-16 top-[65%] max-md:top-[35%] -translate-y-1/2 pointer-events-none">
               <motion.img
                 src="/media/robot.png"
                 alt=""
-                style={{ scale: robotScaleVal, rotate: robotRotate, x: robotX }}
+                 style={{ scale: robotScaleVal, rotate: robotRotate, x: isMobile ? robotXMobile : robotX }}
                 className="w-55 md:w-77.5 lg:w-100 will-change-transform"
               />
             </div>
             {/* Human */}
-            <div className="hand-human absolute -right-16 top-[65%] -translate-y-1/2 pointer-events-none">
+            <div className="hand-human absolute -right-16 top-[65%] max-md:top-[35%] -translate-y-1/2 pointer-events-none">
               <motion.img
                 src="/media/human.png"
                 alt=""
-                style={{ scale: humanScaleVal, rotate: humanRotate, x: humanX }}
+                 style={{ scale: humanScaleVal, rotate: humanRotate, x: isMobile ? humanXMobile : humanX }}
                 className="w-55 md:w-77.5 lg:w-100 will-change-transform"
               />
             </div>
@@ -376,8 +390,8 @@ function Projects() {
 
           {/* Connection glow : symmetric star with rays and streaks */}
           <motion.div
-            style={{ opacity: connectionGlow, scale: glowScale }}
-            className="absolute left-1/2 top-[35%] -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+             style={{ opacity: isMobile ? connectionGlowMobile : connectionGlow, scale: isMobile ? glowScaleMobile : glowScale }}
+            className="absolute left-1/2 top-[35%] max-md:top-[21%] -translate-x-1/2 -translate-y-1/2 pointer-events-none"
           >
             {/* Outer haze : pulsing */}
             <div className="absolute w-32 h-32 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
@@ -447,7 +461,7 @@ function Projects() {
         {/* Central content : scroll-controlled fade/slide */}
         <motion.div
           style={{ opacity: textCombinedFade, y: textSlideUp }}
-          className="absolute top-32 left-0 right-0 bottom-0 z-10 text-center px-6 flex flex-col items-center"
+           className="absolute top-32 left-0 right-0 bottom-0 z-10 text-center px-6 flex flex-col items-center"
         >
            {/* Eyebrow */}
           <motion.p
@@ -527,7 +541,7 @@ function Projects() {
               blur={false}
               autoPlay={true}
               delay={2.0}
-              className="font-(family-name:--font-display) text-[52px] md:text-[70px] lg:text-[90px] leading-[0.95] font-light text-[#F3F0EA] justify-center uppercase"
+              className="font-(family-name:--font-display) text-[35px] md:text-[70px] lg:text-[90px] leading-[0.95] font-light text-[#F3F0EA] justify-center uppercase"
             />
           </motion.div>
 
@@ -559,7 +573,7 @@ function Projects() {
               style={{ padding: '28px 24px' }}
               className="bg-linear-to-b from-[rgba(255,255,255,.07)] to-[rgba(255,255,255,.02)] backdrop-blur-[32px] border border-[rgba(255,255,255,.15)] rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,.08)]"
             >
-              <div className="grid grid-cols-4">
+              <div className="grid grid-cols-2 md:grid-cols-4">
                  {stats.map((stat, i) => (
                    <div key={stat.label} className="flex flex-col items-center justify-start gap-2 px-2 py-1">
                      <div className="h-7 flex items-center justify-center">

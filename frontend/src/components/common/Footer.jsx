@@ -47,7 +47,7 @@ const WhatsappIcon = (props) => (
 const icons = { github: GithubIcon, linkedin: LinkedinIcon, email: EmailIcon, whatsapp: WhatsappIcon }
 
 const SectionHeading = ({ children }) => (
-      <h4 className="text-xl uppercase tracking-[0.2em] text-white/90 font-bold mb-5">
+      <h4 className="text-xl uppercase tracking-[0.2em] text-white/90 font-bold mb-5 footer-heading">
     {children}
   </h4>
 )
@@ -59,21 +59,25 @@ function Footer() {
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1, delay: 0.4, ease: 'easeOut' }}
-        className="liquid-glass relative z-10 w-full rounded-3xl px-8 py-10 md:py-12 text-white/70 flex flex-col"
+        className="liquid-glass relative z-10 w-full rounded-3xl px-8 py-10 md:py-12 text-white/70 flex flex-col !overflow-visible footer-responsive"
       >
         <button
+          type="button"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           aria-label="Back to top"
-          className="!absolute top-8 right-5 md:top-10 md:right-6 liquid-glass w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:scale-105 transition-all duration-300"
+          className="group !overflow-visible !absolute top-8 right-5 z-20 md:top-10 md:right-6 liquid-glass w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:scale-105 transition-all duration-300 footer-top-btn"
         >
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="pointer-events-none">
             <path d="m18 15-6-6-6 6" />
           </svg>
+          <span className="pointer-events-none absolute -bottom-9 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-md bg-black/80 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100 md:hidden">
+            Back to top
+          </span>
         </button>
 
         {/* Top branding area */}
         <div className="mb-2">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 footer-brand-row">
             <div className="liquid-glass w-12 h-12 rounded-xl flex items-center justify-center text-base font-semibold tracking-wide text-white">
               MF
             </div>
@@ -82,48 +86,17 @@ function Footer() {
               <p className="text-base text-white/50 mt-1.5">Python Full Stack Developer</p>
             </div>
           </div>
-            <p className="text-base text-white/60 mt-5 max-w-sm leading-relaxed">
+            <p className="text-base text-white/60 mt-5 max-w-sm leading-relaxed footer-desc">
             I'm open to full-time opportunities where I can build reliable, production-ready web applications.
           </p>
         </div>
 
-        {/* Three-column content area */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-10 mt-2">
-          {/* Column 1 : Get in Touch (primary CTA) */}
-          <div>
-            <SectionHeading>Get in Touch</SectionHeading>
-              <p className="text-lg font-medium text-white leading-snug mb-4">
-              Let's build something together.
-            </p>
-            <div className="flex flex-wrap items-center gap-3">
-              <Link
-                to="/contact"
-                className="group inline-flex items-center gap-2 rounded-full liquid-glass px-5 py-2.5 text-base font-medium text-white border-white/10 hover:border-white/40 hover:bg-white/10 hover:shadow-[0_0_22px_rgba(247,223,185,0.25)] transition-all duration-300"
-              >
-                Let's Talk
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1">
-                  <path d="M5 12h14M13 6l6 6-6 6" />
-                </svg>
-              </Link>
-              <Link
-                to="/resume"
-                className="group inline-flex items-center gap-2 rounded-full liquid-glass px-5 py-2.5 text-base font-medium text-white border-white/10 hover:border-white/40 hover:bg-white/10 hover:shadow-[0_0_22px_rgba(247,223,185,0.25)] transition-all duration-300"
-              >
-                Resume
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:animate-bounce">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                  <polyline points="14 2 14 8 20 8" />
-                  <path d="M12 18v-6" />
-                  <path d="M9 15l3 3 3-3" />
-                </svg>
-              </Link>
-            </div>
-          </div>
-
-          {/* Column 2 : Navigation */}
-          <div>
+        {/* Two-column content area */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-20 mt-2">
+          {/* Column 1 : Navigation */}
+          <div className="order-1 md:order-none md:justify-self-end">
             <SectionHeading>Navigation</SectionHeading>
-            <ul className="space-y-3 text-sm">
+            <ul className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm footer-nav">
               {navLinks.map((link) => (
                 <li key={link.href}>
                   <Link
@@ -150,10 +123,10 @@ function Footer() {
             </ul>
           </div>
 
-          {/* Column 3 : Connect */}
-          <div>
+          {/* Column 2 : Connect */}
+          <div className="order-2 md:order-none">
             <SectionHeading>Connect</SectionHeading>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 footer-connect">
               {socialLinks.map((social) => {
                 const SocialIcon = icons[social.icon]
                 return (
@@ -174,9 +147,9 @@ function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-12 pt-5 border-t border-white/10 flex items-center justify-between gap-4">
+        <div className="mt-12 pt-5 border-t border-white/10 flex flex-col-reverse sm:flex-row items-start sm:items-center justify-between gap-4 footer-bottom">
             <p className="flex items-center gap-2 text-sm text-white/50">
-            <span className="relative flex h-2 w-2">
+            <span className="relative flex h-2 w-2 shrink-0">
               <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400/50 animate-ping" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
             </span>

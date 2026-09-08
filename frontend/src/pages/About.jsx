@@ -13,7 +13,14 @@ import { MorphyButton } from '@/components/ui/morphy-button'
 import CrayonButton from '@/components/ui/CrayonButton'
 import { BlueprintPillButton } from '@/components/ui/blueprint-pill-button'
 import { AliveBlueprintBackground } from '@/components/ui/alive-blueprint-background'
-import { Download, ArrowRight } from 'lucide-react'
+import GlitchScanGridButton from '@/components/ui/glitch-scan-grid-button'
+import GlitchDescription from '@/components/ui/glitch-description'
+import NeonRGBTextEffect from '@/components/ui/neon-rgb-text-effect'
+import { RedGlitchHeading } from '@/components/ui/red-glitch-heading'
+import TestErrorPopups from '@/components/ui/test-error-popups'
+import TestModeBackground from '@/components/ui/test-mode-background'
+import TestBugOverlay from '@/components/ui/test-bug-overlay'
+import { Download, ArrowRight, Bug } from 'lucide-react'
 
 const fadeUp = {
   hidden: { y: 30, opacity: 0 },
@@ -43,7 +50,7 @@ function TypingLoader({ text = 'icons/illustrations loading...', className = '' 
       style={{ fontFamily: '"Comic Sans MS", "Comic Sans", "Chalkboard SE", "Comic Neue", cursive' }}
     >
       <span className="whitespace-pre">{text.slice(0, count)}</span>
-      <span className="caret-blink ml-[2px] inline-block w-[0.55ch] h-[1.05em] bg-current align-middle" />
+      <span className="caret-blink ml-0.5 inline-block w-[0.55ch] h-[1.05em] bg-current align-middle" />
     </span>
   )
 }
@@ -84,6 +91,7 @@ function About() {
   const [showMatrix, setShowMatrix] = useState(false)
   const [showDesign, setShowDesign] = useState(false)
   const [showTest, setShowTest] = useState(false)
+  const [introReplayKey, setIntroReplayKey] = useState(0)
 
   const groupRef = useRef(null)
   const canvasRef = useRef(null)
@@ -119,7 +127,8 @@ function About() {
     return spots
   }, [])
 
-  const handleResumeDownload = () => {
+  const handleResumeDownload = (e) => {
+    if (e && e.stopPropagation) e.stopPropagation();
     const a = document.createElement('a')
     a.href = '/media/resume.pdf'
     a.download = 'Mohammed-Fawaz-O-Resume.pdf'
@@ -210,9 +219,24 @@ function About() {
   }, [showBlueprint])
 
   useEffect(() => {
+    const root = document.documentElement
+    if (showTest) root.classList.add('about-test-nav')
+    else root.classList.remove('about-test-nav')
+    return () => root.classList.remove('about-test-nav')
+  }, [showTest])
+
+  useEffect(() => {
     setDesignModeActive(showDesign)
     return () => setDesignModeActive(false)
   }, [showDesign, setDesignModeActive])
+
+  useEffect(() => {
+    if (!showDesign) return
+    const id = setInterval(() => {
+      setIntroReplayKey((k) => k + 1)
+    }, 5000)
+    return () => clearInterval(id)
+  }, [showDesign])
 
   const drawInkCover = (ctx, cw, ch, src, scaleMul = 1, offX = 0) => {
     if (!src || !src.width) return
@@ -336,7 +360,7 @@ function About() {
         ? testCanvasRef.current
         : inkCanvasRef.current
       ictx.clearRect(0, 0, cw, ch)
-      ictx.fillStyle = showDesign ? '#ffffff' : showMatrix ? '#000000' : '#001428'
+      ictx.fillStyle = showDesign ? '#ffffff' : showMatrix ? '#000000' : showTest ? '#070204' : '#001428'
       ictx.fillRect(0, 0, cw, ch)
       if (showDesign) drawDesignInk(ictx, cw, ch, activeImg)
       else drawInkCover(ictx, cw, ch, activeImg, showTest ? 0.92 : showMatrix ? 0.95 : 1.07, 0)
@@ -411,7 +435,20 @@ function About() {
 
 
       {/* Hero */}
-      <section className={"relative pt-6 md:pt-8 pb-0 md:pb-0.5 overflow-hidden transition-colors duration-700 ease-out " + (showMatrix ? "bg-black matrix-mode" : showBlueprint ? "bg-[#001428]" : "bg-[#F5F7F7]")}>
+      <section
+        id="about-hero-section"
+        onClick={() => {
+          // Clicking anywhere in the hero resets any active mode back to default
+          if (showBlueprint || showMatrix || showDesign || showTest) {
+            setShowBlueprint(false);
+            setShowMatrix(false);
+            setShowDesign(false);
+            setShowTest(false);
+            trailRef.current = [];
+            if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
+          }
+        }}
+        className={"relative pt-6 md:pt-8 pb-0 md:pb-0.5 overflow-hidden transition-colors duration-700 ease-out " + (showMatrix ? "bg-black matrix-mode" : showBlueprint ? "bg-[#001428]" : showTest ? "bg-[#070204]" : "bg-[#F5F7F7]")}>
         {/* Design-mode graph-paper grid covering the whole hero */}
         {showDesign && (
           <div className="design-hero-grid absolute inset-0 z-0 pointer-events-none" />
@@ -445,21 +482,28 @@ function About() {
             className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 z-80 pointer-events-none select-none opacity-60"
             aria-hidden="true"
           >
-            <div className="relative w-9 h-9 border-2 border-black">
-              <span
-                className="absolute inset-0 flex items-center justify-center text-3xl font-bold"
-                style={{
-                  fontFamily: '"Times New Roman", Times, serif',
-                  WebkitTextStroke: '1.5px #000',
-                  color: 'transparent',
-                }}
-              >
-                T
-              </span>
-              <span className="absolute -left-1.5 -top-1.5 w-2.5 h-2.5 bg-white border border-black" />
-              <span className="absolute -right-1.5 -top-1.5 w-2.5 h-2.5 bg-white border border-black" />
-              <span className="absolute -left-1.5 -bottom-1.5 w-2.5 h-2.5 bg-white border border-black" />
-              <span className="absolute -right-1.5 -bottom-1.5 w-2.5 h-2.5 bg-white border border-black" />
+            <div className="design-select-frame relative w-9 h-9">
+              <div className="relative w-full h-full border-2 border-black overflow-hidden">
+                <span
+                  aria-hidden="true"
+                  className="design-select-fill absolute inset-0"
+                  style={{ backgroundColor: '#1e40af' }}
+                />
+                <span
+                  className="absolute inset-0 flex items-center justify-center text-3xl font-bold"
+                  style={{
+                    fontFamily: '"Times New Roman", Times, serif',
+                    WebkitTextStroke: '1.5px #000',
+                    color: 'transparent',
+                  }}
+                >
+                  T
+                </span>
+              </div>
+              <span className="absolute -left-1 -top-1 w-2 h-2 bg-white border border-black" />
+              <span className="absolute -right-1 -top-1 w-2 h-2 bg-white border border-black" />
+              <span className="absolute -left-1 -bottom-1 w-2 h-2 bg-white border border-black" />
+              <span className="absolute -right-1 -bottom-1 w-2 h-2 bg-white border border-black" />
             </div>
           </div>
         )}
@@ -471,7 +515,7 @@ function About() {
           style={{ top: '-15%', right: '-5%', width: '650px', height: '650px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(35,105,102,0.10) 0%, transparent 70%)' }}
         />
         <div className={"absolute inset-0 z-45 pointer-events-none overflow-hidden transition-opacity duration-500 ease-out " + (showMatrix ? "opacity-100" : "opacity-0")}>
-          <MatrixRain variant="cyan" fixedColor="#03A062" />
+          {showMatrix && <MatrixRain variant="cyan" fixedColor="#03A062" />}
         </div>
         <AnimatePresence>
           {showBlueprint && (
@@ -486,10 +530,23 @@ function About() {
               <AliveBlueprintBackground className="absolute inset-0 min-h-0! flex-none!" />
             </motion.div>
           )}
+          {showTest && (
+            <motion.div
+              key="test-bg"
+              className="absolute inset-0 z-0 pointer-events-none"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.7, ease: 'easeOut' }}
+            >
+              <TestModeBackground className="absolute inset-0 min-h-0! flex-none!" />
+            </motion.div>
+          )}
         </AnimatePresence>
+        {showTest && <TestErrorPopups />}
         <Container size="lg">
           <div className="grid md:grid-cols-2 gap-10 md:gap-16 items-center">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} className={"relative z-70 transition-[padding,margin] duration-700 ease-out" + (showMatrix || showBlueprint || showTest ? " pl-6 md:pl-12" : "") + (showBlueprint ? " mt-16" : "")}>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} className={"relative z-70 transition-[padding,margin] duration-700 ease-out" + (showMatrix || showBlueprint ? " pl-6 md:pl-12" : "") + (showBlueprint ? " mt-16" : "")}>
               {designModeActive && (
                 <div className="absolute left-1 top-0 -translate-y-full z-80 flex items-center pointer-events-none">
                   <TypingLoader />
@@ -652,12 +709,79 @@ function About() {
                   <rect x="1183" y="329" width="10" height="10" fill="#FFFFFF" stroke="#2477D4" />
 
                 </svg>
+              ) : showTest ? (
+                <div className="p-0 min-h-0">
+                  <RedGlitchHeading
+                    text="MOHAMMED FAWAZ O"
+                    variants={[
+                      'मोहम्मद फ़वाज़ ओ',
+                      'മുഹമ്മദ് ഫവാസ് ഒ',
+                      'محمد فواز أو',
+                      'モハメド・ファワズ・オ',
+                    ]}
+                  />
+                </div>
               ) : (
                 <h1 className={"font-(family-name:--font-display) leading-[1.02] font-semibold tracking-tight uppercase whitespace-nowrap transition-[color,font-size,letter-spacing,opacity] duration-700 ease-out " + (showMatrix ? "text-[34px] sm:text-[50px] md:text-[66px] text-white blueprint-hero-type hero-heading" : showBlueprint ? "text-[24px] sm:text-[36px] md:text-[48px] text-white blueprint-hero-type" : "text-[22px] sm:text-[32px] md:text-[42px] text-[#0A3332]")}>
                   Mohammed Fawaz O
                 </h1>
               )}
-              <p className={"text-[18px] md:text-[20px] font-light mt-2 max-w-xl leading-relaxed transition-[color,font-size,margin,letter-spacing,opacity] duration-700 ease-out " + (showMatrix ? "text-white/80 blueprint-hero-type hero-description" : showBlueprint ? "text-white/80 blueprint-hero-type" : "text-[#405354]")}>
+              {showTest ? (
+                <NeonRGBTextEffect
+                  key={introReplayKey}
+                  className="font-light mt-2 leading-relaxed font-mono"
+                >
+                  Python Full Stack Developer from{' '}
+                  <span className="relative inline-block whitespace-nowrap">
+                    Kerala, India
+                    {designModeActive && (
+                      <motion.svg
+                        className="kerala-oval"
+                        viewBox="0 0 200 80"
+                        fill="none"
+                        preserveAspectRatio="none"
+                        aria-hidden="true"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.3 }}
+                        style={{
+                          position: 'absolute',
+                          inset: '-10px -22px',
+                          width: 'calc(100% + 44px)',
+                          height: 'calc(100% + 20px)',
+                          zIndex: -1,
+                          pointerEvents: 'none',
+                        }}
+                      >
+                        <motion.path
+                          d="M12 60 C40 36 70 26 100 32 C132 38 162 30 188 22"
+                          stroke="#54B7E8"
+                          strokeWidth="1.4"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          fill="none"
+                          initial={{ pathLength: 0 }}
+                          animate={{ pathLength: 1 }}
+                          transition={{ duration: 0.8, ease: "easeOut", delay: 0.4 }}
+                        />
+                        <motion.path
+                          d="M30 36 C72 16 132 12 172 23"
+                          stroke="#54B7E8"
+                          strokeWidth="1.6"
+                          strokeLinecap="square"
+                          strokeLinejoin="round"
+                          fill="none"
+                          initial={{ pathLength: 0 }}
+                          animate={{ pathLength: 1 }}
+                          transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
+                        />
+                      </motion.svg>
+                    )}
+                  </span>
+                  , building production-ready web applications with Django, React, and clean architecture.
+                </NeonRGBTextEffect>
+              ) : (
+              <p key={introReplayKey} className={"text-[18px] md:text-[20px] font-light mt-2 max-w-xl leading-relaxed transition-[color,font-size,margin,letter-spacing,opacity] duration-700 ease-out " + (showMatrix ? "text-white/80 blueprint-hero-type hero-description" : showBlueprint ? "text-white/80 blueprint-hero-type" : "text-[#405354]")}>
                 {showBlueprint ? (<span className="inline-block border border-dashed border-[#00d2ff] px-2 py-0.5 text-[#00d2ff]">Python</span>) : showMatrix ? (<span className="keyword">Python</span>) : 'Python'} Full Stack Developer from{' '}
                 <span className="relative inline-block whitespace-nowrap">
                   Kerala, India
@@ -806,11 +930,12 @@ function About() {
                 </span>
                  and clean architecture.
               </p>
+              )}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                className={"mt-5 transition-[margin] duration-700 ease-out" + (showMatrix || showBlueprint || showTest ? " -ml-6 md:-ml-12" : "")}
+                className={"mt-5 transition-[margin] duration-700 ease-out" + (showMatrix || showBlueprint ? " -ml-6 md:-ml-12" : "")}
               >
                 <AnimatePresence mode="wait">
                   {showDesign ? (
@@ -849,7 +974,31 @@ function About() {
                         transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
                       >
                         <AnimatePresence mode="wait" initial={false}>
-                          {showBlueprint ? (
+                          {showTest ? (
+                            <motion.div
+                              key="test"
+                              className="flex items-center gap-4 sm:gap-6 flex-wrap"
+                              initial={{ opacity: 0, scale: 0.97, filter: 'blur(6px)' }}
+                              animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+                              exit={{ opacity: 0, scale: 0.97, filter: 'blur(6px)' }}
+                              transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+                            >
+<GlitchScanGridButton
+label="./view-projects"
+                                badge="RUN // 01"
+                                index={1}
+                                icon={<ArrowRight size={17} strokeWidth={2.4} />}
+                                onClick={(e) => { e.stopPropagation(); navigate('/projects'); }}
+                              />
+                              <GlitchScanGridButton
+                                label="RESUME.EXE"
+                                badge="GET//PDF"
+                                index={2}
+                                icon={<Download size={17} strokeWidth={2.4} />}
+                                onClick={(e) => { e.stopPropagation(); handleResumeDownload(e); }}
+                              />
+                            </motion.div>
+                          ) : showBlueprint ? (
                             <motion.div
                               key="bp"
                               className="flex items-center -mt-4"
@@ -858,9 +1007,13 @@ function About() {
                               exit={{ opacity: 0, scale: 0.97, filter: 'blur(6px)' }}
                               transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
                             >
-                              <BlueprintPillButton label="VIEW_MY_WORK" onClick={() => navigate('/projects')} />
+                              <span style={{ transform: 'scale(0.85) translateY(-6px)', transformOrigin: 'center' }} className="inline-block">
+                                <BlueprintPillButton label="VIEW_MY_WORK" onClick={(e) => { e.stopPropagation(); navigate('/projects'); }} />
+                              </span>
                               <div className="w-12" />
-                              <span className="-ml-2"><BlueprintPillButton label="RESUME" onClick={handleResumeDownload} heightOnRight hoverIcon={<Download />} /></span>
+                              <span className="-ml-20 inline-block" style={{ transform: 'scale(0.85) translateY(-6px)', transformOrigin: 'center' }}>
+                                <BlueprintPillButton label="RESUME" onClick={handleResumeDownload} heightOnRight hoverIcon={<Download />} />
+                              </span>
                             </motion.div>
                           ) : (
                             <motion.div
@@ -871,10 +1024,10 @@ function About() {
                               exit={{ opacity: 0, scale: 0.97, filter: 'blur(6px)' }}
                               transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
                             >
-                              <MorphyButton onClick={() => navigate('/projects')} className={"px-4" + (showMatrix ? " btn-matrix" : "")} morphStyle="icon" morphDir="down-left" activeIcon={<ArrowRight />} blueprint={showBlueprint} disableMorph={showMatrix}>
+                              <MorphyButton onClick={(e) => { e.stopPropagation(); navigate('/projects'); }} className={showMatrix ? " btn-matrix" : ""} morphStyle="icon" morphDir="down-left" activeIcon={<ArrowRight />} blueprint={showBlueprint} disableMorph={showMatrix} nudgeAxis="x" hoverNarrow>
                                 {showMatrix ? <span className="matrix-btn-label">View My Work</span> : "View My Work"}
                               </MorphyButton>
-                              <MorphyButton onClick={handleResumeDownload} className={"px-4 -ml-3" + (showMatrix ? " btn-matrix" : "")} morphStyle="icon" activeIcon={<Download />} morphDir="down" blueprint={showBlueprint} disableMorph={showMatrix}>
+                              <MorphyButton onClick={handleResumeDownload} className={showMatrix ? " btn-matrix" : ""} morphStyle="icon" activeIcon={<Download />} morphDir="down-left" blueprint={showBlueprint} disableMorph={showMatrix} hoverNarrow>
                                 {showMatrix ? (
                                   <>
                                     <span className="matrix-btn-label">Resume</span>
@@ -905,7 +1058,22 @@ function About() {
                 onMouseMove={handleMove}
                 onMouseLeave={handleLeave}
               >
-                <div className="relative overflow-hidden min-h-100">
+                <div
+                  className={"relative min-h-100 " + (!showBlueprint && !showMatrix && !showDesign && !showTest ? 'rounded-2xl p-2 bg-white shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5),0_18px_36px_-18px_rgba(0,0,0,0.4)]' : '')}
+                  style={{
+                    perspective: '1000px',
+                    transition: 'box-shadow 0.7s cubic-bezier(0.22, 1, 0.36, 1)',
+                    ...((!showBlueprint && !showMatrix && !showDesign && !showTest)
+                      ? {
+                          maskImage: 'linear-gradient(to bottom, #000 0%, #000 80%, rgba(0, 0, 0, 0.6) 95%, transparent 100%)',
+                          WebkitMaskImage: 'linear-gradient(to bottom, #000 0%, #000 80%, rgba(0, 0, 0, 0.6) 95%, transparent 100%)',
+                        }
+                      : {}),
+                  }}
+                  >
+                    <div
+                      className={"relative overflow-hidden min-h-100 rounded-xl transition-colors duration-500 ease-out"}
+                    >
                   {(showBlueprint || showMatrix || showDesign || showTest) && (
                     <canvas
                       ref={canvasRef}
@@ -916,29 +1084,22 @@ function About() {
                   <img
                     src="/media/about%20default.png"
                     alt="Mohammed Fawaz O"
-                    onClick={() => {
-                      setShowBlueprint(false);
-                      setShowMatrix(false);
-                      setShowDesign(false);
-                      setShowTest(false);
-                      trailRef.current = [];
-                      if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
-                    }}
                     className="relative z-20 w-full h-full min-h-100 object-cover cursor-pointer"
                   />
                   <div
                     aria-hidden="true"
                     className={
-                      "pointer-events-none absolute bottom-0 left-0 right-0 z-21 h-1 bg-linear-to-r from-transparent via-[#0A3332] to-transparent transition-opacity duration-700 ease-out " +
+                      "pointer-events-none absolute inset-x-0 bottom-0 z-21 h-4 bg-linear-to-t from-white via-white/70 to-transparent transition-opacity duration-700 ease-out " +
                       (showBlueprint || showMatrix || showDesign || showTest
                         ? "opacity-0"
-                        : "opacity-100 animate-[photoBorderIn_0.8s_ease-out]")
+                        : "opacity-100")
                     }
                   />
+                  </div>
                 </div>
                 <button
                   type="button"
-                  onClick={() => { setShowBlueprint((v) => !v); trailRef.current = []; if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null } }}
+                  onClick={(e) => { e.stopPropagation(); setShowBlueprint((v) => !v); trailRef.current = []; if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null } }}
                   aria-label="Toggle blueprint"
                   aria-pressed={showBlueprint}
                   className={"about-photo-btn about-photo-btn--blueprint w-11 h-11 rounded-full backdrop-blur-md bg-[#0041BA]/75 border border-white/50 text-[#F5F7F7] flex items-center justify-center shadow-[0_4px_14px_rgba(0,0,0,0.25)] hover:bg-[#0041BA] hover:scale-110" + (showBlueprint ? " is-active ring-2 ring-white scale-105" : "") + (showMatrix || showDesign || showTest ? " opacity-0 scale-50 pointer-events-none is-hidden" : "")}
@@ -954,7 +1115,7 @@ function About() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => { setShowMatrix((v) => !v); trailRef.current = []; if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null } }}
+                  onClick={(e) => { e.stopPropagation(); setShowMatrix((v) => !v); trailRef.current = []; if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null } }}
                   aria-label="Toggle matrix rain"
                   aria-pressed={showMatrix}
                   className={"about-photo-btn about-photo-btn--code w-11 h-11 rounded-full overflow-hidden backdrop-blur-md bg-black border border-[#03A062]/60 text-[#03A062] flex items-center justify-center shadow-[0_4px_14px_rgba(0,0,0,0.25)] hover:bg-white/10 hover:scale-110" + (showMatrix ? " is-active ring-2 ring-[#4ade80] scale-105" : "") + (showBlueprint || showDesign || showTest ? " opacity-0 scale-50 pointer-events-none is-hidden" : "")}
@@ -979,7 +1140,8 @@ function About() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setShowDesign((v) => !v)
                     trailRef.current = []
                     if (rafRef.current) {
@@ -1001,18 +1163,12 @@ function About() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => { setShowTest((v) => !v); trailRef.current = []; if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null } }}
+                  onClick={(e) => { e.stopPropagation(); setShowTest((v) => !v); trailRef.current = []; if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null } }}
                   aria-label="Toggle test overlay"
                   aria-pressed={showTest}
-                  className={"about-photo-btn about-photo-btn--red w-11 h-11 rounded-full backdrop-blur-md bg-[#D2042D]/80 border border-white/50 text-[#F5F7F7] flex items-center justify-center shadow-[0_4px_14px_rgba(0,0,0,0.25)] hover:bg-[#B00325] hover:scale-110" + (showTest ? " is-active ring-2 ring-white scale-105" : "") + (showBlueprint || showMatrix || showDesign ? " opacity-0 scale-50 pointer-events-none is-hidden" : "")}
+                  className={"about-photo-btn about-photo-btn--red w-11 h-11 rounded-full backdrop-blur-md bg-[#D2042D]/80 border border-white/50 text-[#F5F7F7] flex items-center justify-center shadow-[0_4px_14px_rgba(0,0,0,0.25)] hover:bg-transparent hover:scale-110" + (showTest ? " is-active ring-2 ring-white scale-105" : "") + (showBlueprint || showMatrix || showDesign ? " opacity-0 scale-50 pointer-events-none is-hidden" : "")}
                 >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="square" strokeLinejoin="round" aria-hidden="true" className="w-5.5 h-5.5">
-                    <ellipse cx="12" cy="14" rx="5" ry="7" />
-                    <path d="M12 7 V21" />
-                    <circle cx="12" cy="5" r="2.2" />
-                    <path d="M10.3 3.4 L8 1.2 M13.7 3.4 L16 1.2" />
-                    <path d="M7 11 L3 9 M7 14 L3 14 M7 17 L3 20 M17 11 L21 9 M17 14 L21 14 M17 17 L21 20" />
-                  </svg>
+                  <Bug size={19} strokeWidth={2.4} className="drop-shadow-[0_0_8px_#FF3B47]" />
                 </button>
               </div>
             </motion.div>
@@ -1071,6 +1227,40 @@ function About() {
               </svg>
             </div>
           </div>
+        )}
+        {showTest && (
+          <>
+            <TestBugOverlay />
+            <motion.div
+              initial={{ opacity: 0, scaleX: 0.4, filter: 'blur(6px)' }}
+              animate={{ opacity: 1, scaleX: 1, filter: 'blur(0px)' }}
+              transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+              style={{ transformOrigin: 'left center' }}
+              className="absolute bottom-18 left-17 w-60 h-5 overflow-hidden z-75 pointer-events-none"
+            >
+              <div className="moving-stripes w-full h-full" />
+              <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(to right, rgba(0,0,0,1) 0%, transparent 20%, transparent 80%, rgba(0,0,0,1) 100%)' }} />
+            </motion.div>
+            <motion.span
+              initial={{ opacity: 0, y: 8, filter: 'blur(4px)' }}
+              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              transition={{ duration: 0.45, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
+              className="absolute bottom-13 left-17 text-[10px] font-mono tracking-widest text-[#D2042D] uppercase z-75 pointer-events-none"
+            >//DEBUG_CONSOLE</motion.span>
+            <style>{`
+              .moving-stripes {
+                width: 100%;
+                height: 50px;
+                background: linear-gradient(45deg, #8B0000 25%, #000000 25%, #000000 50%, #8B0000 50%, #8B0000 75%, #000000 75%, #000000);
+                background-size: 40px 40px;
+                animation: moveStripes 2s linear infinite;
+              }
+              @keyframes moveStripes {
+                from { background-position: 0 0; }
+                to { background-position: 40px 0; }
+              }
+            `}</style>
+          </>
         )}
       </section>
 

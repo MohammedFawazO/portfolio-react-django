@@ -4,6 +4,7 @@ import Card from '../components/ui/Card'
 import Badge from '../components/ui/Badge'
 import Container from '../components/ui/Container'
 import { StaggerChildren, StaggerItem } from '../components/animations/StaggerChildren'
+import { BooksShowcase } from '../components/ui/books-showcase'
 
 function Resume() {
   const experience = [
@@ -37,6 +38,69 @@ function Resume() {
     Tools: ['Git', 'GitHub', 'Postman', 'Vite'],
     Deployment: ['Render', 'Railway', 'Cloudflare', 'WhiteNoise'],
   }
+
+  const books = [
+    {
+      id: 'crafting-interpreters',
+      title: 'Crafting Interpreters',
+      author: 'Robert Nystrom',
+      year: '2021',
+      stars: 5,
+      desc: 'A hands-on guide to building your own programming language from scratch, walking through two complete interpreters from scanning tokens to garbage collection.',
+      backBg: '#1a3a52',
+      backInk: '220,235,250',
+      spineBg: '#0f2535',
+      spineInk: '#e6f0fa',
+    },
+    {
+      id: 'clean-architecture',
+      title: 'Clean Architecture',
+      author: 'Robert C. Martin',
+      year: '2017',
+      stars: 4,
+      desc: 'A practical guide to software structure and architecture. The book distills decades of experience into a set of universal rules for building systems that are easy to maintain and extend.',
+      backBg: '#2b3a30',
+      backInk: '230,240,220',
+      spineBg: '#1c2a1f',
+      spineInk: '#dbe7d2',
+    },
+    {
+      id: 'refactoring',
+      title: 'Refactoring',
+      author: 'Martin Fowler',
+      year: '2018',
+      stars: 5,
+      desc: 'The definitive guide to improving the design of existing code. Full of real-world examples showing how to safely refactor for clarity, performance, and flexibility without breaking behavior.',
+      backBg: '#3a2a1c',
+      backInk: '250,230,210',
+      spineBg: '#2a1d12',
+      spineInk: '#f4e7d2',
+    },
+    {
+      id: 'domain-driven-design',
+      title: 'Domain-Driven Design',
+      author: 'Eric Evans',
+      year: '2003',
+      stars: 5,
+      desc: 'The book that introduced DDD to the world. It teaches how to model complex business domains in code, align teams around a shared language, and build software that evolves with the business.',
+      backBg: '#1f2a4a',
+      backInk: '210,220,245',
+      spineBg: '#131a30',
+      spineInk: '#cbd5f0',
+    },
+    {
+      id: 'designing-data-intensive',
+      title: 'Designing Data-Intensive Applications',
+      author: 'Martin Kleppmann',
+      year: '2017',
+      stars: 5,
+      desc: 'A deep, friendly tour through the systems behind modern applications: databases, streams, replication, consistency, and the trade-offs that shape every backend decision.',
+      backBg: '#3a1f2a',
+      backInk: '250,220,225',
+      spineBg: '#2a121c',
+      spineInk: '#f4d8de',
+    },
+  ]
 
   return (
     <>
@@ -130,6 +194,38 @@ function Resume() {
                 </StaggerItem>
               ))}
             </StaggerChildren>
+          </div>
+
+          {/* Reading Shelf */}
+          <div className="mt-20">
+            <SectionHeading
+              tone="light"
+              alignment="left"
+              eyebrow="Reading Shelf"
+              title="Books That Shaped How I Build"
+              subtitle="A few of the books I keep coming back to — they shape how I design APIs, structure code, and think about systems."
+            />
+            <div className="rounded-2xl overflow-hidden border border-[#0A3332]/10 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.35)]">
+              <BooksShowcase
+                books={books}
+                heroTitle="Reading"
+                navTitle="Currently Reading"
+                showNav={true}
+                showDetailPanel={true}
+                showCarousel={true}
+                themeColors={{
+                  navy: '#0A3332',
+                  pink: '#236966',
+                  cream: '#F5F7F7',
+                  lav: '#405354',
+                  peri: '#6FE7FF',
+                  bgLight: '#F5F7F7',
+                  bgDark: '#0A3332',
+                  foregroundLight: '#0A3332',
+                  foregroundDark: '#F5F7F7',
+                }}
+              />
+            </div>
           </div>
         </Container>
       </div>

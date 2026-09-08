@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { cn } from '../../lib/utils'
 import { motion } from 'framer-motion'
+import { MobileMenu, useIsMobile } from './SpotlightNavbar'
 
 const defaultItems = [
   { label: 'Home', href: '/' },
@@ -27,6 +28,8 @@ function DesignModeNavbar({
     onItemClick?.(item, index)
   }
 
+  const isMobile = useIsMobile()
+
   return (
     <div
       className={cn(
@@ -35,7 +38,9 @@ function DesignModeNavbar({
       )}
       style={{ paddingTop: '58px' }}
     >
-      <nav className="design-navbar relative">
+      {!isMobile && (
+        <div className="flex justify-center w-full">
+          <nav className="design-navbar relative">
         {/* Selection handles */}
         <span className="design-handle design-handle-tl" />
         <span className="design-handle design-handle-tr" />
@@ -122,7 +127,11 @@ function DesignModeNavbar({
             )
           })}
         </ul>
-      </nav>
+          </nav>
+        </div>
+      )}
+
+      {isMobile && <MobileMenu items={items} activeIndex={activeIndex} onItemClick={handleItemClick} />}
 
       <style>{`
         /*
