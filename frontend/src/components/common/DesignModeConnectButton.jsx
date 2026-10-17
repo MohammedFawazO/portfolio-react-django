@@ -142,7 +142,7 @@ export default function DesignModeConnectButton({
       <style>{`
         /*
          * ==========================================
-         * DESIGN MODE — LET'S CONNECT
+         * DESIGN MODE - LET'S CONNECT
          * ==========================================
          */
 

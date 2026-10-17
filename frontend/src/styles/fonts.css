@@ -49,7 +49,7 @@ html.about-test-nav [role="button"] {
   font-smooth: never;
 }
 
-/* ByteBounce — applied to the description paragraph in test mode */
+/* ByteBounce - applied to the description paragraph in test mode */
 html.about-test-nav .desc-bytebounce {
   font-family: 'ByteBounce', 'Pixel Digivolve', monospace !important;
   letter-spacing: 0.04em;

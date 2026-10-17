@@ -6,16 +6,61 @@ export const profile = {
   name: 'Mohammed Fawaz O',
   title: 'Python Full Stack Developer',
   bio: 'Passionate developer with 5+ years of experience building web applications.',
-  email: 'your-email@example.com',
+  email: 'fawz9479@gmail.com',
   phone: '',
-  location: 'Kerala, India',
+  location: 'Dubai, UAE',
   image: '',
 }
 
 export const socials = [
-  { id: 1, name: 'GitHub', url: 'https://github.com/mohammedfawaz-o', icon: 'github' },
-  { id: 2, name: 'LinkedIn', url: 'https://linkedin.com/in/mohammedfawaz-o', icon: 'linkedin' },
+  { id: 1, name: 'GitHub', url: 'https://github.com/MohammedFawazO', icon: 'github' },
+  { id: 2, name: 'LinkedIn', url: 'https://www.linkedin.com/in/mohammed-fawaz-o-176695306', icon: 'linkedin' },
+  { id: 3, name: 'WhatsApp', url: 'https://wa.me/971541413726', icon: 'whatsapp' },
+  // TODO: replace with the real handle - this placeholder 404s on Instagram.
+  { id: 4, name: 'Instagram', url: 'https://instagram.com/YOUR_HANDLE', icon: 'instagram' },
 ]
+
+// Prefilled prompts for the floating WhatsApp panel. `label` is the row shown in
+// the panel, `text` is what lands in WhatsApp's composer via ?text=. Editing the
+// opening line here keeps it consistent with the number in `socials` above,
+// instead of the name being repeated in a component.
+// `icon` is a key into WhatsAppButton's PROMPT_ICONS map - the same inline-path
+// pattern the projects console uses for its highlights.
+// This is the base data section for the WhatsApp CTA: the icon, the number and
+// every auto-message are set here, never inside the component.
+export const whatsappPrompts = {
+  name: 'Fawaz',
+  options: [
+    {
+      // Audience: someone with an idea, website or application to build.
+      id: 'project',
+      icon: 'bulb',
+      label: 'Have a project in mind?',
+      text: "Hi {name}, I have a project in mind and would love to discuss it with you.",
+    },
+    {
+      // Audience: recruiters and companies with a full-time opening.
+      id: 'fulltime',
+      icon: 'suitcase',
+      label: 'Hiring a developer?',
+      text: "Hi {name}, I'm reaching out about a potential job opportunity that might be a good fit for you.",
+    },
+    {
+      // Audience: clients needing freelance development or short-term help.
+      id: 'freelance',
+      icon: 'laptop',
+      label: 'Need a freelance developer?',
+      text: "Hi {name}, I'm looking for a freelance developer and would like to discuss a potential collaboration.",
+    },
+    {
+      // Audience: networking, collaborations, questions, or a cold approach.
+      id: 'connect',
+      icon: 'clouds',
+      label: 'Just want to connect?',
+      text: "Hi {name}, I came across your portfolio and wanted to get in touch.",
+    },
+  ],
+}
 
 export const skills = [
   // Backend
@@ -54,33 +99,21 @@ export const projects = [
     id: 1,
     title: 'CarCure',
     description:
-      'Production-level roadside assistance and vehicle spare parts platform for UAE users. Built with Django, DRF, Bootstrap, and Supabase. Features vehicle spare parts enquiry, SOS emergency recovery requests, vehicle maintenance booking, user and staff dashboards, authentication, email notifications, file uploads, and Supabase storage integration.',
+      'An automotive marketplace and service platform for UAE drivers, bringing a genuine spare-parts catalogue, enquiry handling and maintenance scheduling into one place. Django and DRF run the backend, Supabase handles accounts and file storage, and separate dashboards keep customers and staff working from the same records.',
     tags: 'Django,DRF,Bootstrap,Supabase,PostgreSQL,Cloudflare',
-    link: '',
+    link: 'https://carcure.ae/',
     github: '',
     featured: true,
     order: 1,
     image: '',
   },
   {
-    id: 2,
-    title: 'Sandra International Website',
-    description:
-      'Business portfolio website for a UAE startup. Clean design, fast performance, and mobile-first responsive layout. Features SEO optimization, contact forms, and image optimization.',
-    tags: 'HTML,CSS,JavaScript,Responsive Design,SEO',
-    link: '',
-    github: '',
-    featured: true,
-    order: 2,
-    image: '',
-  },
-  {
     id: 3,
     title: 'Al Shamil Turning LLC',
     description:
-      'Corporate portfolio website for an engineering company in Fujairah, UAE. Professional design with improved UI and responsive layout. Business-focused content structure for an engineering firm.',
+      'A corporate portfolio site for an engineering company in Fujairah, restructured so heavy technical work stays easy to follow. Cleaner typography, a service-led content structure and a fully responsive layout across phones and desktop.',
     tags: 'HTML,CSS,JavaScript,Responsive Design,UI/UX',
-    link: '',
+    link: 'https://alshamilturning.com/',
     github: '',
     featured: true,
     order: 3,
@@ -90,7 +123,7 @@ export const projects = [
     id: 4,
     title: 'Dubai Travel AI Assistant',
     description:
-      'AI-powered travel assistant for exploring Dubai. Built with Python and Streamlit. Uses AI to help travelers plan their trips with interactive recommendations.',
+      'A conversational travel companion for exploring Dubai, built in Python with Streamlit. Visitors describe a budget, a day or a mood and get back a shaped itinerary they can actually follow, then refine it without starting over.',
     tags: 'Python,Streamlit,AI/ML',
     link: '',
     github: '',
@@ -102,7 +135,7 @@ export const projects = [
     id: 5,
     title: 'Tour Package Management System',
     description:
-      'Django-based tour package management system with CRUD operations, authentication, booking workflow, and database management. Demonstrates core web development concepts.',
+      'A booking platform for tour operators covering packages, availability and customers in one place. Built on Django with SQLite for a zero-friction setup, it carries a reservation from first enquiry through confirmation with a staff admin panel for everyday changes.',
     tags: 'Django,SQLite,Python,HTML,CSS',
     link: '',
     github: '',
@@ -114,7 +147,7 @@ export const projects = [
     id: 6,
     title: 'Portfolio Website',
     description:
-      'This portfolio website built with Django REST Framework and React. Features animated components, REST API integration, and production deployment.',
+      'This portfolio, built with Django REST Framework and React. Framer Motion drives the transitions, a custom scroll-driven hero pins through its sequence, and the whole thing is bundled and deployed as a static build.',
     tags: 'Django,DRF,React,Tailwind CSS,Vite',
     link: '',
     github: '',
@@ -161,6 +194,7 @@ export const certificates = [
 export const content = {
   profile,
   socials,
+  whatsappPrompts,
   skills,
   projects,
   experience,

@@ -1,0 +1,187 @@
+================================================================================
+ PORTFOLIO - PAGES
+ Route map for every page in the SPA.
+ Source of truth: frontend/src/App.jsx  +  frontend/src/pages/
+================================================================================
+
+
+--------------------------------------------------------------------------------
+ /  --  HOME
+--------------------------------------------------------------------------------
+ Component      : src/pages/Home.jsx
+ Layout         : MainLayout (navbar, connect CTA, footer)
+ Title          : Mohammed Fawaz O - Python Full Stack Developer
+ Entry animation: EntryIntro - fullscreen overlay, first scroll reveals the
+                  black shapes, scroll-to-zoom until the overlay covers the
+                  viewport, then the next scroll transitions into the page.
+ Sections       : Hero, TechMarquee, AboutMe, WhatIDo, Skills,
+                  FeaturedProjects, Timeline, Contact (form), Certificates
+ Own sections   : components/sections/
+
+
+--------------------------------------------------------------------------------
+ /about  --  ABOUT
+--------------------------------------------------------------------------------
+ Component      : src/pages/About.jsx
+ Title          : About - Meet Mohammed Fawaz O | Python Full Stack Developer
+ Hero modes     : Four switchable modes from the orbiting buttons on the photo
+                    - blueprint  (engineering drawings, blue)
+                    - matrix    (code / terminal, green)
+                    - design    (creative / Figma, multi-colour)
+                    - test      (debug overlay, red)
+                  Clicking a mode docks that button at the photo's bottom edge;
+                  clicking anywhere in the hero resets to default.
+ Sections       : Hero, Quick Info, My Story, Skills, Certificates,
+                  Connect
+ Theming        : Each mode sets an html class (about-blueprint-nav,
+                  about-matrix-nav, about-test-nav) so the shared navbar and
+                  connect button adopt the mode's theme. Cleared on unmount.
+
+
+--------------------------------------------------------------------------------
+ /projects  --  PROJECTS
+--------------------------------------------------------------------------------
+ Component      : src/pages/Projects.jsx
+ Title          : Projects - Selected Work
+ Layout         : Pinned scroll hero (1400vh, sticky) + project grid below.
+                  The hero is driven by window scroll, not by a wheel handler:
+                  progress runs 0 -> 1 and fades the nav out on the way.
+ Milestones    : Coming Soon, CarCure, AL Shamil Turning
+                  Selecting one slides it to the left and opens the right-side
+                  console with its description, highlights and stack.
+
+
+--------------------------------------------------------------------------------
+ /contact  --  CONTACT
+--------------------------------------------------------------------------------
+ Component      : src/pages/Contact.jsx
+ Title          : Contact - Work with Mohammed Fawaz O | Python Full Stack
+ Form           : components/common/ContactForm.jsx
+                  Name, Email, Project type (optional), Message.
+ Delivery chain : services/contactService.js
+                    1. Web3Forms  - only when VITE_WEB3FORMS_KEY is set
+                    2. FormSubmit - keyless fallback, posts to the mailbox
+                    3. mailto     - last resort when the network is unavailable
+                  NOTE: FormSubmit sends a one-time activation email on the
+                  first submission; the API rejects posts until it is clicked.
+Email link     : Opens Gmail compose with the recipient prefilled, and copies
+                   the address to the clipboard on click (lib/mail.js).
+
+ PENDING
+   1. Form delivery  - The form renders, validates and posts, but it is NOT
+                      confirmed working end to end. FormSubmit needs its
+                      one-time activation email clicked from the destination
+                      mailbox first; until then every submission silently
+                      falls through to the mailto fallback. Submit once and
+                      click the link, then confirm a message arrives.
+   2. Instagram URL  - src/data/content.js still holds the placeholder
+                      "https://instagram.com/YOUR_HANDLE" in the socials
+                      array. Replace it with the real handle or the "Find me
+                      online" row renders a button that 404s on Instagram.
+   3. Copy tweaks    - Remaining small text/wording corrections on this page
+                      once the above two are settled.
+   4. Feedback       - HIGH. Success and failure must be unambiguous. The form
+                      currently shows a toast plus an inline banner, but a
+                      failed send that falls back to mailto still reads as a
+                      success. Make the three outcomes distinct: delivered,
+                      handed to the mail client, and genuinely failed.
+   5. Double submits - HIGH. The submit button disables while loading, but the
+                      guard is per-render and a fast double tap can still post
+                      twice. Add a ref-based in-flight lock and disable the
+                      form controls while a request is open.
+   6. Privacy notice - HIGH. No notice explains that the submitted name, email
+                      and message are used only to reply. Add a short line
+                      under the form.
+   7. Accessibility  - MEDIUM. Audit labels, keyboard order, visible focus
+                      rings, and that errors are announced (the status region
+                      is aria-live, but per-field errors are not linked to
+                      their inputs via aria-describedby / aria-invalid).
+   8. Project type   - MEDIUM. The select currently mixes a job application
+                      ("Full-time role") with freelance and collaboration
+                      intents. Split into option groups so a visitor can tell
+                      employment from project work at a glance, and add
+                      helper text pointing at the best choice.
+   9. Response time  - LOW. The fact panel promises 24-48 hours. Keep the
+                      number, or change it, but make sure it stays true -
+                      a missed promise on a contact page costs more than a
+                      longer one.
+
+ DONE
+   - Responsive layout : single column until there is room for two (the
+                        left/right split starts at lg, not md, because two
+                        columns at tablet width left the form unusably
+                        narrow). Mobile gutters reduced to 16px; inputs forced
+                        to 16px on small screens so iOS Safari does not zoom
+                        the viewport on focus.
+   - Mailto behaviour  : no longer a dead tap. Opens Gmail compose with the
+                        recipient filled in, and copies the address at the
+                        same time. A copy button sits inside the card for
+                        devices with no mail handler.
+   - Container gutters : styles/utilities.css redefines .px-6 unlayered as
+                        var(--space-6) = 4rem, which outranks the sm:/lg:
+                        variants and left ~247px of content width on a 375px
+                        phone. Overridden mobile-only so desktop is untouched.
+   - UI redesign      : beige / black / #2d8cf0 palette taken from the form
+                        reference. Fact panels and social buttons follow the
+                        form's hard-edged chip style (ct-panel, ct-chip);
+                        round icon-only variant added for the social row
+                        (ct-chip-round). Blue hover restricted to elements you
+                        can actually act on, so plain containers no longer
+                        light up on hover.
+   - Decorations      : the two radial gradient circles behind the hero were
+                        removed.
+
+
+--------------------------------------------------------------------------------
+ /resume  --  RESUME
+--------------------------------------------------------------------------------
+ Component      : src/pages/Resume.jsx
+ Title          : Resume - Mohammed Fawaz O
+ Layout         : 3D podium shelf with a fixed-height detail scroller per
+                  document. Includes education, experience and certifications.
+ Download       : /media/resume.pdf
+
+
+--------------------------------------------------------------------------------
+ *  --  NOT FOUND  (catch-all)
+--------------------------------------------------------------------------------
+ Component      : src/pages/NotFound.jsx
+ Rendered       : Any path that matches no route above.
+
+
+================================================================================
+ SHARED LAYOUT
+================================================================================
+ src/layouts/MainLayout.jsx
+   - Navbar (SpotlightNavbar) : desktop pill nav, mobile hamburger
+   - Connect CTA              : hidden on /resume only (shown on /contact)
+   - WhatsApp CTA             : floating, every route, tap to open (hover on
+                                desktop), expands up-left from bottom-right
+   - Footer                   : nav links, socials, back-to-top
+   - EntryIntro               : home only, sessionStorage-gated
+   - Fixed background video   : plays on every page except home
+
+   WhatsApp icon + auto-messages are configured in the base data section,
+   not in the component. Both live in src/data/content.js:
+     - socials            -> the WhatsApp entry holds the number
+                             (wa.me/971541413726) that every link targets
+     - whatsappPrompts    -> name + options[]; each option has an id, an icon
+                             key, the label shown in the panel, and the message
+                             pre-filled into WhatsApp via ?text=
+   src/components/common/WhatsAppButton.jsx only renders them. It holds the
+   icon paths (PROMPT_ICONS) and the behaviour: one pre-fill per visit
+   (sessionStorage 'whatsappPrefillUsed', blank composer afterwards, since
+   wa.me cannot append to an existing draft), and the panel's own height is
+   measured from its content rather than hardcoded.
+
+
+================================================================================
+ KEY SHARED MODULES
+================================================================================
+ src/context/EntryIntroContext.jsx   entry-intro "already seen" flag
+ src/context/HeroScrollContext.jsx   shared hero progress MotionValue
+ src/context/DesignModeContext.jsx   design-mode toggle (About hero)
+ src/lib/mail.js                     compose URL + clipboard copy helper
+ src/services/contactService.js      contact form delivery chain
+ src/data/content.js                 all editable site content
+================================================================================

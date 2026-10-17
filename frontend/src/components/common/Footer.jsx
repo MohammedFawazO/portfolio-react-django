@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
+import { composeUrl, copyEmail } from '../../lib/mail'
 
 const navLinks = [
   { label: 'Home', href: '/' },
@@ -12,7 +13,7 @@ const navLinks = [
 const socialLinks = [
   { label: 'GitHub', href: 'https://github.com/MohammedFawazO', icon: 'github' },
   { label: 'LinkedIn', href: 'https://www.linkedin.com/in/mohammed-fawaz-o-176695306', icon: 'linkedin' },
-  { label: 'Email', href: 'mailto:fawz9479@gmail.com', icon: 'email' },
+  { label: 'Email', href: composeUrl(), icon: 'email' },
   { label: 'WhatsApp', href: 'https://wa.me/971541413726', icon: 'whatsapp' },
 ]
 
@@ -54,12 +55,20 @@ const SectionHeading = ({ children }) => (
 
 function Footer() {
   return (
-    <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 mt-32 md:mt-64 min-h-[120vh] relative flex flex-col justify-end">
+    // same gutters as Container (px-6 sm:px-10 lg:px-14 2xl:px-20) so the footer
+  // lines up with the page content instead of hanging closer to the edge.
+  // The mobile override is `!`-suffixed because styles/utilities.css redefines
+  // .px-6 unlayered, which outranks any plain Tailwind max-md: variant.
+  // footer-shell: this wrapper is the real top of the footer area, not the
+  // <footer> inside it. min-h-[120vh] + justify-end leaves the video band above
+  // the footer box, so anything positioning itself against the footer element
+  // alone starts a full viewport too late. Named so the CTA can measure it.
+  <div className="footer-shell max-w-7xl mx-auto w-full px-6 max-md:px-3! sm:px-10 lg:px-14 2xl:px-20 mt-32 md:mt-64 min-h-[120vh] relative flex flex-col justify-end">
       <motion.footer
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1, delay: 0.4, ease: 'easeOut' }}
-        className="liquid-glass relative z-10 w-full rounded-3xl px-8 py-10 md:py-12 text-white/70 flex flex-col !overflow-visible footer-responsive"
+        className="liquid-glass relative z-10 w-full rounded-3xl px-5 py-10 md:px-8 md:py-12 text-white/70 flex flex-col !overflow-visible footer-responsive"
       >
         <button
           type="button"
@@ -87,7 +96,7 @@ function Footer() {
             </div>
           </div>
             <p className="text-base text-white/60 mt-5 max-w-sm leading-relaxed footer-desc">
-            I'm open to full-time opportunities where I can build reliable, production-ready web applications.
+            I'm currently looking for full-time work, and open to freelance, where I can build reliable, production-ready web applications.
           </p>
         </div>
 
@@ -133,6 +142,7 @@ function Footer() {
                   <a
                     key={social.label}
                     href={social.href}
+                    onClick={social.icon === 'email' ? () => copyEmail() : undefined}
                     target={social.href.startsWith('http') ? '_blank' : undefined}
                     rel={social.href.startsWith('http') ? 'noopener noreferrer' : undefined}
                     aria-label={social.label}
@@ -153,7 +163,7 @@ function Footer() {
               <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400/50 animate-ping" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
             </span>
-            Open to full-time opportunities
+            Looking for full-time, open to freelance
           </p>
             <p className="text-xs uppercase tracking-widest text-white/50">
             © 2026 Mohammed Fawaz O

@@ -1,7 +1,17 @@
 import { useState, useEffect, useRef } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { useLocation } from 'react-router-dom'
 import { useEntryIntro } from '../../context/EntryIntroContext'
+
+const ZOOM_TRAVEL = 700
+const ZOOM_EASE = 0.14
+const FALLBACK_SPAN = 8
+const TRANSITION_MS = 620
+const WHEEL_COOLDOWN = 16
+const GESTURE_END_MS = 250
+const TOUCH_CLICK_GUARD_MS = 700
+const TOUCH_SWIPE_FACTOR = 1.1
+const CLICK_PX = 120
 
 export default function EntryIntro() {
   const { markDone } = useEntryIntro()
@@ -10,35 +20,44 @@ export default function EntryIntro() {
   const [show, setShow] = useState(() =>
     isHome && !sessionStorage.getItem('entryIntroShown')
   )
+  const [revealed, setRevealed] = useState(false)
+  const [zoomStarted, setZoomStarted] = useState(false)
+  const [covered, setCovered] = useState(false)
+  const [exiting, setExiting] = useState(false)
   const touchStartY = useRef(null)
   const videoRef = useRef(null)
-  const [revealed, setRevealed] = useState(false)
-  const [zoomProgress, setZoomProgress] = useState(0)
-  const [zoomOrigin, setZoomOrigin] = useState('center')
   const sceneRef = useRef(null)
   const rectRef = useRef(null)
   const revealedRef = useRef(false)
-  revealedRef.current = revealed
-  const progressRef = useRef(0)
+  const targetRef = useRef(0)
+  const shownRef = useRef(0)
+  const spanRef = useRef(FALLBACK_SPAN)
+  const originRef = useRef('50% 50%')
+  const coveredRef = useRef(false)
+  const rafRef = useRef(0)
   const finishedRef = useRef(false)
+  const exitingRef = useRef(false)
   const lastWheelRef = useRef(0)
+  const gestureSpentRef = useRef(false)
+  const lastIntentAtRef = useRef(0)
+  const lastTouchAtRef = useRef(-Infinity)
   const overflowRef = useRef('')
-  const revealTimeRef = useRef(0)
-
-  const WHEEL_STEP = 0.08
-  const CLICK_STEP = 0.08
-  const ZOOM_COMPLETE = 0.6
-  const WHEEL_COOLDOWN = 16
-  const SHAPE_REVEAL_MS = 750
-  const OVERLAY_REMOVE_MS = 120
-  const TRANSITION_DONE = 3500
-  const MAX_ZOOM = 1
+  const paddingRef = useRef('')
+  const revealRef = useRef(null)
+  const advanceRef = useRef(null)
+  const intentRef = useRef(null)
+  const transitionRef = useRef(null)
 
   useEffect(() => {
     if (!isHome) {
       markDone()
     }
   }, [isHome, markDone])
+
+  const unlockScroll = () => {
+    document.body.style.overflow = overflowRef.current
+    document.body.style.paddingRight = paddingRef.current
+  }
 
   useEffect(() => {
     if (!show) return
@@ -49,103 +68,171 @@ export default function EntryIntro() {
     }
     window.scrollTo(0, 0)
     overflowRef.current = document.body.style.overflow
+    paddingRef.current = document.body.style.paddingRight
+    const scrollbar = window.innerWidth - document.documentElement.clientWidth
     document.body.style.overflow = 'hidden'
+    if (scrollbar > 0) document.body.style.paddingRight = `${scrollbar}px`
+
     const onWheel = (e) => {
       e.preventDefault()
       const now = Date.now()
-      const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY
-      const ady = Math.abs(dy)
-      const isTrackpad = e.deltaMode === 0 && ady < 50
-      const since = now - lastWheelRef.current
-      if (since < WHEEL_COOLDOWN && !(isTrackpad && since < 80)) return
+      if (now - lastWheelRef.current < WHEEL_COOLDOWN) return
       lastWheelRef.current = now
-      if (!revealedRef.current) {
-        revealRef.current?.()
-      } else if (now - revealTimeRef.current >= SHAPE_REVEAL_MS) {
-        const intensity = isTrackpad
-          ? Math.min(1, ady / 30)
-          : Math.min(1, ady / 100)
-        const step = isTrackpad
-          ? WHEEL_STEP * (0.5 + intensity * 0.8)
-          : WHEEL_STEP * (0.4 + intensity * 0.6)
-        advanceRef.current?.(Math.sign(dy) * step)
-      }
+      const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY
+      intentRef.current?.(dy)
     }
     window.addEventListener('wheel', onWheel, { passive: false })
     const preventScroll = (e) => e.preventDefault()
     window.addEventListener('touchmove', preventScroll, { passive: false })
     return () => {
-      if (!finishedRef.current) document.body.style.overflow = overflowRef.current
+      if (!finishedRef.current) unlockScroll()
+      cancelAnimationFrame(rafRef.current)
       window.removeEventListener('wheel', onWheel)
       window.removeEventListener('touchmove', preventScroll)
     }
   }, [show])
 
-  const computeOrigin = () => {
+  const applyScale = (p) => {
+    const el = sceneRef.current
+    if (!el) return
+    el.style.transformOrigin = originRef.current
+    el.style.transform = `scale(${1 + p * spanRef.current})`
+  }
+
+  const measureZoom = () => {
     const scene = sceneRef.current
     const rect = rectRef.current
-    if (scene && rect) {
-      const s = scene.getBoundingClientRect()
-      const r = rect.getBoundingClientRect()
-      const cx = ((r.left + r.right) / 2 - s.left) / s.width * 100
-      const cy = ((r.top + r.bottom) / 2 - s.top) / s.height * 100
-      setZoomOrigin(`${cx}% ${cy}%`)
+    if (!scene || !rect) return
+    const prevTransform = rect.style.transform
+    const prevTransition = rect.style.transition
+    rect.style.transition = 'none'
+    rect.style.transform = 'scaleY(1)'
+    const s = scene.getBoundingClientRect()
+    const r = rect.getBoundingClientRect()
+    rect.style.transform = prevTransform
+    rect.style.transition = prevTransition
+    const hw = r.width / 2
+    const hh = r.height / 2
+    if (hw < 2 || hh < 2) {
+      spanRef.current = FALLBACK_SPAN
+      return
     }
+    const cx = (r.left + r.width / 2 - s.left) / s.width
+    const cy = (r.top + r.height / 2 - s.top) / s.height
+    const ox = cx * s.width
+    const oy = cy * s.height
+    const needed = Math.max(
+      ox / hw,
+      (s.width - ox) / hw,
+      oy / hh,
+      (s.height - oy) / hh,
+    )
+    originRef.current = `${cx * 100}% ${cy * 100}%`
+    spanRef.current = Math.max(1, needed - 1)
+    applyScale(shownRef.current)
   }
 
-  const advanceZoom = (amount) => {
+  const startTransition = () => {
     if (finishedRef.current) return
-    const next = Math.min(1, Math.max(0, progressRef.current + amount))
-    if (progressRef.current === 0 && next > 0) {
-      computeOrigin()
-      if (videoRef.current) videoRef.current.pause()
-    }
-    progressRef.current = next
-    setZoomProgress(next)
+    finishedRef.current = true
+    if (videoRef.current) videoRef.current.pause()
+    markDone()
+    exitingRef.current = true
+    setExiting(true)
+    setTimeout(() => {
+      setShow(false)
+      unlockScroll()
+    }, TRANSITION_MS)
   }
-  const advanceRef = useRef(advanceZoom)
-  advanceRef.current = advanceZoom
+
+  const runZoom = () => {
+    const target = targetRef.current
+    const next = shownRef.current + (target - shownRef.current) * ZOOM_EASE
+    if (Math.abs(target - next) < 0.0005) {
+      shownRef.current = target
+      applyScale(target)
+      rafRef.current = 0
+      if (target >= 1) setCovered(true)
+      return
+    }
+    shownRef.current = next
+    applyScale(next)
+    rafRef.current = requestAnimationFrame(runZoom)
+  }
+
+  const advanceZoom = (deltaPx) => {
+    if (finishedRef.current || exitingRef.current || coveredRef.current) return
+    const before = targetRef.current
+    const next = Math.min(1, Math.max(0, before + deltaPx / ZOOM_TRAVEL))
+    if (before <= 0 && next > 0) {
+      measureZoom()
+      if (videoRef.current) videoRef.current.pause()
+      setZoomStarted(true)
+    }
+    if (next === before) return
+    targetRef.current = next
+    if (next >= 1) {
+      coveredRef.current = true
+      setCovered(true)
+    }
+    if (!rafRef.current) rafRef.current = requestAnimationFrame(runZoom)
+  }
 
   const reveal = () => {
-    if (!show) return
+    revealedRef.current = true
     setRevealed(true)
-    revealTimeRef.current = Date.now()
   }
-  const revealRef = useRef(reveal)
-  revealRef.current = reveal
+
+  const handleScrollIntent = (deltaPx) => {
+    if (finishedRef.current || exitingRef.current) return
+    const now = performance.now()
+    const newGesture = now - lastIntentAtRef.current >= GESTURE_END_MS
+    if (newGesture) gestureSpentRef.current = false
+    lastIntentAtRef.current = now
+    if (!revealedRef.current) {
+      revealRef.current?.()
+      gestureSpentRef.current = true
+      return
+    }
+    if (gestureSpentRef.current) return
+    if (coveredRef.current) {
+      if (newGesture) transitionRef.current?.()
+      return
+    }
+    advanceRef.current?.(deltaPx)
+  }
 
   useEffect(() => {
-    if (revealed && zoomProgress >= ZOOM_COMPLETE && !finishedRef.current) {
-      finishedRef.current = true
-      const v = videoRef.current
-      if (v) v.pause()
-      markDone()
-      document.body.style.overflow = 'hidden'
-      setTimeout(() => setShow(false), OVERLAY_REMOVE_MS)
-      setTimeout(() => { document.body.style.overflow = overflowRef.current }, TRANSITION_DONE)
-    }
-  }, [zoomProgress, revealed, markDone])
+    revealedRef.current = revealed
+    revealRef.current = reveal
+    advanceRef.current = advanceZoom
+    intentRef.current = handleScrollIntent
+    transitionRef.current = startTransition
+  })
 
   return (
-    <AnimatePresence>
+    <>
       {show && (
         <motion.div
           className="fixed inset-0 z-[100] bg-black cursor-pointer select-none"
           initial={{ opacity: 1 }}
+          animate={{ opacity: exiting ? 0 : 1 }}
+          transition={{ duration: exiting ? TRANSITION_MS / 1000 : 0, ease: [0.4, 0, 0.2, 1] }}
           onClick={() => {
+            if (performance.now() - lastTouchAtRef.current < TOUCH_CLICK_GUARD_MS) return
             if (!revealed) reveal()
-            else if (Date.now() - revealTimeRef.current >= SHAPE_REVEAL_MS) advanceZoom(CLICK_STEP)
+            else if (coveredRef.current) startTransition()
+            else advanceZoom(CLICK_PX)
           }}
           onTouchStart={(e) => {
+            lastTouchAtRef.current = performance.now()
             touchStartY.current = e.touches[0].clientY
           }}
           onTouchEnd={(e) => {
+            lastTouchAtRef.current = performance.now()
             if (touchStartY.current === null) return
             const deltaY = e.changedTouches[0].clientY - touchStartY.current
-            if (deltaY < -40) {
-              if (!revealed) reveal()
-              else if (Date.now() - revealTimeRef.current >= SHAPE_REVEAL_MS) advanceZoom(WHEEL_STEP)
-            }
+            if (deltaY < -40) handleScrollIntent(deltaY * -TOUCH_SWIPE_FACTOR)
             touchStartY.current = null
           }}
         >
@@ -153,9 +240,6 @@ export default function EntryIntro() {
             ref={sceneRef}
             className="w-full h-full"
             style={{
-              transformOrigin: zoomOrigin,
-              transform: `scale(${1 + Math.min(zoomProgress, ZOOM_COMPLETE) * 18})`,
-              transition: 'transform 0.55s cubic-bezier(0.22, 1, 0.36, 1)',
               willChange: 'transform',
               backfaceVisibility: 'hidden',
             }}
@@ -212,18 +296,21 @@ export default function EntryIntro() {
                 transition: 'transform 0.7s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.7s ease-out',
               }}
             />
+          </div>
 
           <div
             className="absolute bottom-8 left-0 right-0 flex justify-center pointer-events-none"
-            style={{ opacity: zoomProgress > 0.02 ? 0 : 1, transition: 'opacity 0.3s ease-out' }}
+            style={{
+              opacity: zoomStarted && !covered ? 0 : 1,
+              transition: 'opacity 0.3s ease-out',
+            }}
           >
             <span className="text-white/70 text-xs uppercase tracking-[0.3em] font-light">
-              {!revealed ? 'Click or scroll to reveal' : zoomProgress < 1 ? 'Scroll to enter' : ''}
+              {!revealed ? 'Click or scroll to reveal' : covered ? 'Scroll again to enter' : 'Scroll to enter'}
             </span>
-          </div>
           </div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </>
   )
 }

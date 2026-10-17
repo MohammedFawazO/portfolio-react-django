@@ -9,11 +9,13 @@ function SectionHeading({
   className,
   subtitleClassName,
 }) {
-  const isLight = tone === 'light'
+const isLight = tone === 'light'
+  // beige/black/blue theme - the contact + résumé pages
+  const isBeige = tone === 'beige'
 
-  const titleColor = isLight ? 'text-[#0A3332]' : 'text-[#F5F7F7]'
-  const subColor = isLight ? 'text-[#405354]' : 'text-[#AEB9BD]'
-  const eyebrowColor = isLight ? 'text-[#236966]' : 'text-[#6FE7FF]'
+  const titleColor = isBeige ? 'text-black' : isLight ? 'text-[#0A3332]' : 'text-[#F5F7F7]'
+  const subColor = isBeige ? 'text-[#666]' : isLight ? 'text-[#405354]' : 'text-[#AEB9BD]'
+  const eyebrowColor = isBeige ? 'text-[#2d8cf0]' : isLight ? 'text-[#236966]' : 'text-[#6FE7FF]'
 
   return (
     <div

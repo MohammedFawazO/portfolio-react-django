@@ -192,7 +192,7 @@ function ErrorPopup({ title, lines, status, accent = '#D2042D', delay = 0, reope
                 className="w-4 h-4 grid place-items-center rounded-sm hover:bg-white/10 text-[10px] leading-none"
                 style={{ color: '#ffb84d' }}
               >
-                {minimized ? '▢' : '—'}
+                {minimized ? '▢' : '-'}
               </button>
               <button
                 type="button"

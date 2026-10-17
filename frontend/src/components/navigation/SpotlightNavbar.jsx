@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, useLocation } from 'react-router-dom'
 import { animate, AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { cn } from '../../lib/utils'
 import { BlueprintPillButton } from '../ui/blueprint-pill-button'
+import { findActiveIndex } from './navActive'
 
 const SCRAMBLE_CHARS = '!@#$%^&*()_+-=[]{}|;:,.<>?/\\~0123456789ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿ'
 
@@ -44,6 +45,10 @@ const defaultItems = [
   { label: 'Resume', href: '/resume' },
 ]
 
+// Routes are compared normalised (see navActive.js) so "/about/" or
+// "/resume/?x" still resolve to the right link instead of leaving the
+// previous page's item highlighted.
+
 const entranceAnimations = {
   flipIn: {
     initial: { opacity: 0, rotateX: -90, transformPerspective: 800, transformOrigin: 'bottom center' },
@@ -75,39 +80,66 @@ const entranceAnimations = {
 export function MobileMenu({ items, activeIndex, onItemClick, variant = 'default' }) {
   const [open, setOpen] = useState(false)
   const isTest = variant === 'test'
+  const panelRef = useRef(null)
 
-  // Portaled out of the nav's `fixed`/`z-50` stacking context so that
-  // `mix-blend-mode: difference` can blend against the real page backdrop.
-  const button = (
-    <label className={cn('hamburger liquid-glass !fixed top-10 right-5 z-[60] md:hidden w-11 h-11 rounded-full flex items-center justify-center cursor-pointer', open && 'is-open', isTest && '!bg-[#070204] !border !border-[#D2042D]')}>
-      <input
-        type="checkbox"
-        checked={open}
-        onChange={(e) => setOpen(e.target.checked)}
+  // Escape closes it, and so does a tap anywhere outside the panel.
+  useEffect(() => {
+    if (!open) return undefined
+    const onKey = (e) => {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    const onPointerDown = (e) => {
+      if (panelRef.current?.contains(e.target)) return
+      if (e.target.closest?.('.hamburger')) return
+      setOpen(false)
+    }
+    window.addEventListener('keydown', onKey)
+    window.addEventListener('pointerdown', onPointerDown)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      window.removeEventListener('pointerdown', onPointerDown)
+    }
+  }, [open])
+
+  // Button AND panel are portaled together, and both are positioned `fixed`
+  // from the viewport rather than absolutely from the nav wrapper. The nav
+  // wrapper is pointer-events-none (so the page stays clickable behind it),
+  // `fixed`, and its height is only the 40px padding strip - so anything
+  // positioned against it inherited click-through, clipping and stacking
+  // behaviour that differed per route. Owning both elements outright makes the
+  // menu behave identically on every page.
+  const menu = (
+    <>
+      <button
+        type="button"
         aria-label={open ? 'Close menu' : 'Open menu'}
         aria-expanded={open}
-      />
-      <svg viewBox="0 0 32 32" className={isTest ? '[&_*]:!stroke-[#D2042D]' : ''}>
-        <path className="line line-top-bottom" d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22" />
-        <path className="line" d="M7 16 27 16" />
-      </svg>
-    </label>
-  )
+        aria-controls="mobile-menu-panel"
+        onClick={() => setOpen((v) => !v)}
+        className={cn(
+          'hamburger liquid-glass !fixed top-10 right-5 z-[70] md:hidden w-11 h-11 rounded-full flex items-center justify-center cursor-pointer p-0',
+          open && 'is-open',
+          isTest && '!bg-[#070204] !border !border-[#D2042D]'
+        )}
+      >
+        <svg viewBox="0 0 32 32" className={isTest ? '[&_*]:!stroke-[#D2042D]' : ''}>
+          <path className="line line-top-bottom" d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22" />
+          <path className="line" d="M7 16 27 16" />
+        </svg>
+      </button>
 
-  return (
-    <>
-      {typeof document !== 'undefined' && createPortal(button, document.body)}
-
-      <div className="md:hidden w-full flex justify-end pr-5 relative">
-        <AnimatePresence>
+      <AnimatePresence>
         {open && (
           <motion.div
+            id="mobile-menu-panel"
+            ref={panelRef}
             initial={{ opacity: 0, y: -8, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.98 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
+            style={{ transformOrigin: 'top right' }}
             className={cn(
-              'absolute right-5 top-full mt-3 w-56 rounded-2xl border backdrop-blur-xl p-2 shadow-2xl',
+              'md:hidden !fixed top-[5.5rem] right-5 z-[70] w-56 rounded-2xl border backdrop-blur-xl p-2 shadow-2xl',
               isTest
                 ? 'border-[#D2042D]/40 bg-[rgba(7,2,4,0.95)]'
                 : 'border-white/10 bg-[rgba(10,12,15,0.92)]'
@@ -137,9 +169,10 @@ export function MobileMenu({ items, activeIndex, onItemClick, variant = 'default
           </motion.div>
         )}
       </AnimatePresence>
-      </div>
     </>
   )
+
+  return typeof document !== 'undefined' ? createPortal(menu, document.body) : null
 }
 
 export function useIsMobile(breakpoint = 768) {
@@ -162,19 +195,20 @@ function SpotlightNavbar({ items = defaultItems, className, onItemClick, animati
   const navRef = useRef(null)
   const location = useLocation()
   const shouldReduceMotion = useReducedMotion()
-  const [activeIndex, setActiveIndex] = useState(() =>
-    items.findIndex(item => item.href === location.pathname)
-  )
+  // The active link is always derived from the route - never stored - so the
+  // underline can never drift out of sync with the page it belongs to.
+  const activeIndex = useMemo(() => findActiveIndex(items, location.pathname), [items, location.pathname])
   const [hoverX, setHoverX] = useState(null)
 
   const spotlightX = useRef(0)
   const ambienceX = useRef(0)
+  const spotlightAnim = useRef(null)
 
   const blueprint = useBlueprintActive()
   const testMode = useTestModeActive()
   const isMobile = useIsMobile()
   const [hoveredIdx, setHoveredIdx] = useState(null)
-  const [displayLabels, setDisplayLabels] = useState({})
+const [displayLabels, setDisplayLabels] = useState({})
   const scrambleRef = useRef(null)
 
   const scrambleText = useCallback((text, progress) => {
@@ -213,18 +247,16 @@ function SpotlightNavbar({ items = defaultItems, className, onItemClick, animati
   }, [hoveredIdx, items, testMode, scrambleText])
 
   useEffect(() => {
-    const idx = items.findIndex(item => item.href === location.pathname)
-    if (idx !== -1) setActiveIndex(idx)
-  }, [location.pathname, items])
-
-  useEffect(() => {
-    if (!navRef.current) return
     const nav = navRef.current
+    if (!nav) return
 
     const handleMouseMove = (e) => {
       const rect = nav.getBoundingClientRect()
       const x = e.clientX - rect.left
       const y = e.clientY - rect.top
+      // pointer is back in charge : cancel any spring still running
+      spotlightAnim.current?.stop()
+      spotlightAnim.current = null
       setHoverX(x)
       spotlightX.current = x
       nav.style.setProperty('--spotlight-x', `${x}px`)
@@ -239,7 +271,8 @@ function SpotlightNavbar({ items = defaultItems, className, onItemClick, animati
         const itemRect = activeItem.getBoundingClientRect()
         const targetX = itemRect.left - navRect.left + itemRect.width / 2
 
-        animate(spotlightX.current, targetX, {
+        spotlightAnim.current?.stop()
+        spotlightAnim.current = animate(spotlightX.current, targetX, {
           type: 'spring',
           stiffness: 200,
           damping: 20,
@@ -257,48 +290,76 @@ function SpotlightNavbar({ items = defaultItems, className, onItemClick, animati
     return () => {
       nav.removeEventListener('mousemove', handleMouseMove)
       nav.removeEventListener('mouseleave', handleMouseLeave)
+      spotlightAnim.current?.stop()
+      spotlightAnim.current = null
     }
   }, [activeIndex])
 
+  // The active underline (--ambience-x). Re-measured whenever anything that
+  // can move it happens : the route changes, a mode switch rebuilds the nav,
+  // the webfonts land, or the nav / active link resize (window resize,
+  // scrollbar). Measuring once - plus a fixed 800ms guess - used to leave it
+  // stranded on the previous page or parked at the CSS default.
   useEffect(() => {
-    if (!navRef.current) return
     const nav = navRef.current
+    if (!nav) return
 
-    const positionAmbience = () => {
-      const activeItem = nav.querySelector(`[data-index="${activeIndex}"]`)
-      if (activeItem) {
-        const navRect = nav.getBoundingClientRect()
-        const itemRect = activeItem.getBoundingClientRect()
-        const targetX = itemRect.left - navRect.left + itemRect.width / 2
-
-        // Snap the CSS var to the active link immediately so the underline
-        // never sits at the previous (stale) value (e.g. showing Projects
-        // when the active link is About after a mode-switch remount).
-        ambienceX.current = targetX
-        nav.style.setProperty('--ambience-x', `${targetX}px`)
-      }
+if (activeIndex < 0) {
+      nav.style.setProperty('--ambience-show', '0')
+      return
     }
 
-    positionAmbience()
-    const timeout = setTimeout(positionAmbience, 800)
-    return () => clearTimeout(timeout)
-  }, [activeIndex, blueprint])
+    let frame = 0
+    const place = () => {
+      const item = nav.querySelector(`[data-index="${activeIndex}"]`)
+      if (!item) return
+      const itemRect = item.getBoundingClientRect()
+      if (!itemRect.width) return
+      const navRect = nav.getBoundingClientRect()
+      const x = itemRect.left - navRect.left + itemRect.width / 2
+      ambienceX.current = x
+      nav.style.setProperty('--ambience-x', `${x}px`)
+    }
+
+const measure = () => {
+      place()
+      nav.style.setProperty('--ambience-show', '1')
+    }
+
+    measure()
+    frame = requestAnimationFrame(measure)
+
+    const item = nav.querySelector(`[data-index="${activeIndex}"]`)
+    const ro = new ResizeObserver(place)
+    ro.observe(nav)
+    if (item) ro.observe(item)
+    window.addEventListener('resize', measure)
+
+    let cancelled = false
+    if (document.fonts?.ready) document.fonts.ready.then(() => !cancelled && measure())
+
+    return () => {
+      cancelled = true
+      cancelAnimationFrame(frame)
+      ro.disconnect()
+      window.removeEventListener('resize', measure)
+    }
+  }, [activeIndex, blueprint, testMode])
 
   const handleItemClick = (item, index) => {
-    setActiveIndex(index)
     onItemClick?.(item, index)
   }
 
   const anim = entranceAnimations[animationKey] || entranceAnimations.flipIn
 
   // In blueprint mode, the navbar is the EXACT same BlueprintPillButton used
-  // by the hero RESUME button — same dashed rectangle frame, nested solid +
+  // by the hero RESUME button - same dashed rectangle frame, nested solid +
   // dotted frames, W/H dimension indicators (real measured size), cursor
-  // crosshair and JetBrains Mono links — with the 5 nav links living inside
+  // crosshair and JetBrains Mono links - with the 5 nav links living inside
   // it as children. Every other mode keeps the untouched spotlight navbar.
   if (blueprint) {
     return (
-      <div className={cn('relative z-50 w-full', className)} style={{ paddingTop: '24px' }}>
+      <div className={cn('relative z-50 w-full pointer-events-none', className)} style={{ paddingTop: '24px' }}>
         {!isMobile && (
           <div className="flex justify-center">
             <BlueprintPillButton className="bp-nav" heightOnRight={false}>
@@ -331,7 +392,7 @@ function SpotlightNavbar({ items = defaultItems, className, onItemClick, animati
 
   if (testMode) {
     return (
-      <div className={cn('relative z-50 w-full', className)} style={{ paddingTop: '24px' }}>
+      <div className={cn('relative z-50 w-full pointer-events-none', className)} style={{ paddingTop: '24px' }}>
         {!isMobile && (
           <div className="flex justify-center">
             <div className="relative px-7 py-3 sm:px-8 sm:py-3.5 rounded-none bg-[#080204]/95 backdrop-blur-md border border-[#D2042D]/40 shadow-[0_4px_14px_rgba(0,0,0,0.5),inset_0_0_10px_rgba(210,4,45,0.06)]">
@@ -417,7 +478,7 @@ function SpotlightNavbar({ items = defaultItems, className, onItemClick, animati
   }
 
   return (
-    <div className={cn('relative w-full', className)} style={{ paddingTop: '40px' }}>
+    <div className={cn('relative w-full pointer-events-none', className)} style={{ paddingTop: '40px' }}>
       {!isMobile && (
         <div className="flex justify-center">
           <motion.nav
@@ -426,7 +487,7 @@ function SpotlightNavbar({ items = defaultItems, className, onItemClick, animati
           animate={anim.animate}
           transition={anim.transition}
           className={cn(
-            'spotlight-nav relative z-50 h-11 rounded-full overflow-hidden',
+            'spotlight-nav relative z-50 h-11 rounded-full overflow-hidden pointer-events-auto',
             'backdrop-blur-[24px] border border-[rgba(255,255,255,0.1)]',
             'bg-[rgba(255,255,255,0.05)] shadow-[0_8px_32px_rgba(0,0,0,0.4)]'
           )}
@@ -468,8 +529,9 @@ function SpotlightNavbar({ items = defaultItems, className, onItemClick, animati
 
         {/* 2. The Active State Ambience (Stays on Active) */}
         <div
-          className="pointer-events-none absolute bottom-0 left-0 w-full h-[2px] z-[2]"
-          style={{
+          className="pointer-events-none absolute bottom-0 left-0 w-full h-[2px] z-[2] transition-opacity duration-200"
+style={{
+            opacity: 'var(--ambience-show, 0)',
             background: `radial-gradient(
               30px circle at var(--ambience-x) 0%,
               rgba(var(--color-primary-light-rgb), 1) 0%,

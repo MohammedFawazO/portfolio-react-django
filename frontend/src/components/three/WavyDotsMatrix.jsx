@@ -48,7 +48,7 @@ export default function WavyDotsMatrix({
     }
     container.appendChild(renderer.domElement)
 
-    // Step 1: Geometry — a 2D grid of points
+    // Step 1: Geometry - a 2D grid of points
     const count = gridX * gridZ
     const positions = new Float32Array(count * 3)
     const baseX = new Float32Array(count)
@@ -69,7 +69,7 @@ export default function WavyDotsMatrix({
     const geometry = new THREE.BufferGeometry()
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
 
-    // Step 2: Material — particle array / wavy dots matrix
+    // Step 2: Material - particle array / wavy dots matrix
     const material = new THREE.PointsMaterial({
       color: new THREE.Color(color),
       size,

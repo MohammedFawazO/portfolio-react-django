@@ -205,7 +205,7 @@ function Hero() {
           }}
         />
 
-         {/* Role / Subtitle — fixed position, independent of other content */}
+         {/* Role / Subtitle - fixed position, independent of other content */}
          {!isMobileView && (
          <div className="absolute left-0 right-0 bottom-0 pointer-events-none z-3 overflow-hidden" style={{ top: '84px' }}>
             <div className="absolute left-0 right-0 hero-role-block" style={{ top: 'calc(6vh - 2mm)', transform: 'translate(0.3cm, -0.15cm)' }}>

@@ -1,6 +1,6 @@
 import { Helmet } from 'react-helmet-async'
-import { useState, useRef, useEffect, useMemo } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
+import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import SectionHeading from '../components/ui/SectionHeading'
 import Card from '../components/ui/Card'
@@ -86,6 +86,25 @@ function HoverColorAnnot({ label = 'hover color?', color = '#246bff', style, arr
   )
 }
 
+// The photo's mode buttons orbit it on a ring that is driven from JS (see
+// About) so it can be wound back and released without snapping. Timings are
+// shared with the CSS slide in index.css: ring wind-back, then the button's
+// slide to its resting spot, then the orbit picks up again.
+const ORBIT_TURN_SECONDS = 24
+const ORBIT_SLIDE_S = 0.65
+const ORBIT_SLIDE_MS = ORBIT_SLIDE_S * 1000
+// resting spot of the active button, measured up from the photo's bottom edge
+const DOCK_OFFSET_REM = 4.875
+
+// Refs for the four mode buttons, module-scoped so their identity is stable
+// across renders (they are only read for measurement).
+const modeButtonRefs = {
+  blueprint: { current: null },
+  matrix: { current: null },
+  design: { current: null },
+  test: { current: null },
+}
+
 function About() {
   const [showBlueprint, setShowBlueprint] = useState(false)
   const [showMatrix, setShowMatrix] = useState(false)
@@ -104,6 +123,237 @@ function About() {
   const inkRef = useRef(null)
   const trailRef = useRef([])
   const rafRef = useRef(null)
+
+  // --- the orbit around the photo -------------------------------------------
+  // The ring's angle is a motion value rather than a CSS keyframe : it can be
+  // frozen and picked up again at any time without snapping. Picking a mode
+  // does not turn the ring at all - the clicked button is handed an offset
+  // expressed in the ring's own (tilted) frame, which works out to a straight
+  // slide on screen straight from wherever it was clicked.
+  const spin = useMotionValue(0)
+  const spinLoop = useRef(null)
+  const resumeTimer = useRef(null)
+  const hoverRef = useRef(false)
+  const heldRef = useRef(false)
+  const orbitWrapRef = useRef(null)
+  const counterSpin = useTransform(spin, (v) => -v)
+  const dockX = useMotionValue(0)
+  const dockY = useMotionValue(0)
+  const dockAnims = useRef([])
+  // which button currently carries the dock offset (keeps it attached for the
+  // whole slide, in and out, so nothing ever pops)
+  const [dockedBtn, setDockedBtn] = useState(null)
+
+  const anyModeOn = showBlueprint || showMatrix || showDesign || showTest
+
+  // Which theme the page below the hero wears. The hero picks the mode, every
+  // other section simply inherits it.
+  const pageMode = showBlueprint
+    ? 'blueprint'
+    : showMatrix
+      ? 'matrix'
+      : showDesign
+        ? 'design'
+        : showTest
+          ? 'test'
+          : 'default'
+
+  const clearResumeTimer = () => {
+    if (resumeTimer.current) {
+      clearTimeout(resumeTimer.current)
+      resumeTimer.current = null
+    }
+  }
+
+  const stopDockAnims = () => {
+    dockAnims.current.forEach((a) => a?.stop())
+    dockAnims.current = []
+  }
+
+  const slideDockTo = useCallback((target) => {
+    stopDockAnims()
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (reduced) {
+      dockX.set(target.x)
+      dockY.set(target.y)
+      return
+    }
+    // [0.22, 1, 0.36, 1] is easeOutQuint: it covers ~63% of the travel in the
+    // first 0.1s and then crawls the last stretch, which reads as a jerk
+    // followed by a hang. Material's standard curve eases in and settles.
+    dockAnims.current = [
+      animate(dockX, target.x, { duration: ORBIT_SLIDE_S, ease: [0.4, 0, 0.2, 1] }),
+      animate(dockY, target.y, { duration: ORBIT_SLIDE_S, ease: [0.4, 0, 0.2, 1] }),
+    ]
+  }, [dockX, dockY])
+
+  const startOrbitLoop = useCallback(() => {
+    spinLoop.current?.stop()
+    spinLoop.current = animate(spin, spin.get() + 360, {
+      duration: ORBIT_TURN_SECONDS,
+      ease: 'linear',
+      repeat: Infinity,
+    })
+    // if the pointer is already inside the photo, start it frozen
+    if (hoverRef.current) spinLoop.current.pause()
+  }, [spin])
+
+// Where the dock point sits in the ring's own (frozen, tilted) frame, given
+  // where the button currently is on that ring. Measured after layout, and
+  // re-measured while docked, so the resting spot is always the real
+  // bottom-centre of the photo and never drifts by a few pixels.
+  const measureDockTarget = useCallback(
+    (id) => {
+      const wrap = orbitWrapRef.current
+      const btn = modeButtonRefs[id]?.current
+      if (!wrap || !btn) return null
+      const rad = (spin.get() * Math.PI) / 180
+      const dockRem = parseFloat(getComputedStyle(document.documentElement).fontSize) * DOCK_OFFSET_REM
+      const dockYLocal = wrap.clientHeight / 2 - dockRem
+      return {
+        x: dockYLocal * Math.sin(rad) - (btn.offsetLeft - wrap.clientWidth / 2),
+        y: dockYLocal * Math.cos(rad) - (btn.offsetTop - wrap.clientHeight / 2),
+      }
+    },
+    [spin]
+  )
+
+  // Freeze the ring where it is and hand the clicked button over to the dock.
+  // The ring never turns - the slide is a straight line on screen.
+  const parkOrbit = useCallback((id) => {
+    clearResumeTimer()
+    spinLoop.current?.stop()
+    spinLoop.current = null
+    heldRef.current = true
+
+    if (dockedBtn && dockedBtn !== id) {
+      // Switching straight from one docked button to another pops: the
+      // outgoing button loses its offset on the same frame the incoming one
+      // gains it at its still-rotated spot. Slide the old one home first and
+      // dock the new one when it lands.
+      slideDockTo({ x: 0, y: 0 })
+      resumeTimer.current = setTimeout(() => {
+        resumeTimer.current = null
+        setDockedBtn(id)
+      }, ORBIT_SLIDE_MS)
+      return
+    }
+
+    stopDockAnims()
+    // Aim and launch here rather than leaving it to the [dockedBtn] effect:
+    // this runs inside the click handler, so the tween is already in flight
+    // when React commits the mode switch and repaints the hero underneath it.
+    // The effect re-aims to the same destination afterwards, which is a no-op
+    // at that distance.
+    const target = measureDockTarget(id)
+    if (target) slideDockTo(target)
+    setDockedBtn(id)
+  }, [dockedBtn, measureDockTarget, slideDockTo])
+
+  // Release : slide back to zero (the exact spot it was clicked from), let go
+  // of the offset, then pick the orbit up again.
+  const releaseOrbit = useCallback(() => {
+    clearResumeTimer()
+    slideDockTo({ x: 0, y: 0 })
+    heldRef.current = false
+    resumeTimer.current = setTimeout(() => {
+      resumeTimer.current = null
+      setDockedBtn(null)
+      startOrbitLoop()
+    }, ORBIT_SLIDE_MS)
+  }, [startOrbitLoop, slideDockTo])
+
+  // Runs after the render that attaches the offset, so the slide starts from
+  // the button's real position rather than a half-advanced value.
+  useEffect(() => {
+    if (!dockedBtn) return
+    const target = measureDockTarget(dockedBtn)
+    if (!target) return
+    slideDockTo(target)
+
+    // Anything that moves the layout while it sits docked (photo or webfont
+    // landing, resize, scrollbar, zoom) re-places it instead of leaving it
+    // where it used to be. A ResizeObserver always reports once on observe -
+    // that first report must be ignored, or it would cancel the slide and
+    // snap the button straight to the dock.
+    const wrap = orbitWrapRef.current
+    const btn = modeButtonRefs[dockedBtn]?.current
+    let lastSize = ''
+    let primed = false
+    const ro = new ResizeObserver((entries) => {
+      const size = entries.map((e) => `${e.target.offsetWidth}x${e.target.offsetHeight}`).join('|')
+      if (!primed) {
+        // ResizeObserver always delivers one report the moment you observe.
+        // It carries no layout change, so it must only seed the baseline -
+        // acting on it would stop the tween the line above just started and
+        // snap the button straight to the dock.
+        primed = true
+        lastSize = size
+        return
+      }
+      if (size === lastSize) return
+      lastSize = size
+      const next = measureDockTarget(dockedBtn)
+      if (!next) return
+      // Re-aim the tween instead of hard-setting the values: the photo can
+      // resize while the button is still travelling (image decode, webfont
+      // swap, scrollbar), and a set() there cut the slide dead.
+      slideDockTo(next)
+    })
+    if (wrap) ro.observe(wrap)
+    if (btn) ro.observe(btn)
+
+    return () => ro.disconnect()
+  }, [dockedBtn, dockX, dockY, measureDockTarget, slideDockTo])
+
+  // Hovering (or focusing) the photo freezes the ring where it is, and it
+  // picks straight back up the moment the pointer leaves again.
+  const holdOrbit = useCallback(() => {
+    hoverRef.current = true
+    spinLoop.current?.pause()
+  }, [])
+  const letOrbitRun = useCallback(() => {
+    hoverRef.current = false
+    if (!heldRef.current) spinLoop.current?.play()
+  }, [])
+
+  // One hero mode at a time. The four buttons used to flip their own flag
+  // independently, so turning one on left the others on : two buttons read as
+  // `is-active` while `pageMode` (and therefore the whole body theme below)
+  // silently resolved to whichever came first in the ternary.
+  const stopInk = () => {
+    trailRef.current = []
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current)
+      rafRef.current = null
+    }
+  }
+
+  const toggleMode = useCallback((id) => {
+    const on = {
+      blueprint: showBlueprint,
+      matrix: showMatrix,
+      design: showDesign,
+      test: showTest,
+    }[id]
+    const next = !on
+    stopInk()
+    setShowBlueprint(next && id === 'blueprint')
+    setShowMatrix(next && id === 'matrix')
+    setShowDesign(next && id === 'design')
+    setShowTest(next && id === 'test')
+    if (next) parkOrbit(id)
+    else releaseOrbit()
+  }, [showBlueprint, showMatrix, showDesign, showTest, parkOrbit, releaseOrbit])
+
+  useEffect(() => {
+    startOrbitLoop()
+    return () => {
+      clearResumeTimer()
+      spinLoop.current?.stop()
+      stopDockAnims()
+    }
+  }, [startOrbitLoop])
 
   const navigate = useNavigate()
   const { designModeActive, setDesignModeActive } = useDesignMode()
@@ -200,7 +450,7 @@ function About() {
 
   // Toggle a body class while in code (matrix) mode so the global navbar can
   // adopt the terminal/code theme. Scoped via CSS to only affect the navbar
-  // in this mode — design, blueprint and test modes never set this class.
+  // in this mode - design, blueprint and test modes never set this class.
   useEffect(() => {
     const root = document.documentElement
     if (showMatrix) root.classList.add('about-matrix-nav')
@@ -210,7 +460,7 @@ function About() {
 
   // Toggle a body class while in blueprint mode so the global navbar can
   // adopt the blueprint hero-button theme. Scoped via CSS to only affect the
-  // navbar in this mode — design, matrix and test modes never set this class.
+  // navbar in this mode - design, matrix and test modes never set this class.
   useEffect(() => {
     const root = document.documentElement
     if (showBlueprint) root.classList.add('about-blueprint-nav')
@@ -299,7 +549,7 @@ function About() {
     const ink = inkRef.current
     if (!canvas || !canvas.isConnected || !mask || !ink) {
       // Canvas was unmounted (mode switch) while this loop was scheduled on
-      // the old element — stop so a fresh loop can start on the new canvas.
+      // the old element - stop so a fresh loop can start on the new canvas.
       rafRef.current = null
       return
     }
@@ -402,6 +652,8 @@ function About() {
     }
     const canvas = canvasRef.current
     if (canvas) canvas.getContext('2d').clearRect(0, 0, canvas.clientWidth, canvas.clientHeight)
+    // pointer left the photo : let the ring pick up its rotation again
+    letOrbitRun()
   }
 
   const skills = {
@@ -444,6 +696,7 @@ function About() {
             setShowMatrix(false);
             setShowDesign(false);
             setShowTest(false);
+            releaseOrbit();
             trailRef.current = [];
             if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
           }
@@ -544,7 +797,7 @@ function About() {
           )}
         </AnimatePresence>
         {showTest && <TestErrorPopups />}
-        <Container size="lg">
+        <Container size="lg" className="px-8!">
           <div className="grid md:grid-cols-2 gap-10 md:gap-16 items-center">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} className={"relative z-70 transition-[padding,margin] duration-700 ease-out" + (showMatrix || showBlueprint ? " pl-6 md:pl-12" : "") + (showBlueprint ? " mt-16" : "")}>
               {designModeActive && (
@@ -1046,20 +1299,26 @@ label="./view-projects"
               </motion.div>
             </motion.div>
 
+            {/* This column is the tall one, so the hero's height is set by the
+                space above the photo. Trimming that slack shortens the hero for
+                real - the section below simply follows, with nothing overlaid. */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-              className="relative z-60 flex justify-end mt-10 md:mt-[17.4mm]"
+              className="relative z-60 flex justify-end mt-4 md:mt-[7mm]"
             >
               <div
                 ref={groupRef}
-                className={"about-photo-group group relative w-full max-w-125" + (showBlueprint ? " bp-on" : "")}
+                className={"about-photo-group group relative w-full max-w-[540px]" + (showBlueprint ? " bp-on" : "") + (anyModeOn ? " is-mode-on" : "")}
                 onMouseMove={handleMove}
                 onMouseLeave={handleLeave}
+                onMouseEnter={holdOrbit}
+                onFocus={holdOrbit}
+                onBlur={letOrbitRun}
               >
                 <div
-                  className={"relative min-h-100 " + (!showBlueprint && !showMatrix && !showDesign && !showTest ? 'rounded-2xl p-2 bg-white shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5),0_18px_36px_-18px_rgba(0,0,0,0.4)]' : '')}
+                  className={"about-photo-card relative min-h-100 " + (!showBlueprint && !showMatrix && !showDesign && !showTest ? 'rounded-2xl p-2 bg-white shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5),0_18px_36px_-18px_rgba(0,0,0,0.4)]' : '')}
                   style={{
                     perspective: '1000px',
                     transition: 'box-shadow 0.7s cubic-bezier(0.22, 1, 0.36, 1)',
@@ -1097,13 +1356,18 @@ label="./view-projects"
                   />
                   </div>
                 </div>
-                <button
+                <div className="about-photo-orbit">
+                <motion.div className="about-photo-orbit-spin" ref={orbitWrapRef} style={{ rotate: spin }}>
+                <motion.button
+                  ref={modeButtonRefs.blueprint}
                   type="button"
-                  onClick={(e) => { e.stopPropagation(); setShowBlueprint((v) => !v); trailRef.current = []; if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null } }}
+                  onClick={(e) => { e.stopPropagation(); toggleMode('blueprint') }}
                   aria-label="Toggle blueprint"
                   aria-pressed={showBlueprint}
                   className={"about-photo-btn about-photo-btn--blueprint w-11 h-11 rounded-full backdrop-blur-md bg-[#0041BA]/75 border border-white/50 text-[#F5F7F7] flex items-center justify-center shadow-[0_4px_14px_rgba(0,0,0,0.25)] hover:bg-[#0041BA] hover:scale-110" + (showBlueprint ? " is-active ring-2 ring-white scale-105" : "") + (showMatrix || showDesign || showTest ? " opacity-0 scale-50 pointer-events-none is-hidden" : "")}
                   style={{
+                    rotate: counterSpin,
+                    ...(dockedBtn === 'blueprint' ? { x: dockX, y: dockY } : {}),
                     backgroundImage:
                       'radial-gradient(circle at 14px 14px, rgba(255,255,255,1) 1.2px, transparent 1.4px), radial-gradient(circle at 28px 14px, rgba(255,255,255,1) 1.2px, transparent 1.4px), radial-gradient(circle at 14px 28px, rgba(255,255,255,1) 1.2px, transparent 1.4px), radial-gradient(circle at 28px 28px, rgba(255,255,255,1) 1.2px, transparent 1.4px), linear-gradient(to right, rgba(255,255,255,0.45) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.45) 1px, transparent 1px)',
                     backgroundSize:
@@ -1112,12 +1376,14 @@ label="./view-projects"
                     backgroundRepeat: 'repeat, repeat, repeat, repeat, repeat, repeat',
                   }}
                 >
-                </button>
-                <button
+                </motion.button>
+                <motion.button
+                  ref={modeButtonRefs.matrix}
                   type="button"
-                  onClick={(e) => { e.stopPropagation(); setShowMatrix((v) => !v); trailRef.current = []; if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null } }}
+                  onClick={(e) => { e.stopPropagation(); toggleMode('matrix') }}
                   aria-label="Toggle matrix rain"
                   aria-pressed={showMatrix}
+                  style={{ rotate: counterSpin, ...(dockedBtn === 'matrix' ? { x: dockX, y: dockY } : {}) }}
                   className={"about-photo-btn about-photo-btn--code w-11 h-11 rounded-full overflow-hidden backdrop-blur-md bg-black border border-[#03A062]/60 text-[#03A062] flex items-center justify-center shadow-[0_4px_14px_rgba(0,0,0,0.25)] hover:bg-white/10 hover:scale-110" + (showMatrix ? " is-active ring-2 ring-[#4ade80] scale-105" : "") + (showBlueprint || showDesign || showTest ? " opacity-0 scale-50 pointer-events-none is-hidden" : "")}
                 >
                   <svg viewBox="0 0 24 24" aria-hidden="true" className="w-full h-full" fontFamily="'Courier New', monospace" fontSize="3.8" fontWeight="700" textAnchor="middle">
@@ -1136,21 +1402,18 @@ label="./view-projects"
                         </text>
                       ))
                     )}
-                  </svg>
-                </button>
-                <button
+</svg>
+                </motion.button>
+                <motion.button
+                  ref={modeButtonRefs.design}
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    setShowDesign((v) => !v)
-                    trailRef.current = []
-                    if (rafRef.current) {
-                      cancelAnimationFrame(rafRef.current)
-                      rafRef.current = null
-                    }
+                    toggleMode('design')
                   }}
                   aria-label="Toggle design"
                   aria-pressed={showDesign}
+                  style={{ rotate: counterSpin, ...(dockedBtn === 'design' ? { x: dockX, y: dockY } : {}) }}
                   className={"about-photo-btn about-photo-btn--design w-11 h-11 rounded-full backdrop-blur-md bg-white/15 border border-white/50 flex items-center justify-center shadow-[0_4px_14px_rgba(0,0,0,0.25)] hover:bg-white/30 hover:scale-110" + (showDesign ? " is-active ring-2 ring-white scale-105 bg-white/25" : "") + (showBlueprint || showMatrix || showTest ? " opacity-0 scale-50 pointer-events-none is-hidden" : "")}
                 >
                   <svg viewBox="0 0 38 57" aria-hidden="true" className="w-5.5 h-8.25">
@@ -1160,16 +1423,20 @@ label="./view-projects"
                     <path fill="#f24e1e" d="M0 9.5A9.5 9.5 0 0 1 9.5 0H19v19H9.5A9.5 9.5 0 0 1 0 9.5z" />
                     <path fill="#a259ff" d="M0 28.5A9.5 9.5 0 0 1 9.5 19H19v19H9.5A9.5 9.5 0 0 1 0 28.5z" />
                   </svg>
-                </button>
-                <button
+                </motion.button>
+                <motion.button
+                  ref={modeButtonRefs.test}
                   type="button"
-                  onClick={(e) => { e.stopPropagation(); setShowTest((v) => !v); trailRef.current = []; if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null } }}
+                  onClick={(e) => { e.stopPropagation(); toggleMode('test') }}
                   aria-label="Toggle test overlay"
                   aria-pressed={showTest}
+                  style={{ rotate: counterSpin, ...(dockedBtn === 'test' ? { x: dockX, y: dockY } : {}) }}
                   className={"about-photo-btn about-photo-btn--red w-11 h-11 rounded-full backdrop-blur-md bg-[#D2042D]/80 border border-white/50 text-[#F5F7F7] flex items-center justify-center shadow-[0_4px_14px_rgba(0,0,0,0.25)] hover:bg-transparent hover:scale-110" + (showTest ? " is-active ring-2 ring-white scale-105" : "") + (showBlueprint || showMatrix || showDesign ? " opacity-0 scale-50 pointer-events-none is-hidden" : "")}
                 >
                   <Bug size={19} strokeWidth={2.4} className="drop-shadow-[0_0_8px_#FF3B47]" />
-                </button>
+                </motion.button>
+                </motion.div>
+                </div>
               </div>
             </motion.div>
           </div>
@@ -1262,15 +1529,34 @@ label="./view-projects"
             `}</style>
           </>
         )}
+        {/* Blueprint mode : the GET_RESUME pill is the hero's topmost layer -
+            declared last and above every hero layer (photo z-60, copy z-70,
+            test/debug chrome z-75) - and it stops the hero's click-to-reset
+            from firing when pressed. The design-mode CTA is a different
+            component and lives in MainLayout. */}
+        {showBlueprint && (
+          <div className="absolute right-6 top-2 z-90 max-md:hidden pointer-events-auto" onClick={(e) => e.stopPropagation()}>
+            <span className="inline-block" style={{ transform: 'scale(0.85)', transformOrigin: 'top right' }}>
+              <BlueprintPillButton
+                label="GET_RESUME"
+                heightOnRight={false}
+                hoverIcon={<Download />}
+                onClick={handleResumeDownload}
+              />
+            </span>
+          </div>
+        )}
       </section>
 
+      {/* Everything below the hero wears the hero's mode theme */}
+      <div className={"about-body about-mode-" + pageMode}>
       {/* Story + Quick Info */}
-      <section className="bg-[#F5F7F7] py-16 md:py-20">
-        <Container size="lg">
+      <section className="about-section about-section--main bg-[#F5F7F7] py-16 md:py-20">
+        <Container size="lg" className="px-8!">
           <div className="grid md:grid-cols-2 gap-12 mb-20">
             <motion.div custom={0.1} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-              <h3 className="text-[20px] font-medium text-[#0A3332] mb-5 font-(family-name:--font-display)">My Story</h3>
-              <div className="space-y-4 text-[#405354] leading-[1.85] text-[16px]">
+              <h3 className="about-body-title text-[20px] font-medium text-[#0A3332] mb-5 font-(family-name:--font-display)">My Story</h3>
+              <div className="about-body-copy space-y-4 text-[#405354] leading-[1.85] text-[16px]">
                 <p>
                   I started my programming journey with Python because I enjoyed solving logical problems. There was something satisfying about writing code that actually did something useful.
                 </p>
@@ -1287,17 +1573,17 @@ label="./view-projects"
             </motion.div>
 
             <motion.div custom={0.2} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-              <h3 className="text-[20px] font-medium text-[#0A3332] mb-5 font-(family-name:--font-display)">Quick Info</h3>
+              <h3 className="about-body-title text-[20px] font-medium text-[#0A3332] mb-5 font-(family-name:--font-display)">Quick Info</h3>
               <div className="space-y-4">
                 {[
                   { label: 'Name', value: 'Mohammed Fawaz O' },
-                  { label: 'Location', value: 'Kerala, India' },
+                  { label: 'Location', value: 'Dubai, UAE' },
                   { label: 'Education', value: 'Bachelor of Computer Applications (BCA)' },
                   { label: 'Focus', value: 'Django, React, REST APIs, Production Applications' },
                 ].map((info) => (
-                  <Card key={info.label} variant="light" className="p-5!">
-                    <p className="text-[11px] text-[#718082] uppercase tracking-[0.18em] font-mono mb-1">{info.label}</p>
-                    <p className="text-[#0A3332] font-medium">{info.value}</p>
+                  <Card key={info.label} variant="light" className="about-card-light p-5!">
+                    <p className="about-info-label text-[11px] text-[#718082] uppercase tracking-[0.18em] font-mono mb-1">{info.label}</p>
+                    <p className="about-info-value text-[#0A3332] font-medium">{info.value}</p>
                   </Card>
                 ))}
               </div>
@@ -1306,15 +1592,15 @@ label="./view-projects"
 
           {/* Skills */}
           <div className="mb-20">
-            <SectionHeading tone="light" eyebrow="Capabilities" title="Skills" subtitle="Technologies I work with across the stack." alignment="left" />
+            <SectionHeading tone="light" className="about-section-heading" eyebrow="Capabilities" title="Skills" subtitle="Technologies I work with across the stack." alignment="left" />
             <StaggerChildren className="grid md:grid-cols-3 lg:grid-cols-5 gap-4">
               {Object.entries(skills).map(([category, items]) => (
                 <StaggerItem key={category}>
-                  <Card variant="light" className="p-6! h-full">
-                    <h4 className="text-[11px] font-medium text-[#236966] mb-4 uppercase tracking-[0.18em] font-mono">{category}</h4>
+                  <Card variant="light" className="about-card-light p-6! h-full">
+                    <h4 className="about-skill-title text-[11px] font-medium text-[#236966] mb-4 uppercase tracking-[0.18em] font-mono">{category}</h4>
                     <div className="flex flex-wrap gap-2">
                       {items.map((skill) => (
-                        <Badge key={skill} variant="light">{skill}</Badge>
+                        <Badge key={skill} variant="light" className="about-badge">{skill}</Badge>
                       ))}
                     </div>
                   </Card>
@@ -1325,13 +1611,13 @@ label="./view-projects"
 
           {/* Philosophy */}
           <div className="mb-4">
-            <SectionHeading tone="light" eyebrow="Why Me" title="What I bring to the table" subtitle="Principles that shape how I build software." alignment="left" />
+            <SectionHeading tone="light" className="about-section-heading" eyebrow="Why Me" title="What I bring to the table" subtitle="Principles that shape how I build software." alignment="left" />
             <StaggerChildren className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               {philosophy.map((item, index) => (
                 <StaggerItem key={index}>
-                  <Card variant="teal" className="p-6! h-full">
-                    <h4 className="text-[18px] font-medium text-[#F5F7F7] mb-2 font-(family-name:--font-display)">{item.title}</h4>
-                    <p className="text-[#B8F2FA] text-[14px] leading-[1.7]">{item.description}</p>
+                  <Card variant="teal" className="about-card-teal p-6! h-full">
+                    <h4 className="about-card-teal-title text-[18px] font-medium text-[#F5F7F7] mb-2 font-(family-name:--font-display)">{item.title}</h4>
+                    <p className="about-card-teal-text text-[#B8F2FA] text-[14px] leading-[1.7]">{item.description}</p>
                   </Card>
                 </StaggerItem>
               ))}
@@ -1341,22 +1627,23 @@ label="./view-projects"
       </section>
 
       {/* Mission : Teal feature band */}
-      <section className="bg-[#0A3332] py-20 md:py-24">
-        <Container size="lg">
+      <section className="about-section about-section--mission bg-[#0A3332] py-20 md:py-24">
+        <Container size="lg" className="px-8!">
           <div className="text-center max-w-3xl mx-auto">
-            <span className="text-[11px] font-mono text-[#6FE7FF] uppercase tracking-[0.3em] font-medium">
+            <span className="about-mission-eyebrow text-[11px] font-mono text-[#6FE7FF] uppercase tracking-[0.3em] font-medium">
               My Mission
             </span>
-            <h3 className="font-(family-name:--font-display) text-[34px] md:text-[44px] leading-[1.1] font-semibold text-[#F5F7F7] mt-4 mb-5">
+            <h3 className="about-mission-title font-(family-name:--font-display) text-[34px] md:text-[44px] leading-[1.1] font-semibold text-[#F5F7F7] mt-4 mb-5">
               Software that actually works.
             </h3>
-            <p className="text-[#B8F2FA] text-[18px] font-light leading-[1.7]">
+            <p className="about-mission-copy text-[#B8F2FA] text-[18px] font-light leading-[1.7]">
               To build web applications that solve real problems for real users in real businesses. Not
               demo projects or tutorial clones : production-ready code that delivers.
             </p>
           </div>
         </Container>
       </section>
+      </div>
     </>
   )
 }

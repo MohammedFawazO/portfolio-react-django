@@ -2,6 +2,7 @@ import { useEffect, useRef, useContext, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion'
 import Footer from '../components/common/Footer'
+import WhatsAppButton from '../components/common/WhatsAppButton'
 import ConnectButton from '../components/common/ConnectButton'
 import DesignModeConnectButton from '../components/common/DesignModeConnectButton'
 import SpotlightNavbar from '../components/navigation/SpotlightNavbar'
@@ -19,9 +20,13 @@ function NavbarSlot() {
   const navFade = useTransform(heroProgress, [0, 0.55, 0.85], [1, 1, 0])
   const navSlide = useTransform(heroProgress, [0, 0.55, 0.85], [0, 0, 0])
 
+  // The navbar sits above <main> (z-50 vs z-10) and its wrapper spans the full
+  // width at the top of the page, so anything pinned to that strip (the hero's
+  // blueprint CTA, for one) would be un-clickable behind it. The wrapper is
+  // click-through; the navbar and the portaled hamburger turn clicks back on.
   const wrapperClass = isProjects
-    ? "z-50 flex justify-center top-0 left-0 right-0 fixed"
-    : "z-50 flex justify-center top-0 left-0 right-0 min-md:absolute max-md:fixed"
+    ? "z-50 flex justify-center top-0 left-0 right-0 fixed pointer-events-none"
+    : "z-50 flex justify-center top-0 left-0 right-0 min-md:absolute max-md:fixed pointer-events-none"
   const transition = { duration: 0.4, ease: 'easeInOut' }
 
   return (
@@ -47,7 +52,7 @@ function NavbarSlot() {
           transition={transition}
         >
           {isProjects ? (
-            <motion.div style={{ opacity: navFade, y: navSlide }} className="flex justify-center">
+            <motion.div style={{ opacity: navFade, y: navSlide }} className="flex justify-center pointer-events-auto">
               <SpotlightNavbar animationKey="static" />
             </motion.div>
           ) : (
@@ -68,7 +73,7 @@ function ConnectSlot() {
   const navSlide = useTransform(heroProgress, [0, 0.55, 0.85], [0, 0, 0])
 
   // Watch the blueprint body class (toggled by About.jsx) so the connect CTA
-  // can be pinned to the bottom of the page in blueprint mode only — every
+  // can be pinned to the bottom of the page in blueprint mode only - every
   // other mode keeps its top-right placement untouched.
   const [blueprint, setBlueprint] = useState(false)
   useEffect(() => {
@@ -82,7 +87,16 @@ function ConnectSlot() {
 
   const transition = { duration: 0.4, ease: 'easeInOut' }
 
-  if (location.pathname === '/contact') return null
+  // No CTA on Resume - that page's own hero is the CV shelf, so a second Get
+  // Resume button in the corner would just duplicate what the user is already
+  // looking at. Contact keeps it: the form is the primary action there, and the
+  // CTA is a useful second route for anyone who just wants the CV.
+  if (location.pathname === '/resume') return null
+
+  // Blueprint mode renders its own copy of the CTA, pinned to the hero's top
+  // right corner inside About.jsx - returning here avoids a duplicate pinned to
+  // the viewport.
+  if (blueprint) return null
 
   return (
     <AnimatePresence mode="wait">
@@ -100,16 +114,11 @@ function ConnectSlot() {
       ) : (
         <motion.div
           key="default-connect"
-          // Blueprint mode: pinned to the top-right of the hero section, with a high
-          // z-index (z-70) so it stays above the about-photo-group (z-60) and
-          // remains clickable. The wrapper uses pointer-events-none so it
-          // never blocks the hero photo's hover animations — only the
-          // actual button (pointer-events-auto) is clickable.
-          className={blueprint
-            ? "fixed right-6 top-6 z-100 pointer-events-none max-md:hidden"
-            : isProjects
-              ? "fixed right-6 top-10 z-50 max-md:hidden"
-              : "absolute right-6 top-10 z-50 max-md:hidden"}
+          // Pinned to the top-right of the page on every mode except blueprint,
+          // which keeps its copy inside the hero section (see About.jsx).
+          className={isProjects
+            ? "fixed right-6 top-10 z-50 max-md:hidden"
+            : "absolute right-6 top-10 z-50 max-md:hidden"}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 8 }}
@@ -131,14 +140,59 @@ function ConnectSlot() {
 function MainLayout() {
   const location = useLocation()
   const isHome = location.pathname === '/'
-  const isProjects = location.pathname === '/projects'
+  const isAbout = location.pathname === '/about'
   const footerVideoRef = useRef(null)
   const heroProgress = useMotionValue(0)
-  const navFade = useTransform(heroProgress, [0, 0.55, 0.85], [1, 1, 0])
-  const navSlide = useTransform(heroProgress, [0, 0.55, 0.85], [0, 0, -24])
 
   useEffect(() => {
+    // A hash means "go to that anchor", so don't reset to the top - let the
+    // scroll-to-target effect below handle the landing instead.
+    if (location.hash) return
     window.scrollTo(0, 0)
+  }, [location.pathname, location.hash])
+
+  // Deep links such as /#home-contact must actually land on their target.
+  // react-router does not scroll on a hash change, and nothing else here did,
+  // so without this the Home link from the projects CTA would arrive at the top
+  // of the page with the form nowhere in sight.
+  useEffect(() => {
+    if (!location.hash) return
+    const id = requestAnimationFrame(() => {
+      const target = document.querySelector(location.hash)
+      // One frame of delay: the home page animates its sections in, so on the
+      // first paint after navigation the target may not be laid out yet.
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
+    return () => cancelAnimationFrame(id)
+  }, [location.pathname, location.hash])
+
+  // The About page owns the hero modes: it sets `about-blueprint-nav` /
+  // `about-matrix-nav` / `about-test-nav` on <html> and overrides a couple of
+  // root CSS variables, which is how the shared navbar and connect button pick
+  // up their theme. About clears them when it unmounts, but pin it down here
+  // as well so a mode can never bleed into another route.
+  useEffect(() => {
+    if (isAbout) return
+    const root = document.documentElement
+    root.classList.remove('about-blueprint-nav', 'about-matrix-nav', 'about-test-nav')
+    root.style.removeProperty('--color-primary-light')
+    root.style.removeProperty('--color-primary-light-rgb')
+    root.style.removeProperty('--text-secondary')
+  }, [isAbout])
+
+  // Route marker on <html>, following the same pattern as the about-*-nav
+  // classes: it lets CSS tighten or loosen shared furniture for one route
+  // without wrapping it in a per-page element. Replaced on every navigation
+  // rather than added, so a stale marker can never outlive its route.
+  useEffect(() => {
+    const root = document.documentElement
+    const slug = location.pathname.replace(/[^\w-]/g, '') || 'home'
+    const next = `route-${slug}`
+    root.classList.forEach((cls) => {
+      if (cls.startsWith('route-')) root.classList.remove(cls)
+    })
+    root.classList.add(next)
+    return () => root.classList.remove(next)
   }, [location.pathname])
 
   useEffect(() => {
@@ -174,6 +228,10 @@ function MainLayout() {
             </main>
 
             <Footer />
+
+            {/* Direct WhatsApp CTA. Lives here rather than in a page so every
+                route inherits it. */}
+            <WhatsAppButton />
           </div>
         </HeroScrollContext.Provider>
       </DesignModeProvider>

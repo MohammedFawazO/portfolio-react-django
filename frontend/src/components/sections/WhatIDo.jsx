@@ -36,7 +36,7 @@ const fadeUp = {
 
 function WhatIDo() {
   return (
-    <section className="relative py-[7rem] md:py-[9rem] bg-[#07090B] overflow-hidden">
+    <section className="relative py-[7rem] md:py-[9rem] bg-white overflow-hidden">
       <div
         className="absolute pointer-events-none"
         style={{
@@ -67,33 +67,33 @@ function WhatIDo() {
           className="mb-16"
         >
           <div className="flex items-center gap-3 mb-5">
-            <span className="h-px w-8 bg-[#6FE7FF]" />
-            <span className="text-[11px] font-[family-name:var(--font-mono)] text-[#6FE7FF] uppercase tracking-[0.3em] font-medium">
+            <span className="h-px w-8 bg-[#2d8cf0]" />
+            <span className="text-[11px] font-[family-name:var(--font-mono)] text-[#2d8cf0] uppercase tracking-[0.3em] font-medium">
               What I Do
             </span>
           </div>
-          <h2 className="font-[family-name:var(--font-display)] text-[40px] md:text-[56px] leading-[1.04] font-semibold text-[#F5F7F7] tracking-tight">
+          <h2 className="font-[family-name:var(--font-display)] text-[40px] md:text-[56px] leading-[1.04] font-semibold text-black tracking-tight">
             Services
           </h2>
         </motion.div>
 
-        <StaggerChildren className="border-t border-[#29323A]">
+        <StaggerChildren className="border-t-2 border-black">
           {expertise.map((service, idx) => (
             <StaggerItem key={service.title}>
               <motion.div
                 whileHover={{ x: 8 }}
                 transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                className="group relative grid grid-cols-1 md:grid-cols-[auto_1fr_auto] gap-6 md:gap-10 items-center py-10 border-b border-[#29323A]"
+                className="group relative grid grid-cols-1 md:grid-cols-[auto_1fr_auto] gap-6 md:gap-10 items-center py-10 border-b-2 border-black"
               >
-                <span className="font-[family-name:var(--font-display)] text-[28px] md:text-[36px] font-semibold text-[#6FE7FF]/70 group-hover:text-[#6FE7FF] transition-colors duration-300 leading-none">
+                <span className="font-[family-name:var(--font-display)] text-[28px] md:text-[36px] font-semibold text-[#2d8cf0]/70 group-hover:text-[#2d8cf0] transition-colors duration-300 leading-none">
                   {String(idx + 1).padStart(2, '0')}
                 </span>
 
                 <div>
-                  <h3 className="font-[family-name:var(--font-display)] text-[24px] md:text-[30px] text-[#F5F7F7] font-medium leading-tight mb-2">
+                  <h3 className="font-[family-name:var(--font-display)] text-[24px] md:text-[30px] text-black font-medium leading-tight mb-2">
                     {service.title}
                   </h3>
-                  <p className="text-[15px] text-[#AEB9BD] leading-relaxed max-w-xl">
+                  <p className="text-[15px] text-[#666] leading-relaxed max-w-xl">
                     {service.description}
                   </p>
                 </div>
@@ -102,7 +102,7 @@ function WhatIDo() {
                   {service.items.map((item) => (
                     <span
                       key={item}
-                      className="px-3 py-1.5 bg-[#12171C] border border-[#29323A] text-[12px] text-[#AEB9BD] rounded-full font-[family-name:var(--font-mono)] uppercase tracking-[0.06em] group-hover:border-[#6FE7FF]/30 transition-colors duration-300"
+                      className="ct-tag px-3 py-1.5 text-[12px] font-[family-name:var(--font-mono)] uppercase tracking-[0.06em] group-hover:border-[#2d8cf0] transition-colors duration-300"
                     >
                       {item}
                     </span>
@@ -114,7 +114,7 @@ function WhatIDo() {
         </StaggerChildren>
       </Container>
 
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#29323A] to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-black to-transparent" />
     </section>
   )
 }

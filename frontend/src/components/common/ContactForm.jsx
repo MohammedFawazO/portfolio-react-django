@@ -2,14 +2,27 @@ import { useState } from 'react'
 import contactService from '../../services/contactService'
 import showToast from '../ui/Toast'
 
+const PROJECT_TYPES = [
+  'New website',
+  'Web application',
+  'Django / Python backend',
+  'React frontend',
+  'API or integration',
+  'Bug fix / maintenance',
+  'Full-time role',
+  'Something else',
+]
+
 function ContactForm() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    projectType: '',
     message: '',
   })
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState({})
+  const [status, setStatus] = useState(null)
 
   const validate = () => {
     const newErrors = {}
@@ -26,77 +39,131 @@ function ContactForm() {
     return Object.keys(newErrors).length === 0
   }
 
+  // Editing clears a stale banner so the message always describes what just happened.
+  const update = (field) => (e) => {
+    setFormData((prev) => ({ ...prev, [field]: e.target.value }))
+    if (status) setStatus(null)
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!validate()) return
+    if (!validate()) {
+      setStatus({ type: 'error', message: 'Please fix the highlighted fields and try again.' })
+      return
+    }
 
     setLoading(true)
+    setStatus(null)
     try {
-      await contactService.send(formData)
-      showToast.success('Message sent successfully!')
-      setFormData({ name: '', email: '', message: '' })
+      const res = await contactService.send(formData)
+      const viaMailto = res?.delivered === 'mailto'
+      showToast.success(viaMailto ? 'Opening your mail app…' : 'Message sent successfully!')
+      setStatus({
+        type: 'success',
+        message: viaMailto
+          ? 'Your mail client opened with the message ready to send.'
+          : 'Thanks - your message is in. I usually reply within 24-48 hours.',
+      })
+      setFormData({ name: '', email: '', projectType: '', message: '' })
       setErrors({})
-    } catch (error) {
+    } catch {
       showToast.error('Failed to send message. Please try again.')
+      setStatus({
+        type: 'error',
+        message: 'That did not go through. Please email me directly and I will pick it up.',
+      })
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="ct-form" noValidate>
       <div>
-        <label className="block text-[12px] font-medium text-[#59636E] mb-1 uppercase tracking-[0.182em] font-[family-name:var(--font-mono)]">
-          Name
-        </label>
+        <label htmlFor="contact-name" className="ct-label">Name</label>
         <input
+          id="contact-name"
+          className="ct-input"
           type="text"
           name="name"
           placeholder="Your name"
           value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          className="w-full px-4 py-3 rounded-[8px] border bg-[#0B0F13] text-[#F2F5F7] placeholder-[#59636E] transition-colors duration-200 focus:outline-none focus:border-[#6FE7FF] border-[rgba(255,255,255,0.1)] hover:border-[rgba(255,255,255,0.2)]"
+          onChange={update('name')}
         />
-        {errors.name && <p className="mt-1 text-[12px] text-[#8D98A4]">{errors.name}</p>}
+        {errors.name && <p className="ct-error">{errors.name}</p>}
       </div>
 
       <div>
-        <label className="block text-[12px] font-medium text-[#59636E] mb-1 uppercase tracking-[0.182em] font-[family-name:var(--font-mono)]">
-          Email
-        </label>
+        <label htmlFor="contact-email" className="ct-label">Email</label>
         <input
+          id="contact-email"
+          className="ct-input"
           type="email"
           name="email"
           placeholder="your@email.com"
           value={formData.email}
-          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          className="w-full px-4 py-3 rounded-[8px] border bg-[#0B0F13] text-[#F2F5F7] placeholder-[#59636E] transition-colors duration-200 focus:outline-none focus:border-[#6FE7FF] border-[rgba(255,255,255,0.1)] hover:border-[rgba(255,255,255,0.2)]"
+          onChange={update('email')}
         />
-        {errors.email && <p className="mt-1 text-[12px] text-[#8D98A4]">{errors.email}</p>}
+        {errors.email && <p className="ct-error">{errors.email}</p>}
       </div>
 
       <div>
-        <label className="block text-[12px] font-medium text-[#59636E] mb-1 uppercase tracking-[0.182em] font-[family-name:var(--font-mono)]">
-          Message
+        <label htmlFor="contact-project" className="ct-label">
+          Project type <span className="normal-case tracking-normal text-[#666]">(optional)</span>
         </label>
-        <textarea
-          name="message"
-          placeholder="Your message"
-          rows={4}
-          value={formData.message}
-          onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-          className="w-full px-4 py-3 rounded-[8px] border bg-[#0B0F13] text-[#F2F5F7] placeholder-[#59636E] transition-colors duration-200 resize-none focus:outline-none focus:border-[#6FE7FF] border-[rgba(255,255,255,0.1)] hover:border-[rgba(255,255,255,0.2)]"
-        />
-        {errors.message && <p className="mt-1 text-[12px] text-[#8D98A4]">{errors.message}</p>}
+        <div className="relative">
+          <select
+            id="contact-project"
+            className="ct-input"
+            name="projectType"
+            value={formData.projectType}
+            onChange={update('projectType')}
+          >
+            <option value="">Select a project type</option>
+            {PROJECT_TYPES.map((type) => (
+              <option key={type} value={type}>
+                {type}
+              </option>
+            ))}
+          </select>
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1.8}
+            className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#323232]"
+          >
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </div>
       </div>
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full px-6 py-3 bg-[#6FE7FF] text-[#07090B] rounded-[8px] font-medium text-[16px] transition-all duration-200 hover:bg-[#35C9E8] disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {loading ? 'Sending...' : 'Send Message'}
+      <div>
+        <label htmlFor="contact-message" className="ct-label">Message</label>
+        <textarea
+          id="contact-message"
+          className="ct-input"
+          name="message"
+          placeholder="What are you building?"
+          rows={5}
+          value={formData.message}
+          onChange={update('message')}
+        />
+        {errors.message && <p className="ct-error">{errors.message}</p>}
+      </div>
+
+      <button type="submit" disabled={loading} className="ct-btn">
+        {loading ? 'Sending…' : 'Send Message'}
       </button>
+
+      {/* explicit result state, announced to screen readers */}
+      <div aria-live="polite" className={status ? '' : 'sr-only'}>
+        {status && (
+          <p className={`ct-status ${status.type === 'success' ? 'ct-status--ok' : 'ct-status--err'}`}>
+            {status.message}
+          </p>
+        )}
+      </div>
     </form>
   )
 }

@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { Helmet } from 'react-helmet-async'
+import { Link } from 'react-router-dom'
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from 'framer-motion'
 import SectionHeading from '../components/ui/SectionHeading'
 import Container from '../components/ui/Container'
@@ -89,43 +90,197 @@ const slideVariants = {
   },
 }
 
+// Icon set for the console highlight bullets. Keys match the `icon` field on
+// each highlight; stroke-based to match the rest of the project's line work.
+// Unknown keys render nothing, so a missing icon degrades to plain text.
+const HIGHLIGHT_ICONS = {
+  box: <path d="M21 8l-9-5-9 5m18 0l-9 5m9-5v8l-9 5m0-8L3 8m9 5v8" />,
+  bag: <path d="M6 7V6a6 6 0 0 1 12 0v1M5 7h14l-1 13H6L5 7zM9.5 11v1a2.5 2.5 0 0 0 5 0v-1" />,
+  gear: (
+    <>
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+    </>
+  ),
+  search: (
+    <>
+      <circle cx="11" cy="11" r="7" />
+      <path d="m20 20-3.6-3.6" />
+    </>
+  ),
+  calendar: (
+    <>
+      <rect x="3" y="4" width="18" height="18" rx="2" />
+      <path d="M16 2v4M8 2v4M3 10h18" />
+    </>
+  ),
+  grid: (
+    <>
+      <rect x="3" y="3" width="7" height="7" rx="1.5" />
+      <rect x="14" y="3" width="7" height="7" rx="1.5" />
+      <rect x="14" y="14" width="7" height="7" rx="1.5" />
+      <rect x="3" y="14" width="7" height="7" rx="1.5" />
+    </>
+  ),
+  shield: <path d="M12 3l7 3v5.5c0 4.4-2.9 7.6-7 9-4.1-1.4-7-4.6-7-9V6l7-3z" />,
+  code: <path d="m8 6-6 6 6 6M16 6l6 6-6 6" />,
+  type: <path d="M4 7V4h16v3M12 4v16M9 20h6" />,
+  list: <path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01" />,
+  phone: (
+    <>
+      <rect x="6" y="2" width="12" height="20" rx="2.5" />
+      <path d="M11 18.5h2" />
+    </>
+  ),
+  zap: <path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z" />,
+  file: <path d="M14 2H6v20h12V6l-4-4zM14 2v4h4M9 13h6M9 17h6" />,
+  trend: <path d="m3 17 6-6 4 4 8-8M15 7h6v6" />,
+  terminal: (
+    <>
+      <rect x="2" y="3" width="20" height="18" rx="2" />
+      <path d="m6 9 3 3-3 3M12 15h5" />
+    </>
+  ),
+  monitor: (
+    <>
+      <rect x="2" y="3" width="20" height="14" rx="2" />
+      <path d="M8 21h8M12 17v4" />
+    </>
+  ),
+  pin: (
+    <>
+      <path d="M12 21s7-6.3 7-11a7 7 0 1 0-14 0c0 4.7 7 11 7 11z" />
+      <circle cx="12" cy="10" r="2.4" />
+    </>
+  ),
+  refresh: <path d="M20.5 12a8.5 8.5 0 1 1-2.6-6.1M21 3v5h-5" />,
+  tag: (
+    <>
+      <path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z" />
+      <circle cx="7.5" cy="7.5" r="1.2" />
+    </>
+  ),
+  database: (
+    <>
+      <ellipse cx="12" cy="5.5" rx="8" ry="3" />
+      <path d="M4 5.5v13c0 1.7 3.6 3 8 3s8-1.3 8-3v-13M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3" />
+    </>
+  ),
+  lock: (
+    <>
+      <rect x="4" y="10" width="16" height="11" rx="2" />
+      <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+    </>
+  ),
+  sliders: (
+    <>
+      <path d="M4 8h16M4 16h16" />
+      <circle cx="9" cy="8" r="2.2" />
+      <circle cx="16" cy="16" r="2.2" />
+    </>
+  ),
+  users: (
+    <>
+      <circle cx="9" cy="8" r="3.2" />
+      <path d="M2.5 20c0-3.4 2.9-5.2 6.5-5.2s6.5 1.8 6.5 5.2" />
+      <path d="M16 5.2a3.2 3.2 0 0 1 0 5.6M17.8 20c0-2.6-.9-4.2-2.3-5" />
+    </>
+  ),
+  map: <path d="m9 4-6 2v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14" />,
+  branch: (
+    <>
+      <circle cx="6" cy="6" r="2.6" />
+      <circle cx="6" cy="18" r="2.6" />
+      <circle cx="18" cy="8" r="2.6" />
+      <path d="M6 8.6v6.8M18 10.6c0 3.2-2.7 4.4-6 5.2" />
+    </>
+  ),
+  pen: <path d="M12 19.5 19 12.5l2.5 2.5-7 7-3.5 1 1-3.5zM17.5 14 21 17.5M14 4.5l5.5 5.5" />,
+  layout: (
+    <>
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <path d="M3 9.5h18M9.5 21V9.5" />
+    </>
+  ),
+  layers: <path d="m12 3 9 4.8-9 4.8-9-4.8L12 3zM3 13l9 4.8 9-4.8" />,
+}
+
+function HighlightIcon({ name }) {
+  const path = HIGHLIGHT_ICONS[name]
+  if (!path) return null
+  return (
+    <span className="console-highlight-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        {path}
+      </svg>
+    </span>
+  )
+}
+
 const projectDetails = {
   'CarCure': {
-    description: 'Production-level roadside assistance and vehicle spare parts platform designed for UAE users. Features include SOS emergency requests, maintenance booking, user/staff dashboards, and Supabase integration.',
+    description:
+      'An automotive marketplace and service platform for UAE drivers, pairing a genuine spare-parts catalogue with enquiry handling and maintenance scheduling. Django and DRF carry the backend, role-separated dashboards keep customers and staff on the same records, and Supabase handles accounts and file storage.',
     tags: ['Python', 'Django', 'DRF', 'Bootstrap', 'Supabase', 'PostgreSQL', 'Render', 'Cloudflare'],
-    highlights: ['Authentication system', 'File uploads', 'Email notifications', 'REST APIs', 'Responsive design'],
-  },
-  'Sandra International Website': {
-    description: 'Business portfolio website developed for a UAE startup. Clean design, fast performance, and mobile-first responsive layout.',
-    tags: ['HTML', 'CSS', 'JavaScript', 'Responsive Design'],
-    highlights: ['Professional design', 'SEO optimized', 'Fast loading', 'Mobile-first'],
+    highlights: [
+      { icon: 'gear', title: 'Parts Catalogue', text: 'Genuine spares browsable by make, model and year.' },
+      { icon: 'search', title: 'Enquiry Handling', text: 'Customers raise a parts enquiry, staff answer from the same thread.' },
+      { icon: 'calendar', title: 'Service Booking', text: 'Reserve maintenance slots and keep vehicle history in one place.' },
+      { icon: 'grid', title: 'Split Dashboards', text: 'Customers track progress while staff manage fulfilment from the same records.' },
+      { icon: 'shield', title: 'Accounts & Storage', text: 'Supabase-backed auth with secure uploads for proofs and invoices.' },
+      { icon: 'code', title: 'REST API Layer', text: 'A clean DRF surface so web and mobile clients never drift apart.' },
+    ],
   },
   'Al Shamil Turning LLC': {
-    description: 'Corporate portfolio website for an engineering company in Fujairah, UAE. Professional design with improved UI and responsive layout.',
+    description:
+      'A corporate site for a Fujairah engineering firm, built so heavy technical work still reads clearly. A restrained visual system, structured service content and a fully responsive layout let contractors and clients understand the firm\u2019s capabilities without a designer in the loop.',
     tags: ['HTML', 'CSS', 'JavaScript', 'Responsive Design'],
-    highlights: ['Corporate design', 'UI improvements', 'Fast deployment', 'Business-focused'],
+    highlights: [
+      { icon: 'type', title: 'Corporate Identity', text: 'Type, spacing and colour tuned to feel engineered, not templated.' },
+      { icon: 'list', title: 'Service Breakdown', text: 'Capabilities organised so contractors reach what they need quickly.' },
+      { icon: 'phone', title: 'Responsive Layout', text: 'From phones on site through to wide desktop monitors.' },
+      { icon: 'zap', title: 'Lightweight Build', text: 'Plain HTML, CSS and JavaScript for quick loads and easy handover.' },
+      { icon: 'file', title: 'Content Structure', text: 'Project and service copy laid out for scanning, not reading end to end.' },
+      { icon: 'trend', title: 'Fast Delivery', text: 'Static hosting with no build step to slow the client down.' },
+    ],
   },
   'Dubai Travel AI Assistant': {
-    description: 'AI-powered travel assistant for exploring Dubai. Built with Python and Streamlit, it helps travelers plan their trips using AI.',
+    description:
+      'A conversational planning companion for exploring Dubai, written in Python with Streamlit. Visitors describe a day, a budget or a mood and get a shaped itinerary back, with the interface doing the work of turning a language model response into a plan someone would actually follow.',
     tags: ['Python', 'Streamlit', 'AI'],
-    highlights: ['AI recommendations', 'Interactive interface', 'Travel planning'],
+    highlights: [
+      { icon: 'terminal', title: 'Prompt-Driven Planning', text: 'Describe the trip in plain language, receive a structured day back.' },
+      { icon: 'monitor', title: 'Streamlit Interface', text: 'A responsive UI assembled entirely in Python, no separate frontend.' },
+      { icon: 'pin', title: 'Grounded Suggestions', text: 'Recommendations anchored to real places rather than filler advice.' },
+      { icon: 'refresh', title: 'Iterative Refinement', text: 'Ask for changes and the plan adapts without starting over.' },
+      { icon: 'tag', title: 'Budget Awareness', text: 'Cost and timing trade-offs reflected in the output.' },
+      { icon: 'zap', title: 'Instant Results', text: 'Plans generate in seconds, no waiting on a build or reload.' },
+    ],
   },
   'Tour Package Management System': {
-    description: 'Django-based tour package management system with CRUD operations, authentication, booking workflow, and database management.',
+    description:
+      'A booking platform for tour operators that covers packages, availability and customers under one roof. Built on Django with SQLite to keep setup trivial, it walks the full reservation lifecycle from first enquiry to confirmation, with a staff-facing admin panel for day-to-day changes.',
     tags: ['Python', 'Django', 'SQLite', 'HTML'],
-    highlights: ['CRUD operations', 'Authentication', 'Booking workflow', 'Admin panel'],
+    highlights: [
+      { icon: 'database', title: 'Full CRUD', text: 'Packages, itineraries and pricing managed end to end.' },
+      { icon: 'calendar', title: 'Booking Workflow', text: 'Enquiry through confirmation, with capacity handled centrally.' },
+      { icon: 'lock', title: 'Authentication', text: 'Separate staff and customer access to exactly the right data.' },
+      { icon: 'sliders', title: 'Admin Panel', text: 'Everyday changes made in the UI, never by touching the database.' },
+      { icon: 'users', title: 'Customer Records', text: 'Bookings and history kept against each traveller.' },
+      { icon: 'box', title: 'Zero-Friction Setup', text: 'SQLite keeps local and demo installs to a single command.' },
+    ],
   },
 }
 
 const MILESTONES = [
   {
-    id: 'jar',
-    title: 'Coming Soon!',
-    badge: '',
-    milestone: '/media/jar-coming soon.png',
-    tilt: false,
-    front: null,
-    caption: true,
+id: 'jar',
+      title: 'Coming Soon!',
+      badge: '',
+      milestone: '/media/jar-coming soon.png',
+      tilt: false,
+      front: null,
+      caption: true,
   },
   {
     id: 'carcure',
@@ -147,16 +302,6 @@ const MILESTONES = [
     front: '/media/hull machine.png',
     caption: true,
   },
-  {
-    id: 'sandra',
-    title: 'Sandra International',
-    eyebrow: 'Portfolio',
-    badge: '',
-    milestone: null,
-    tilt: false,
-    front: null,
-    caption: true,
-  },
 ]
 
 // Rich info shown in the right-side console when a milestone is selected.
@@ -166,8 +311,13 @@ const PROJECT_INFO = {
     name: 'Coming Soon',
     category: 'In Development',
     description:
-      'A brand-new platform is currently in the workshop. This slot will showcase the next build the moment it goes live.',
-    highlights: ['Concept & planning', 'Architecture design', 'UI prototyping', 'Stack selection'],
+      'Something new is taking shape in the workshop right now. This slot is reserved for the next build, and it will carry the full breakdown the moment it goes live.',
+    highlights: [
+      { icon: 'map', title: 'Concept & Planning', text: 'Scope and requirements mapped before a line of code.' },
+      { icon: 'branch', title: 'Architecture', text: 'Data model and service boundaries decided up front.' },
+      { icon: 'layout', title: 'UI Prototyping', text: 'Layouts explored and reviewed before implementation.' },
+      { icon: 'layers', title: 'Stack Selection', text: 'Chosen for what the project actually needs.' },
+    ],
     stack: ['React', 'Node', 'PostgreSQL'],
     live: '#',
     repo: '#',
@@ -177,33 +327,24 @@ const PROJECT_INFO = {
     name: 'CarCure',
     category: 'E-commerce · SaaS',
     description:
-      'Production-grade roadside assistance and spare-parts platform for UAE drivers. Handles SOS requests, service booking, and staff dashboards end to end.',
+      'An automotive marketplace and service platform for UAE users covering genuine spare parts, enquiry handling and maintenance booking, built around speed, reliability and convenience.',
     highlights: projectDetails['CarCure'].highlights,
     stack: projectDetails['CarCure'].tags,
-    live: '#',
-    repo: '#',
+    live: 'https://carcure.ae/',
+    repo: '',
+    repoNote: 'Client repo · private',
   },
   carcure2: {
     num: '03',
     name: 'AL Shamil Turning',
     category: 'Corporate Portfolio',
-    description:
-      'Corporate portfolio site for a Fujairah engineering firm, rebuilt with a cleaner UI, faster loads, and a fully responsive layout.',
+description:
+        'A corporate portfolio for a Fujairah engineering firm, rebuilt for clarity and full responsiveness: faster to load, easier to read, and finally up to the standard of their work.',
     highlights: projectDetails['Al Shamil Turning LLC'].highlights,
     stack: projectDetails['Al Shamil Turning LLC'].tags,
-    live: '#',
-    repo: '#',
-  },
-  sandra: {
-    num: '04',
-    name: 'Sandra International',
-    category: 'Business Portfolio',
-    description:
-      'Business portfolio website for a UAE startup, built mobile-first with strong SEO and fast page performance.',
-    highlights: projectDetails['Sandra International Website'].highlights,
-    stack: projectDetails['Sandra International Website'].tags,
-    live: '#',
-    repo: '#',
+    live: 'https://alshamilturning.com/',
+    repo: '',
+    repoNote: 'Client repo · private',
   },
 }
 
@@ -352,7 +493,7 @@ function Projects() {
     <>
       <Helmet>
         <title>Projects · Web Apps by Mohammed Fawaz O | Python Full Stack Developer</title>
-        <meta name="description" content="View projects built by Mohammed Fawaz O : from roadside assistance platforms to business portfolio websites." />
+        <meta name="description" content="View projects built by Mohammed Fawaz O : from automotive marketplaces to business portfolio websites." />
       </Helmet>
 
       {/* Hero Section : pinned during scroll animation */}
@@ -615,8 +756,26 @@ function Projects() {
       </div>
 
       {/* Projects Content : slides up from bottom over the hero (redesigned) */}
-      <motion.div id="projects-grid" style={{ y: gridSlide }} className="relative z-30 min-h-screen bg-[linear-gradient(180deg,#1c1f24_0%,#101216_35%,#070809_100%)] pt-10 pb-32 overflow-hidden rounded-t-[40px]">
+      <motion.div id="projects-grid" style={{ y: gridSlide }} className="relative z-30 bg-[linear-gradient(180deg,#1c1f24_0%,#101216_35%,#070809_100%)] pt-10 pb-0 overflow-hidden rounded-t-[40px]">
 
+        <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-72 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.10),transparent_70%)]" />
+        <Container>
+          <div className="relative z-10">
+            <SectionHeading
+              tone="dark"
+              title="Milestones"
+              subtitle="A selection of applications I've designed, built, and shipped."
+              alignment="center"
+              subtitleClassName="mt-2"
+            />
+
+            <motion.div
+              className={`podium-stage${navigating ? ' pod-no-hover' : ''}`}
+              style={{ marginTop: '-48px' }}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.35 }}
+            >
         {/* Default-state chevrons: functional carousel controls */}
         {!selectedId && (
           <>
@@ -707,24 +866,6 @@ function Projects() {
             </button>
           </>
         )}
-        <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-72 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.10),transparent_70%)]" />
-        <Container>
-          <div className="relative z-10">
-            <SectionHeading
-              tone="dark"
-              title="Milestones"
-              subtitle="A selection of applications I've designed, built, and shipped."
-              alignment="center"
-              subtitleClassName="mt-2"
-            />
-
-            <motion.div
-              className={`podium-stage${navigating ? ' pod-no-hover' : ''}`}
-              style={{ marginTop: '-48px' }}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.35 }}
-            >
 
               {slots.map((p, i) => {
                 const slotName = ['left', 'center', 'right'][i]
@@ -739,7 +880,7 @@ function Projects() {
                         (((idx + order - 1) % MILESTONES.length) + MILESTONES.length) %
                         MILESTONES.length
                       if (slot === 1) {
-                        // Already centered — select and slide immediately
+                        // Already centered - select and slide immediately
                         setSelectedId(p.id)
                         return
                       }
@@ -765,10 +906,10 @@ function Projects() {
                       selectedId && selectedId !== p.id ? ' is-dimmed' : ''
                     }${selectedId === p.id ? ' is-selected' : ''}`}
                   >
-                    <motion.div className="podium-spotlight" variants={spotlightVariants} />
-                    <motion.div className="podium-light-source" variants={lightSourceVariants} />
-                    <div className="podium-floor-glow" />
-                    <div className="podium-top-light" />
+<motion.div className="podium-spotlight" variants={spotlightVariants} />
+                      <motion.div className="podium-light-source" variants={lightSourceVariants} />
+                      <div className="podium-floor-glow" />
+                      <div className="podium-top-light" />
 
                     <img
                       src="/media/podium.png"
@@ -776,7 +917,7 @@ function Projects() {
                       className="podium-image"
                     />
 
-                    {/* Animated milestone image stack — slides, podium/shadow stay put */}
+                    {/* Animated milestone image stack - slides, podium/shadow stay put */}
                     <AnimatePresence initial={false} custom={directionRef}>
                       <motion.div
                         key={p.id}
@@ -830,7 +971,7 @@ function Projects() {
 
               </motion.div>
 
-              {/* Tech-stack marquee beneath the selected milestone — matches the
+              {/* Tech-stack marquee beneath the selected milestone - matches the
                   hero TechMarquee styling, constrained to the left half (left → center).
                   Wrapped in a fixed-height slot so the crossfade never reflows the section. */}
               <div className="marquee-slot">
@@ -931,27 +1072,108 @@ function Projects() {
 
                       <ul className="console-highlights">
                         {info.highlights.map((h) => (
-                          <li key={h}>{h}</li>
+                          <li key={typeof h === 'string' ? h : `${info.num}-${h.title}`}>
+                            {typeof h === 'string' ? (
+                              h
+                            ) : (
+                              <>
+                                <strong className="console-highlight-title">
+                                  <HighlightIcon name={h.icon} />
+                                  {h.title}
+                                </strong>
+                                <span className="console-highlight-text">{h.text}</span>
+                              </>
+                            )}
+                          </li>
                         ))}
                       </ul>
 
                       <div className="console-actions">
-                        <a className="console-btn console-btn--primary" href={info.live} target="_blank" rel="noreferrer">
-                          Live Site
-                          <svg viewBox="0 0 24 24" width="14" height="14"><path d="M7 17L17 7M17 7H8M17 7V16" /></svg>
-                        </a>
-                        <a className="console-btn" href={info.repo} target="_blank" rel="noreferrer">
-                          Repository
-                          <svg viewBox="0 0 24 24" width="14" height="14"><path d="M9 19c-4 1.5-4-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12 12 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21" /></svg>
-                        </a>
+                        {info.live && info.live !== '#' && (
+                          <a className="console-btn console-btn--primary" href={info.live} target="_blank" rel="noreferrer">
+                            Live Site
+                            <svg viewBox="0 0 24 24" width="14" height="14"><path d="M7 17L17 7M17 7H8M17 7V16" /></svg>
+                          </a>
+                        )}
+                        {info.repo && info.repo !== '#' ? (
+                          <a className="console-btn" href={info.repo} target="_blank" rel="noreferrer">
+                            Repository
+                            <svg viewBox="0 0 24 24" width="14" height="14"><path d="M9 19c-4 1.5-4-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12 12 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21" /></svg>
+                          </a>
+                        ) : (
+                          // Client work : the source lives in the client's private
+                          // repo, so there is nothing to link - say so instead of
+                          // offering a dead button.
+                          <span className="console-btn console-btn--note" title={info.repoNote || 'Private repository'}>
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="4" y="10.5" width="16" height="10" rx="2" /><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5" /></svg>
+                            {info.repoNote || 'Private repository'}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </motion.div>
                 )}
               </AnimatePresence>
 
+</div>
+
+{/* CTA : the next step after someone has looked at the work.
+          Sits directly under the podium stage, and reuses .console-btn so the
+          buttons are identical to the ones in the project console rather
+          than a second button style. Links, not anchors: both targets are
+          routes in App.jsx, so react-router handles them and the page
+          never does a full reload. */}
+          </Container>
+
+          {/* Full-bleed: a direct child of #projects-grid, which is already
+              viewport-width, so the card spans the whole section without any
+              100vw maths (which would overflow against the html
+              scrollbar-gutter). The inner wrapper keeps the copy at the
+              same measure it had inside Container. */}
+          <div className="milestone-cta">
+            <div className="milestone-cta-inner">
+              <h2 className="milestone-cta-title">Have a project in mind?</h2>
+                <p className="milestone-cta-sub">
+                  Let&rsquo;s build something useful. I design and build web applications with Django and
+                  React, from the first sketch through to something running in production, for UAE
+                  teams who need the result to hold up.
+                </p>
+                <div className="milestone-cta-actions">
+                  {/* Two routes to the same person: the dedicated contact page,
+                      and the form embedded on the home page. Both are react-router
+                      Links; the second relies on the hash-scroll handler in
+                      MainLayout to land on the form instead of the page top.
+
+                      The arrow svg matches the console buttons - same 24 viewBox,
+                      14px, currentColor stroke. It sits at zero width until hover,
+                      which is what .milestone-cta-arrow animates open. */}
+                  <Link to="/contact" className="console-btn console-btn--primary">
+                    Get in touch
+                    <svg
+                      className="milestone-cta-arrow"
+                      viewBox="0 0 24 24"
+                      width="14"
+                      height="14"
+                      aria-hidden="true"
+                    >
+                      <path d="M5 12h14M13 6l6 6-6 6" />
+                    </svg>
+                  </Link>
+                  <Link to="/#home-contact" className="console-btn">
+                    Contact us
+                    <svg
+                      className="milestone-cta-arrow"
+                      viewBox="0 0 24 24"
+                      width="14"
+                      height="14"
+                      aria-hidden="true"
+                    >
+                      <path d="M5 12h14M13 6l6 6-6 6" />
+                    </svg>
+                  </Link>
+                </div>
             </div>
-        </Container>
+          </div>
       </motion.div>
     </>
   )

@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useMemo } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { cn } from '../../lib/utils'
 import { motion } from 'framer-motion'
 import { MobileMenu, useIsMobile } from './SpotlightNavbar'
+import { findActiveIndex } from './navActive'
 
 const defaultItems = [
   { label: 'Home', href: '/' },
@@ -19,12 +20,14 @@ function DesignModeNavbar({
 }) {
   const location = useLocation()
 
-  const [activeIndex, setActiveIndex] = useState(() =>
-    items.findIndex(item => item.href === location.pathname)
+  // derived from the route (normalised) so the active marker can never point
+  // at the page you just left
+  const activeIndex = useMemo(
+    () => findActiveIndex(items, location.pathname),
+    [items, location.pathname]
   )
 
   const handleItemClick = (item, index) => {
-    setActiveIndex(index)
     onItemClick?.(item, index)
   }
 
@@ -33,14 +36,14 @@ function DesignModeNavbar({
   return (
     <div
       className={cn(
-        'relative flex justify-center',
+        'relative flex justify-center pointer-events-none',
         className
       )}
       style={{ paddingTop: '58px' }}
     >
       {!isMobile && (
         <div className="flex justify-center w-full">
-          <nav className="design-navbar relative">
+          <nav className="design-navbar relative pointer-events-auto">
         {/* Selection handles */}
         <span className="design-handle design-handle-tl" />
         <span className="design-handle design-handle-tr" />

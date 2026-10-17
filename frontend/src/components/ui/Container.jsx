@@ -1,4 +1,4 @@
-import clsx from 'clsx'
+import { cn } from '@/lib/utils'
 
 function Container({
   children,
@@ -16,8 +16,11 @@ function Container({
 
   return (
     <Component
-      className={clsx(
-        'mx-auto px-4 sm:px-6 lg:px-8',
+      // cn (tailwind-merge) so a caller's padding overrides the default instead
+      // of competing with it - plain clsx left both px-* sets in the class list,
+      // where the winner is stylesheet order, not the class attribute.
+      className={cn(
+        'mx-auto px-6 sm:px-10 lg:px-14 2xl:px-20',
         sizes[size],
         className
       )}

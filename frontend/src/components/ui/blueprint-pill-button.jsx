@@ -84,13 +84,13 @@ export const BlueprintPillButton = ({
 
   return (
     <div
-      className={`relative inline-block select-none ${className}` + (hasChildren ? " p-2.5" : " p-4")}
+      className={`relative inline-block select-none pointer-events-auto ${className}` + (hasChildren ? " p-2.5" : " p-4")}
       style={{ fontFamily: "'JetBrains Mono', ui-monospace, monospace" }}
     >
       {/* Outer Technical Bounding Box Blueprint Frame */}
       <div className={"relative border border-dashed border-[#00d2ff]/30 rounded-none " + (hasChildren ? "px-1 py-[15px]" : "px-1 py-5")}>
 
-        {/* Width Dimension Indicator — follows the real target width */}
+        {/* Width Dimension Indicator - follows the real target width */}
         <div
           className="absolute -top-6 left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-none"
           style={{ width: size.w ? `${size.w}px` : '200px' }}
@@ -105,7 +105,7 @@ export const BlueprintPillButton = ({
 
         {/* The Blueprint Button Target (or arbitrary children, e.g. nav links) */}
         <div className="relative">
-          {/* Height Dimension Indicator — matches the real target height */}
+          {/* Height Dimension Indicator - matches the real target height */}
           <div className={`absolute -top-2 -bottom-2 flex items-center gap-1 ${heightOnRight ? '-right-16' : '-left-16'}`}>
             {!heightOnRight && <span className="text-[10px] text-[#00d2ff] whitespace-nowrap font-semibold">H: {size.h || 38}px</span>}
             <div className={`relative h-full ${heightOnRight ? 'ml-1' : 'mr-1'}`}>
@@ -124,7 +124,7 @@ export const BlueprintPillButton = ({
           {hasChildren ? (
             // Container variant: used to frame non-button content (e.g. the
             // navbar links) so it inherits every BlueprintPillButton feature
-            // — measured W/H, crosshair, nested frames — exactly like RESUME.
+            // - measured W/H, crosshair, nested frames - exactly like RESUME.
             <div
               ref={btnRef}
               onMouseMove={handleMouseMove}

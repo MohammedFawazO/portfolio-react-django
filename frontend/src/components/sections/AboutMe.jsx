@@ -21,7 +21,7 @@ const fadeUp = {
 
 function AboutMe() {
   return (
-    <section className="relative py-[7rem] md:py-[9rem] bg-[#F5F7F7] overflow-hidden">
+    <section className="relative py-[7rem] md:py-[9rem] bg-white overflow-hidden">
       {/* Soft teal ambient wash */}
       <div
         className="absolute pointer-events-none"
@@ -57,12 +57,12 @@ function AboutMe() {
           className="mb-16 -mt-16 md:-mt-24"
         >
           <div className="flex items-center gap-3 mb-6">
-            <span className="h-px w-8 bg-[#236966]" />
-            <span className="text-[11px] font-[family-name:var(--font-mono)] text-[#236966] uppercase tracking-[0.3em] font-medium">
+            <span className="h-px w-8 bg-[#2d8cf0]" />
+            <span className="text-[11px] font-[family-name:var(--font-mono)] text-[#2d8cf0] uppercase tracking-[0.3em] font-medium">
               Professional Snapshot
             </span>
           </div>
-          <h2 className="font-[family-name:var(--font-display)] text-[40px] md:text-[56px] leading-[1.04] font-semibold text-[#0A3332] max-w-4xl tracking-tight">
+          <h2 className="font-[family-name:var(--font-display)] text-[40px] md:text-[56px] leading-[1.04] font-semibold text-black max-w-4xl tracking-tight">
             <KineticTextReveal
               text="Crafting digital experiences with precision and purpose."
               splitBy="words"
@@ -86,16 +86,16 @@ function AboutMe() {
               viewport={{ once: true, margin: '-100px' }}
               className="space-y-6"
             >
-              <p className="text-[19px] text-[#0A3332] font-medium leading-[1.7]">
+              <p className="text-[19px] text-[#323232] font-medium leading-[1.7]">
                 A Python Full Stack Developer specializing in building modern web applications : from
                 backend architecture to polished frontend experiences.
               </p>
-              <p className="text-[16px] text-[#405354] leading-[1.9]">
+              <p className="text-[16px] text-[#666] leading-[1.9]">
                 My work focuses on scalable APIs, clean system design, responsive interfaces, and
                 production deployment. I believe in writing code that is not only functional but
                 maintainable and elegant.
               </p>
-              <p className="text-[16px] text-[#405354] leading-[1.9]">
+              <p className="text-[16px] text-[#666] leading-[1.9]">
                 I've built real-world applications ranging from AI-powered platforms to commercial web
                 systems for businesses, always striving to bridge the gap between complex technology
                 and intuitive user experiences.
@@ -116,7 +116,7 @@ function AboutMe() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                 </svg>
               </Button>
-              <Button as="a" href="/resume" variant="outline" size="lg" className="!border-[#D2DCDF] !text-[#0A3332] hover:!border-[#236966] hover:!text-[#0A3332] hover:!bg-[#E8EEF0]">
+              <Button as="a" href="/resume" variant="outline" size="lg" className="!border-2 !border-black !text-[#323232] hover:!border-[#2d8cf0] hover:!text-black hover:!bg-[#EDE8D0]">
                 Resume
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -137,13 +137,13 @@ function AboutMe() {
                 whileHover={{ y: -6, transition: { duration: 0.3 } }}
                 className="relative group"
               >
-                <div className="bg-[#0A3332] rounded-[16px] p-7 text-center overflow-hidden shadow-[0_20px_60px_rgba(10,51,50,0.25)]">
-                  <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#6FE7FF]/50 to-transparent opacity-60" />
-                  <div className="font-[family-name:var(--font-display)] text-[40px] md:text-[46px] text-[#F5F7F7] leading-none mb-3 font-semibold">
+                <div className="ct-panel bg-beige rounded-[5px] p-7 text-center overflow-hidden">
+                  <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#2d8cf0]/50 to-transparent opacity-60" />
+                  <div className="font-[family-name:var(--font-display)] text-[40px] md:text-[46px] text-black leading-none mb-3 font-semibold">
                     {stat.value}
-                    <span className="text-[#6FE7FF]">{stat.suffix}</span>
+                    <span className="text-[#2d8cf0]">{stat.suffix}</span>
                   </div>
-                  <div className="text-[11px] text-[#B8F2FA] uppercase tracking-[0.14em] font-[family-name:var(--font-mono)] leading-[1.5]">
+                  <div className="text-[11px] text-[#666] uppercase tracking-[0.14em] font-[family-name:var(--font-mono)] leading-[1.5]">
                     {stat.label}
                   </div>
                 </div>
@@ -153,7 +153,7 @@ function AboutMe() {
         </div>
       </Container>
 
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#D2DCDF] to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-black to-transparent" />
     </section>
   )
 }

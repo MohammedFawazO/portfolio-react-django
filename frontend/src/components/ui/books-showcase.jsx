@@ -2,6 +2,110 @@ import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { cn } from '@/lib/utils';
 
+// Detail-panel actions are supplied per item (`item.actions`), so the same
+// showcase can present books, CVs or anything else. These are the fallbacks
+// when an item doesn't define its own.
+// The showcase sticks to the site's own two families - Michroma for display,
+// Poppins for everything else - so nothing inside it (nav, carousel, detail
+// panel, or a canvas texture) can fall back to Inter, Geist or a generic.
+const SHOWCASE_DISPLAY_FONT = "'Michroma', 'Poppins', sans-serif";
+const SHOWCASE_TEXT_FONT = "'Poppins', sans-serif";
+
+const ACTION_TONE_CLASS = {
+  light: 'bg-[var(--bs-cream)] text-[var(--bs-navy)]',
+  accent: 'bg-[var(--bs-peri)] text-[#10152c]',
+  muted: 'bg-[#242c50] text-[var(--bs-lav)]',
+};
+
+const ACTION_BASE_CLASS =
+  'inline-flex h-[54px] items-center gap-[10px] rounded-full px-[26px] text-[16.5px] font-semibold transition-[transform,filter] duration-[220ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:scale-[1.04] hover:brightness-105 @max-[760px]:h-12 @max-[760px]:px-5 @max-[760px]:text-[15px]';
+
+// Résumé actions opt into `variant: 'console'`, which borrows the site's own
+// console button language (index.css `.console-btn`): Michroma, uppercase,
+// wide tracking, hairline border, square-ish corners and the cyan accent. The
+// pill buttons stay untouched for the book fallback.
+const CONSOLE_ACTION_CLASS =
+  'inline-flex items-center gap-[9px] rounded-[5px] border px-[18px] py-[11px] font-[family-name:var(--font-display)] text-[11px] font-normal uppercase tracking-[0.13em] transition-[background-color,border-color,color,transform] duration-200 ease-out hover:-translate-y-[1px] active:translate-y-0 @max-[760px]:px-4 @max-[760px]:text-[10.5px]';
+
+const CONSOLE_TONE_CLASS = {
+  light:
+    'border-[rgba(255,255,255,0.22)] bg-[rgba(255,255,255,0.04)] text-[#F3F0EA] hover:border-[var(--bs-peri)]/55 hover:bg-[rgba(111,231,255,0.07)] hover:text-[var(--bs-peri)]',
+  accent:
+    'border-[var(--bs-peri)]/55 bg-[rgba(111,231,255,0.14)] text-[var(--bs-peri)] hover:border-[var(--bs-peri)] hover:bg-[rgba(111,231,255,0.24)]',
+  muted:
+    'border-dashed border-[rgba(255,255,255,0.18)] bg-transparent text-[rgba(243,240,234,0.6)] hover:border-[rgba(255,255,255,0.3)] hover:text-[rgba(243,240,234,0.8)]',
+};
+
+const GlobeIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} className="h-5 w-5">
+    <circle cx="12" cy="12" r="9" />
+    <path d="M3 12h18M12 3c2.8 2.6 2.8 15.4 0 18M12 3c-2.8 2.6-2.8 15.4 0 18" />
+  </svg>
+);
+
+const DownloadIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} className="h-5 w-5">
+    <path d="M12 3v12" />
+    <path d="M7 10l5 5 5-5" />
+    <path d="M4 21h16" />
+  </svg>
+);
+
+const BookmarkIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} className="h-5 w-5">
+    <path d="M7 3h10v18l-5-4-5 4z" />
+  </svg>
+);
+
+const DEFAULT_ACTIONS = [
+  { label: 'English', tone: 'light', icon: 'globe' },
+  { label: 'Buy Now', tone: 'accent' },
+  { label: 'Buy Audiobook', tone: 'accent' },
+  { label: 'Save', tone: 'muted', icon: 'save' },
+];
+
+function DetailActions({ actions }) {
+  const list = actions?.length ? actions : DEFAULT_ACTIONS;
+
+  return list.map((action, i) => {
+    const isConsole = action.variant === 'console';
+    const toneMap = isConsole ? CONSOLE_TONE_CLASS : ACTION_TONE_CLASS;
+    const tone = toneMap[action.tone] || toneMap.accent;
+    const icon = action.icon === 'globe' ? <GlobeIcon />
+      : action.icon === 'download' ? <DownloadIcon />
+      : action.icon === 'save' ? <BookmarkIcon />
+      : null;
+    const isIconOnly = !isConsole && action.icon === 'save';
+    const cls = isConsole
+      ? `${CONSOLE_ACTION_CLASS} ${tone}`
+      : `${ACTION_BASE_CLASS} ${tone} ${isIconOnly ? 'w-[54px] px-0' : ''}`;
+
+    if (action.href) {
+      const external = /^https?:/i.test(action.href);
+      return (
+        <a
+          key={i}
+          href={action.href}
+          download={action.download !== false ? '' : undefined}
+          target={external && action.download === false ? '_blank' : undefined}
+          rel={external ? 'noreferrer' : undefined}
+          className={cls}
+        >
+          {icon}
+          {action.label ? <span>{action.label}</span> : null}
+        </a>
+      );
+    }
+
+    return (
+      <button key={i} type="button" onClick={action.onClick} aria-label={action.label} className={cls}>
+        {icon}
+        {action.label && !isIconOnly ? <span>{action.label}</span> : null}
+      </button>
+    );
+  });
+}
+
 function ChevronLeft() {
   return (
     <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -42,6 +146,12 @@ export function BooksShowcase({
   useEffect(() => {
     onBookSelectRef.current = onBookSelect;
   }, [onBookSelect]);
+
+  // The open document is remembered outside the 3D scene so a rebuild of that
+  // scene (a remount, StrictMode's double-invoke, hot reload) restores the same
+  // open CV instead of silently dropping back to the shelf. Only an explicit
+  // close() clears it.
+  const openDocRef = useRef({ id: null });
 
   const [uiMode, setUiMode] = useState('hero');
   const [selectedCfg, setSelectedCfg] = useState(null);
@@ -343,7 +453,7 @@ export function BooksShowcase({
       for (let i = 0; i < 40; i++) x.fillRect(Math.random() * w, Math.random() * h, 2, 2);
       x.fillStyle = '#ffffff';
       x.textAlign = 'center';
-      x.font = '700 76px Georgia';
+      x.font = `700 76px ${SHOWCASE_DISPLAY_FONT}`;
       const words = o.title.split(' ');
       let line = '';
       const lines = [];
@@ -358,7 +468,7 @@ export function BooksShowcase({
       const startY = h * 0.42 - ((lines.length - 1) * 88) / 2;
       lines.forEach((l, i) => x.fillText(l, w / 2, startY + i * 88));
       x.globalAlpha = 0.85;
-      x.font = 'italic 40px Georgia';
+      x.font = `500 40px ${SHOWCASE_DISPLAY_FONT}`;
       x.fillText(o.author, w / 2, startY + lines.length * 88 + 60);
       x.globalAlpha = 1;
       x.strokeStyle = 'rgba(255,255,255,0.4)';
@@ -438,7 +548,7 @@ export function BooksShowcase({
       for (let i = 0; i < 1600; i++) x.fillRect(Math.random() * w, Math.random() * h, 1.1, 1.1);
       x.fillStyle = '#2f2a23';
       x.textAlign = 'center';
-      x.font = '700 84px Georgia';
+      x.font = `700 84px ${SHOWCASE_DISPLAY_FONT}`;
       x.fillText('INDEX', w / 2, 190);
       x.globalAlpha = 0.26;
       x.fillRect(220, 225, w - 440, 3);
@@ -448,7 +558,7 @@ export function BooksShowcase({
         ? chapters
         : ['Introduction', 'Main Ideas', 'Practical Lessons', 'Case Studies', 'Takeaways', 'Final Notes'];
       x.textAlign = 'left';
-      x.font = '500 46px Georgia';
+      x.font = `500 46px ${SHOWCASE_DISPLAY_FONT}`;
       let y = 318;
       for (let i = 0; i < list.length; i++) {
         const n = String(i + 1).padStart(2, '0');
@@ -545,7 +655,7 @@ export function BooksShowcase({
           paintSpine(ctx, 220, 1536, {
             spineBg: cfg.spineBg ?? cfg.backBg ?? '#22252b',
             spineInk: cfg.spineInk ?? '#ffffff',
-            spineFont: cfg.spineFont ?? '700 42px Georgia',
+            spineFont: cfg.spineFont ?? `700 42px ${SHOWCASE_DISPLAY_FONT}`,
             title: cfg.title,
             author: cfg.author,
           });
@@ -970,6 +1080,7 @@ export function BooksShowcase({
       state.mode = 'opening';
       setUiMode('opening');
       state.selected = book;
+      openDocRef.current = { id: book.cfg?.id ?? null };
       state.pillLock = null;
       state.kbIndex = -1;
       hidePill();
@@ -1014,6 +1125,7 @@ export function BooksShowcase({
 
     function close() {
       if (state.mode !== 'detail') return;
+      openDocRef.current = { id: null };
       state.mode = 'closing';
       setUiMode('closing');
       root.classList.remove('bs-detail-open');
@@ -1479,6 +1591,16 @@ export function BooksShowcase({
     const ro = new ResizeObserver(() => relayout());
     ro.observe(root);
 
+    // If a document was open when this scene was rebuilt, reopen it so the
+    // detail view is sticky: the only way back to the shelf is close().
+    const restoreOpenDoc = () => {
+      const id = openDocRef.current?.id;
+      if (!id) return;
+      const target = bookInstances.find((b) => b.cfg?.id === id);
+      if (target && state.mode === 'hero') open(target);
+    };
+    restoreOpenDoc();
+
     return () => {
       cancelled = true;
       if (rafId) cancelAnimationFrame(rafId);
@@ -1540,11 +1662,20 @@ export function BooksShowcase({
 
   const delayMap = {
     50: 'delay-[50ms]',
+    90: 'delay-[90ms]',
     130: 'delay-[130ms]',
+    200: 'delay-[200ms]',
+    230: 'delay-[230ms]',
+    280: 'delay-[280ms]',
     210: 'delay-[210ms]',
     270: 'delay-[270ms]',
     330: 'delay-[330ms]',
   };
+
+  // A document that ships its own sections (résumés) gets a CV-shaped panel:
+  // a format badge plus the real section list, instead of book ratings.
+  const cvSections = Array.isArray(selectedCfg?.sections) ? selectedCfg.sections : [];
+  const eyebrow = selectedCfg?.badge || (selectedCfg?.metaLabel && cvSections.length > 0 ? selectedCfg.metaLabel : null);
 
   const dpChild = (delayMs) =>
     panelVisible
@@ -1559,7 +1690,7 @@ export function BooksShowcase({
       aria-label={`${heroTitle} book showcase`}
       data-state={uiMode}
       className={cn(
-        'book-showcase relative isolate h-full min-h-[560px] overflow-hidden font-sans outline-none [container-type:size] [-webkit-tap-highlight-color:transparent]',
+        'book-showcase relative isolate h-full min-h-[560px] overflow-hidden font-[family-name:var(--font-display)] outline-none [container-type:size] [-webkit-tap-highlight-color:transparent]',
         'focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--bs-peri)]',
         'transition-colors duration-500 ease-out',
         uiMode === 'hero'
@@ -1567,13 +1698,13 @@ export function BooksShowcase({
           : 'bg-[var(--bs-navy)] text-[var(--bs-cream)]',
         className,
       )}
-      style={themeVars}
+      style={{ ...themeVars, '--font-display': SHOWCASE_DISPLAY_FONT, '--font-sans': SHOWCASE_TEXT_FONT, '--font-mono': SHOWCASE_TEXT_FONT, '--font-heading': SHOWCASE_DISPLAY_FONT }}
     >
       <div
-        className={`pointer-events-none absolute left-1/2 top-[18%] z-[1] -translate-x-1/2 select-none transition-all duration-500 ease-out ${heroWordVisible ? 'translate-y-0 opacity-100' : uiMode === 'hero' ? '-translate-y-0 translate-y-[60px] opacity-0' : '-translate-y-11 opacity-0'
+        className={`pointer-events-none absolute left-1/2 top-[14%] z-[1] -translate-x-1/2 select-none transition-all duration-500 ease-out ${heroWordVisible ? 'translate-y-0 opacity-100' : uiMode === 'hero' ? '-translate-y-0 translate-y-[60px] opacity-0' : '-translate-y-11 opacity-0'
           }`}
       >
-        <span className="block whitespace-nowrap text-current text-[clamp(4.5rem,22.5cqw,18rem)] font-extrabold leading-[0.85] tracking-[-0.015em]">
+        <span className="block whitespace-nowrap text-current text-[clamp(2.25rem,11cqw,9rem)] font-bold leading-[0.9] tracking-[-0.015em]">
           {heroTitle}
         </span>
       </div>
@@ -1653,56 +1784,75 @@ export function BooksShowcase({
         <div
           ref={dpRef}
           aria-live="polite"
-          className={`absolute right-[7%] top-1/2 z-[15] w-[min(560px,42%)] -translate-y-1/2 pointer-events-none @max-[760px]:right-auto @max-[760px]:left-1/2 @max-[760px]:top-auto @max-[760px]:bottom-[3.5%] @max-[760px]:w-[min(560px,92cqw)] @max-[760px]:-translate-x-1/2 @max-[760px]:translate-y-0 ${panelVisible ? 'visible' : 'invisible delay-[500ms]'
+          className={`bs-detail-scroll absolute right-[7%] top-1/2 z-[15] w-[min(560px,42%)] max-h-[88%] -translate-y-1/2 overflow-x-hidden overflow-y-auto overscroll-contain scroll-py-[6cqw] px-[clamp(20px,1.8cqw,30px)] py-[clamp(18px,1.6cqw,26px)] pointer-events-auto @max-[760px]:right-auto @max-[760px]:left-1/2 @max-[760px]:top-auto @max-[760px]:bottom-[3.5%] @max-[760px]:max-h-[72%] @max-[760px]:w-[min(560px,92cqw)] @max-[760px]:-translate-x-1/2 @max-[760px]:translate-y-0 @max-[760px]:scroll-py-4 ${panelVisible ? 'visible' : 'invisible delay-[500ms]'
             }`}
+          // The panel sits on the dark detail background, where the hero's dark
+          // slate body colour would be unreadable - scope a light slate to it.
+          style={{ '--bs-lav': '#C6D6D5' }}
         >
-          <h1 className={`m-0 text-[var(--bs-pink)] text-[clamp(52px,5.6cqw,92px)] font-extrabold leading-[0.98] tracking-[-0.015em] @max-[760px]:text-[clamp(36px,9.5cqw,54px)] ${dpChild(50)}`}>
+          <h1 className={`m-0 break-words text-balance text-[var(--bs-peri)] text-[clamp(52px,5.6cqw,92px)] font-extrabold leading-[0.98] tracking-[-0.015em] [text-shadow:0_2px_24px_rgba(6,32,31,0.55)] @max-[760px]:text-[clamp(36px,9.5cqw,54px)] ${dpChild(50)}`}>
             {selectedCfg?.title}
           </h1>
-          <p className={`mt-[26px] max-w-[54ch] text-[var(--bs-lav)] text-[clamp(16px,1.25cqw,19px)] leading-[1.65] @max-[760px]:mt-4 @max-[760px]:line-clamp-4 @max-[760px]:text-[15px] ${dpChild(130)}`}>
+          {eyebrow && (
+            <div className={`mt-[22px] flex items-center gap-4 @max-[760px]:mt-3 ${dpChild(90)}`}>
+              <span className="inline-flex items-center rounded-[4px] border border-[var(--bs-peri)]/45 bg-[rgba(111,231,255,0.1)] px-[12px] py-[7px] font-[family-name:var(--font-display)] text-[10.5px] uppercase tracking-[0.16em] text-[var(--bs-peri)]">
+                {eyebrow}
+              </span>
+              <span className="h-px flex-1 bg-[var(--bs-peri)]/25" />
+            </div>
+          )}
+          <p className={`mt-[26px] max-w-[54ch] break-words text-[var(--bs-lav)] text-[clamp(16px,1.25cqw,19px)] leading-[1.65] @max-[760px]:mt-4 @max-[760px]:line-clamp-4 @max-[760px]:text-[15px] ${dpChild(130)}`}>
             {selectedCfg?.desc}
           </p>
-          <div className={`mt-[34px] flex items-center gap-[18px] @max-[760px]:mt-[18px] ${dpChild(210)}`}>
-            <div className="flex gap-[5px]">
-              {[0, 1, 2, 3, 4].map((i) => (
-                <svg
-                  key={i}
-                  viewBox="0 0 24 24"
-                  className={`h-[25px] w-[25px] fill-[var(--bs-pink)] ${i < (selectedCfg?.stars ?? 0) ? '' : 'opacity-25'}`}
-                >
-                  <path d="M12 2.6l2.8 6 6.6.6-5 4.4 1.5 6.5L12 16.7 6.1 20.1l1.5-6.5-5-4.4 6.6-.6z" />
-                </svg>
-              ))}
+          {cvSections.length > 0 ? (
+            <>
+              <div className={`mt-[34px] border-t border-[var(--bs-peri)]/20 @max-[760px]:mt-5 ${dpChild(200)}`} />
+              <div className={`mt-[26px] @max-[760px]:mt-4 ${dpChild(230)}`}>
+                <div className="font-[family-name:var(--font-display)] text-[10.5px] uppercase tracking-[0.2em] text-[var(--bs-lav)]/70">
+                  Sections in this CV
+                </div>
+                <ol className="mt-5 grid grid-cols-2 gap-x-10 gap-y-[14px] @max-[760px]:grid-cols-1 @max-[760px]:gap-y-2">
+                  {cvSections.map((section, i) => (
+                    <li
+                      key={section}
+                      className="flex min-w-0 items-baseline gap-[12px] text-[clamp(15px,1.1cqw,17px)] text-[var(--bs-lav)]"
+                    >
+                      <span className="shrink-0 font-mono text-[12px] tabular-nums text-[var(--bs-peri)]/85">
+                        {String(i + 1).padStart(2, '0')}
+                      </span>
+                      <span className="min-w-0 break-words border-b border-transparent pb-[3px] leading-[1.35] transition-colors duration-300 hover:border-[var(--bs-peri)]/50">
+                        {section}
+                      </span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </>
+          ) : (
+            <div className={`mt-[34px] flex items-center gap-[18px] @max-[760px]:mt-[18px] ${dpChild(210)}`}>
+              <div className="flex gap-[5px]">
+                {[0, 1, 2, 3, 4].map((i) => (
+                  <svg
+                    key={i}
+                    viewBox="0 0 24 24"
+                    className={`h-[25px] w-[25px] fill-[var(--bs-pink)] ${i < (selectedCfg?.stars ?? 0) ? '' : 'opacity-25'}`}
+                  >
+                    <path d="M12 2.6l2.8 6 6.6.6-5 4.4 1.5 6.5L12 16.7 6.1 20.1l1.5-6.5-5-4.4 6.6-.6z" />
+                  </svg>
+                ))}
+              </div>
+              <div className="h-6 w-px bg-[var(--bs-lav)]/[0.28]" />
+              <div className="text-[19px] italic text-[#98a4d6]">{selectedCfg?.metaLabel || 'Goodreads'}</div>
+              <div className="ml-auto text-[19px] italic text-[#98a4d6]">{selectedCfg?.year}</div>
             </div>
-            <div className="h-6 w-px bg-[var(--bs-lav)]/[0.28]" />
-            <div className="text-[19px] italic text-[#98a4d6]">Goodreads</div>
-            <div className="ml-auto text-[19px] italic text-[#98a4d6]">{selectedCfg?.year}</div>
-          </div>
-          <div className={`mt-[26px] border-t border-[var(--bs-lav)]/[0.18] @max-[760px]:mt-4 ${dpChild(270)}`} />
+          )}
+          {cvSections.length > 0 && (
+            <div className={`mt-[30px] border-t border-[var(--bs-peri)]/20 @max-[760px]:mt-5 ${dpChild(280)}`} />
+          )}
           <div
-            className={`pointer-events-auto mt-8 inline-flex items-center gap-[10px] rounded-full bg-[#1a2140] p-[10px] shadow-[0_24px_60px_rgba(0,0,0,0.45)] @max-[760px]:mt-[18px] @max-[760px]:flex-wrap @max-[760px]:rounded-[28px] ${dpChild(330)}`}
+            className={`pointer-events-auto mt-7 inline-flex items-center gap-[10px] rounded-[22px] border border-[var(--bs-peri)]/22 bg-[#06201F]/70 p-[10px] shadow-[0_24px_60px_rgba(0,0,0,0.45)] backdrop-blur-[3px] @max-[760px]:mt-[18px] @max-[760px]:flex-wrap @max-[760px]:rounded-[18px] ${dpChild(330)}`}
           >
-            <button className="inline-flex h-[54px] items-center gap-[10px] rounded-full bg-[var(--bs-cream)] px-[26px] text-[16.5px] font-semibold text-[var(--bs-navy)] transition-[transform,filter] duration-[220ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:scale-[1.04] hover:brightness-105 @max-[760px]:h-12 @max-[760px]:px-5 @max-[760px]:text-[15px]">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} className="h-5 w-5">
-                <circle cx="12" cy="12" r="9" />
-                <path d="M3 12h18M12 3c2.8 2.6 2.8 15.4 0 18M12 3c-2.8 2.6-2.8 15.4 0 18" />
-              </svg>
-              <span>English</span>
-            </button>
-            <button className="inline-flex h-[54px] items-center gap-[10px] rounded-full bg-[var(--bs-peri)] px-[26px] text-[16.5px] font-semibold text-[#10152c] transition-[transform,filter] duration-[220ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:scale-[1.04] hover:brightness-105 @max-[760px]:h-12 @max-[760px]:px-5 @max-[760px]:text-[15px]">
-              Buy Now
-            </button>
-            <button className="inline-flex h-[54px] items-center gap-[10px] rounded-full bg-[var(--bs-peri)] px-[26px] text-[16.5px] font-semibold text-[#10152c] transition-[transform,filter] duration-[220ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:scale-[1.04] hover:brightness-105 @max-[760px]:h-12 @max-[760px]:px-5 @max-[760px]:text-[15px]">
-              Buy Audiobook
-            </button>
-            <button
-              aria-label="Save"
-              className="inline-flex h-[54px] w-[54px] items-center justify-center gap-[10px] rounded-full bg-[#242c50] px-0 text-[var(--bs-lav)] transition-[transform,filter] duration-[220ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:scale-[1.04] hover:brightness-105"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} className="h-5 w-5">
-                <path d="M7 3h10v18l-5-4-5 4z" />
-              </svg>
-            </button>
+            <DetailActions actions={selectedCfg?.actions} />
           </div>
         </div>
       )}

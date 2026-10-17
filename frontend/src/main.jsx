@@ -16,7 +16,7 @@ createRoot(document.getElementById('root')).render(
       <BrowserRouter>
         <App />
         <Toaster
-          position="top-right"
+          position="top-center"
           toastOptions={{
             duration: 4000,
             style: {

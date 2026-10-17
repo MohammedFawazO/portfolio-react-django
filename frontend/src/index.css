@@ -32,6 +32,14 @@ body,
   max-width: 100%;
 }
 
+/* A classic scrollbar lives on the right edge, which makes a `mx-auto`
+   container centre inside the content box (viewport minus scrollbar) and read
+   as if the right gutter were wider. Reserving the gutter on BOTH edges keeps
+   the scrollbar and puts the page content dead centre. */
+html {
+  scrollbar-gutter: stable both-edges;
+}
+
 body {
   font-family: var(--font-sans);
   background-color: var(--bg-primary);
@@ -60,6 +68,35 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.25);
+}
+
+/* The résumé detail panel is a fixed-height scroller: long CV blurbs scroll
+   inside it instead of spilling out of the 3D stage. The global scrollbar
+   track is opaque black, which looks wrong over the navy panel, so this one
+   gets its own transparent track. */
+.bs-detail-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--bs-pink, #236966) 55%, transparent) transparent;
+  /* vertical scroll only - long words and the big heading must never produce
+     a horizontal bar inside the panel */
+  overflow-x: hidden;
+}
+
+.bs-detail-scroll::-webkit-scrollbar {
+  width: 5px;
+}
+
+.bs-detail-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.bs-detail-scroll::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--bs-pink, #236966) 45%, transparent);
+  border-radius: var(--radius-full);
+}
+
+.bs-detail-scroll::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--bs-pink, #236966) 75%, transparent);
 }
 
 /* Spotlight Navbar Utilities */
@@ -150,70 +187,371 @@ body {
   content: none;
 }
 
-/* About page hero photo : buttons emerge from the image on hover/select */
+/* About page hero photo : the four mode buttons orbit the image clockwise on
+   a single shared layer and freeze in place while the photo is hovered or a
+   button is focused, so they never spin away from the cursor.
+   The rotation itself is driven from JS (a motion value on the orbit layer)
+   so the ring can be wound back to a whole turn when a mode is picked, which
+   is what lets the clicked button travel to its resting spot smoothly.
+   --orbit-r is the ring radius (a share of the photo box on each axis), and
+   --orbit-inset the distance from the group's edge to the photo's edge : it
+   must stay in sync with the group's padding + the photo frame's padding.
+   The layer clips whatever would escape the image container. */
+.about-photo-group {
+  padding: 1.75rem;
+  container-type: inline-size;
+  /* Nudge the whole set down: the photo card, the image and the orbit buttons
+     (including whichever one is docked) all live inside this group, so they
+     travel together. A transform is deliberate - it moves them visually while
+     leaving the layout box, and therefore the hero's height, untouched. It
+     applies in every mode because the group is shared by all four. */
+  transform: translateY(22px);
+  --orbit-r: 25%;
+  --orbit-inset: 2.25rem;
+  /* dip window at the photo's top centre : horizontal radius (a share of the
+     photo column, with a floor so it always swallows a whole button) and the
+     vertical radius */
+  --orbit-dip-w: max(18cqw, 5.25rem);
+  --orbit-dip-h: 3.4rem;
+}
+
+@media (min-width: 768px) {
+  .about-photo-group {
+    transform: translateY(30px);
+  }
+}
+
+.about-photo-orbit {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+  pointer-events: none;
+  /* The ring spins inside this layer, so the dip has to live on the static
+     wrapper : a mask (like a clip) travels with the element it belongs to, and
+     on the spinning layer it would sweep around with the buttons.
+     Ring and positions are untouched : this is purely a layering window over
+     the photo's top centre, with a hard edge. A button rides above the image
+     everywhere and the instant it reaches that window it is switched under the
+     photo - it pops out on the far side of the top. */
+  --orbit-apex: calc(50% - var(--orbit-r));
+  mask-image: radial-gradient(
+    ellipse var(--orbit-dip-w) var(--orbit-dip-h) at 50% var(--orbit-apex),
+    transparent 0 86%,
+    #000 100%
+  );
+}
+
+/* the rotating layer : only this one is turned by the motion value */
+.about-photo-orbit-spin {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+
+/* the photo card paints under the orbit layer */
+.about-photo-card {
+  z-index: 1;
+}
+
 .about-photo-btn {
   position: absolute;
   z-index: 50;
   width: 2.75rem;
   height: 2.75rem;
-  /* hidden state : parked tiny at the bottom-centre of the image */
-  bottom: 1.25rem;
-  left: calc(50% - 1.375rem);
-  opacity: 0;
-  transform: scale(0.2);
-  transform-origin: center;
-  pointer-events: none;
+  margin: 0;
+  translate: -50% -50%;
+  opacity: 1;
+  pointer-events: auto;
+  /* Own compositor layer. The slide rewrites transform every frame and the
+     button sits inside a masked + overflow-hidden orbit layer, so without this
+     the whole orbit repaints on every frame of the travel. */
+  will-change: transform;
   transition:
-    top 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-    bottom 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-    left 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-    right 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.75s cubic-bezier(0.22, 1, 0.36, 1),
     background-color 0.3s ease,
+    scale 0.3s ease,
     opacity 0.5s ease;
+
+  /* slot on the ring. Moving to the resting spot is done with a transform
+     (driven from JS in the ring's own frame), so nothing here animates. */
+  --slot-x: calc(50% - var(--orbit-r));
+  --slot-y: calc(50% - var(--orbit-r));
+  left: var(--slot-x);
+  top: var(--slot-y);
 }
-/* reveal : slide out from the bottom-centre while scaling up */
-.about-photo-group:hover .about-photo-btn,
-.about-photo-group:focus-within .about-photo-btn {
+
+.about-photo-btn--blueprint { --slot-y: calc(50% - var(--orbit-r)); }
+.about-photo-btn--code { --slot-y: calc(50% + var(--orbit-r)); }
+.about-photo-btn--design { --slot-x: calc(50% + var(--orbit-r)); --slot-y: calc(50% - var(--orbit-r)); }
+.about-photo-btn--red { --slot-x: calc(50% + var(--orbit-r)); --slot-y: calc(50% + var(--orbit-r)); }
+
+/* selected mode : the clicked button is already sliding to the resting spot
+   (transform), the others fade out where they stand. The dip window is
+   dropped for the duration so the travelling button is never sliced. */
+.about-photo-group.is-mode-on .about-photo-orbit {
+  mask-image: none;
+}
+.about-photo-group.is-mode-on .about-photo-btn.is-active {
   opacity: 1;
-  transform: scale(1);
   pointer-events: auto;
 }
-/* base reveal positions : only applied when the group is hovered/focused
-   and the button is NOT the active one, so hidden buttons start at the
-   bottom-centre and slide out to their slots (instead of sitting in place) */
-.about-photo-group:hover .about-photo-btn--blueprint:not(.is-active),
-.about-photo-group:focus-within .about-photo-btn--blueprint:not(.is-active) {
-  bottom: calc(50% + 8.5rem); left: 1.5rem;
+/* the docked button no longer reacts to hover : no nudge, no scale jump */
+.about-photo-group.is-mode-on .about-photo-btn.is-active:hover {
+  scale: 1.05;
 }
-.about-photo-group:hover .about-photo-btn--code:not(.is-active),
-.about-photo-group:focus-within .about-photo-btn--code:not(.is-active) {
-  bottom: calc(50% - 4.5rem); left: 1.5rem;
-}
-.about-photo-group:hover .about-photo-btn--design:not(.is-active),
-.about-photo-group:focus-within .about-photo-btn--design:not(.is-active) {
-  bottom: calc(50% + 8.5rem); left: calc(100% - 4.25rem); right: auto;
-}
-.about-photo-group:hover .about-photo-btn--red:not(.is-active),
-.about-photo-group:focus-within .about-photo-btn--red:not(.is-active) {
-  bottom: calc(50% - 4.5rem); left: calc(100% - 4.25rem); right: auto;
-}
-/* selected/active : stays at the shared bottom-centre, full size */
-.about-photo-btn.is-active {
-  top: auto;
-  bottom: 1.25rem;
-  left: calc(50% - 1.375rem);
-  right: auto;
-  opacity: 1;
-  transform: scale(1);
-  pointer-events: auto;
-}
-/* when one button is selected, the others stay hidden even on hover/focus */
-.about-photo-group:hover .about-photo-btn.is-hidden,
-.about-photo-group:focus-within .about-photo-btn.is-hidden {
+.about-photo-group.is-mode-on .about-photo-btn:not(.is-active) {
   opacity: 0;
-  transform: scale(0.2);
   pointer-events: none;
+}
+
+/* ==========================================================================
+   About page : everything below the hero inherits the hero's mode
+   The hero itself is untouched - these rules only restyle .about-body.
+   ========================================================================== */
+.about-body {
+  position: relative;
+  isolation: isolate;
+  background: #f5f7f7;
+  color: #405354;
+  transition:
+    background-color 0.7s ease,
+    color 0.7s ease;
+}
+/* mode backdrop (grid / hatching) lives on the sections themselves, so the
+   opaque section colours never hide it */
+.about-body :is(h2, h3, h4, p, span, li, div) {
+  transition:
+    color 0.6s ease,
+    background-color 0.6s ease,
+    border-color 0.6s ease,
+    box-shadow 0.6s ease;
+}
+.about-section {
+  transition:
+    background-color 0.7s ease,
+    border-color 0.7s ease;
+}
+
+/* --- shared section-heading bits ----------------------------------------- */
+.about-body .about-section-heading h2 { transition: color 0.6s ease; }
+.about-body .about-section-heading > p { transition: color 0.6s ease; }
+.about-body .about-section-heading > div > span:nth-child(2) { transition: color 0.6s ease; }
+
+/* --- BLUEPRINT ------------------------------------------------------------ */
+.about-mode-blueprint {
+  background: #001428;
+  color: #cfe9ff;
+  font-family: "Courier New", "Courier", monospace;
+}
+.about-mode-blueprint .about-section--main {
+  background-color: #001428;
+  background-image:
+    linear-gradient(to right, rgba(0, 210, 255, 0.14) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 210, 255, 0.14) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+.about-mode-blueprint .about-section--mission {
+  background-color: #011a36;
+  background-image:
+    linear-gradient(to right, rgba(0, 210, 255, 0.1) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 210, 255, 0.1) 1px, transparent 1px);
+  background-size: 28px 28px;
+  border-top: 1px solid rgba(0, 210, 255, 0.35);
+}
+.about-mode-blueprint .about-body-title,
+.about-mode-blueprint .about-section-heading h2,
+.about-mode-blueprint .about-skill-title,
+.about-mode-blueprint .about-card-teal-title,
+.about-mode-blueprint .about-info-label { color: #00d2ff; }
+.about-mode-blueprint .about-body-copy,
+.about-mode-blueprint .about-card-teal-text,
+.about-mode-blueprint .about-section-heading > p,
+.about-mode-blueprint .about-mission-copy { color: #a9d4f2; }
+.about-mode-blueprint .about-section-heading > div > span:nth-child(2),
+.about-mode-blueprint .about-mission-eyebrow { color: #00d2ff; }
+.about-mode-blueprint .about-mission-title { color: #e6f6ff; }
+.about-mode-blueprint .about-card-light {
+  background: rgba(0, 52, 102, 0.35);
+  border: 1px dashed rgba(0, 210, 255, 0.5);
+  box-shadow: none;
+}
+.about-mode-blueprint .about-info-value { color: #e6f6ff; }
+.about-mode-blueprint .about-card-teal {
+  background: rgba(0, 52, 102, 0.3);
+  border: 1px dashed rgba(0, 210, 255, 0.45);
+  box-shadow: none;
+}
+.about-mode-blueprint .about-badge {
+  background: rgba(0, 210, 255, 0.08);
+  color: #7fdcff;
+  border: 1px dashed rgba(0, 210, 255, 0.45);
+  border-radius: 2px;
+}
+
+/* --- CODE / MATRIX -------------------------------------------------------- */
+.about-mode-matrix {
+  background: #000000;
+  color: #8ef0c0;
+  font-family: "Courier New", "Courier", monospace;
+}
+.about-mode-matrix .about-section--main {
+  background-color: #000000;
+  background-image:
+    linear-gradient(to right, rgba(3, 160, 98, 0.12) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(3, 160, 98, 0.12) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+.about-mode-matrix .about-section--mission {
+  background-color: #010a05;
+  background-image:
+    linear-gradient(to right, rgba(3, 160, 98, 0.09) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(3, 160, 98, 0.09) 1px, transparent 1px);
+  background-size: 24px 24px;
+  border-top: 1px solid rgba(3, 160, 98, 0.4);
+}
+.about-mode-matrix .about-body-title,
+.about-mode-matrix .about-section-heading h2,
+.about-mode-matrix .about-skill-title,
+.about-mode-matrix .about-card-teal-title,
+.about-mode-matrix .about-info-label { color: #03a062; }
+.about-mode-matrix .about-body-copy,
+.about-mode-matrix .about-card-teal-text,
+.about-mode-matrix .about-section-heading > p,
+.about-mode-matrix .about-mission-copy { color: #7fd9ae; }
+.about-mode-matrix .about-section-heading > div > span:nth-child(2),
+.about-mode-matrix .about-mission-eyebrow { color: #03a062; }
+.about-mode-matrix .about-mission-title { color: #c7ffe4; }
+.about-mode-matrix .about-card-light {
+  background: rgba(3, 160, 98, 0.07);
+  border: 1px solid rgba(3, 160, 98, 0.4);
+  box-shadow: none;
+  border-radius: 2px;
+}
+.about-mode-matrix .about-info-value { color: #c7ffe4; }
+.about-mode-matrix .about-card-teal {
+  background: rgba(3, 160, 98, 0.08);
+  border: 1px solid rgba(3, 160, 98, 0.45);
+  box-shadow: none;
+  border-radius: 2px;
+}
+.about-mode-matrix .about-badge {
+  background: rgba(3, 160, 98, 0.1);
+  color: #4ade80;
+  border: 1px solid rgba(3, 160, 98, 0.45);
+  border-radius: 2px;
+}
+
+/* --- DESIGN --------------------------------------------------------------- */
+.about-mode-design {
+  background: #eef1f1;
+  color: #405354;
+}
+.about-mode-design .about-section--main {
+  background-color: #f4f6f6;
+  background-image:
+    linear-gradient(to right, rgba(36, 107, 255, 0.13) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(36, 107, 255, 0.13) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+.about-mode-design .about-section--mission {
+  background-color: #ffffff;
+  background-image:
+    linear-gradient(to right, rgba(36, 107, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(36, 107, 255, 0.08) 1px, transparent 1px);
+  background-size: 22px 22px;
+  border-top: 2px solid #246bff;
+}
+.about-mode-design .about-body-title,
+.about-mode-design .about-section-heading h2,
+.about-mode-design .about-info-value,
+.about-mode-design .about-card-teal-title { color: #0a3332; }
+.about-mode-design .about-skill-title,
+.about-mode-design .about-info-label { color: #246bff; }
+.about-mode-design .about-body-copy,
+.about-mode-design .about-card-teal-text,
+.about-mode-design .about-section-heading > p,
+.about-mode-design .about-mission-copy { color: #405354; }
+.about-mode-design .about-section-heading > div > span:nth-child(2) { color: #e6019a; }
+.about-mode-design .about-mission-eyebrow { color: #246bff; }
+.about-mode-design .about-mission-title { color: #0a3332; }
+.about-mode-design .about-card-light {
+  background: #ffffff;
+  border: 2px solid #246bff;
+  box-shadow: 3px 3px 0 rgba(36, 107, 255, 0.18);
+}
+.about-mode-design .about-card-teal {
+  background: #ffffff;
+  border: 2px solid #0a3332;
+  box-shadow: 3px 3px 0 rgba(10, 51, 50, 0.16);
+}
+.about-mode-design .about-badge {
+  background: rgba(36, 107, 255, 0.08);
+  color: #0a3332;
+  border: 1px solid rgba(36, 107, 255, 0.5);
+  border-radius: 14px;
+}
+
+/* --- TEST / DEBUG --------------------------------------------------------- */
+.about-mode-test {
+  background: #070204;
+  color: #ffd7dd;
+  font-family: "Courier New", "Courier", monospace;
+}
+.about-mode-test .about-section--main {
+  background-color: #070204;
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(210, 4, 45, 0.07) 0 14px,
+    transparent 14px 28px
+  );
+}
+.about-mode-test .about-section--mission {
+  background-color: #12030a;
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(210, 4, 45, 0.12) 0 14px,
+    transparent 14px 28px
+  );
+  border-top: 1px solid rgba(210, 4, 45, 0.5);
+}
+.about-mode-test .about-body-title,
+.about-mode-test .about-section-heading h2,
+.about-mode-test .about-skill-title,
+.about-mode-test .about-card-teal-title,
+.about-mode-test .about-info-label { color: #ff3b47; }
+.about-mode-test .about-body-copy,
+.about-mode-test .about-card-teal-text,
+.about-mode-test .about-section-heading > p,
+.about-mode-test .about-mission-copy { color: #f0b9c0; }
+.about-mode-test .about-section-heading > div > span:nth-child(2),
+.about-mode-test .about-mission-eyebrow { color: #d2042d; }
+.about-mode-test .about-mission-title { color: #fff1f3; }
+.about-mode-test .about-card-light {
+  background: rgba(210, 4, 45, 0.08);
+  border: 1px dashed rgba(255, 59, 71, 0.55);
+  box-shadow: none;
+}
+.about-mode-test .about-info-value { color: #fff1f3; }
+.about-mode-test .about-card-teal {
+  background: rgba(139, 0, 0, 0.25);
+  border: 1px solid rgba(210, 4, 45, 0.55);
+  box-shadow: none;
+}
+.about-mode-test .about-badge {
+  background: rgba(210, 4, 45, 0.12);
+  color: #ff8a92;
+  border: 1px solid rgba(210, 4, 45, 0.5);
+  border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .about-body,
+  .about-body::before,
+  .about-body :is(h2, h3, h4, p, span, li, div),
+  .about-section {
+    transition: none;
+  }
 }
 
 /* Blueprint ink-in-water : when bp-on, moving the cursor drops soft ink
@@ -251,10 +589,12 @@ body {
     text-align: center;
   }
   .footer-responsive .footer-brand-row > div:first-child {
+    /* keep the monogram centred with the row - at left: -0.5rem it hung out
+       past the footer's padding and read as missing left padding */
     position: absolute;
-    left: -0.5rem;
+    left: 50%;
     top: 50%;
-    transform: translateY(-90%);
+    transform: translate(-50%, -90%);
   }
   .footer-responsive .footer-desc {
     margin-left: auto;
@@ -279,15 +619,11 @@ body {
   }
 }
 
-/* Hamburger (Uiverse.io by JulanDeAlb) — placed inside a glassmorphic circle */
+/* Hamburger (Uiverse.io by JulanDeAlb) - placed inside a glassmorphic circle */
 .hamburger {
   cursor: pointer;
   color: #ffffff;
   mix-blend-mode: difference;
-}
-
-.hamburger input {
-  display: none;
 }
 
 .hamburger svg {
@@ -310,11 +646,13 @@ body {
   stroke-dasharray: 12 63;
 }
 
-.hamburger input:checked + svg {
+/* Driven by the `is-open` class on the button (it is a real <button> now, so
+   there is no hidden checkbox left to hang :checked off). */
+.hamburger.is-open svg {
   transform: rotate(-45deg);
 }
 
-.hamburger input:checked + svg .line-top-bottom {
+.hamburger.is-open .line-top-bottom {
   stroke-dasharray: 20 300;
   stroke-dashoffset: -32.42;
 }
@@ -350,6 +688,69 @@ body {
     linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Bumpier variant, deliberately kept separate from .liquid-glass so the footer
+   panel, the back-to-top button, the monogram and the mobile hamburger all
+   keep the original treatment above. Only used where the rim has to read
+   against a light page - a white-on-white 1.4px rim is invisible on beige. */
+.liquid-glass-bump {
+  background: rgba(255, 255, 255, 0.07);
+  background-blend-mode: luminosity;
+  backdrop-filter: blur(6px) saturate(1.6);
+  -webkit-backdrop-filter: blur(6px) saturate(1.6);
+  border: none;
+  /* Lit top paired with a shaded bottom is what reads as a raised surface
+     rather than flat tinted glass. */
+  box-shadow:
+    inset 0 1.5px 1px rgba(255, 255, 255, 0.6),
+    inset 0 -1.5px 1.5px rgba(0, 0, 0, 0.24),
+    inset 1.5px 0 1.5px rgba(255, 255, 255, 0.2),
+    0 2px 10px rgba(0, 0, 0, 0.18),
+    0 1px 2px rgba(0, 0, 0, 0.12);
+  position: relative;
+  overflow: hidden;
+}
+
+.liquid-glass-bump::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  /* Bright where light hits (top-left), dark where the glass turns away. */
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(255, 255, 255, 0.38) 26%,
+    rgba(255, 255, 255, 0.06) 52%,
+    rgba(0, 0, 0, 0.18) 76%,
+    rgba(0, 0, 0, 0.34) 100%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Inner refraction ring + corner sheen: reads as a dome of glass sitting on
+   the surface rather than a flat cut-out. */
+.liquid-glass-bump::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: inherit;
+  background: radial-gradient(
+    120% 90% at 22% 8%,
+    rgba(255, 255, 255, 0.34) 0%,
+    rgba(255, 255, 255, 0.09) 36%,
+    rgba(255, 255, 255, 0) 62%
+  );
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.4),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.16);
   pointer-events: none;
 }
 
@@ -719,7 +1120,7 @@ html.about-blueprint-nav .spotlight-nav {
   backdrop-filter: blur(12px);
   box-shadow: 0 0 15px rgba(0, 210, 255, 0.15) !important;
 }
-/* Decoration wrapper — shown only in blueprint mode *\/
+/* Decoration wrapper - shown only in blueprint mode *\/
 html.about-blueprint-nav .spotlight-nav .bp-deco {
   display: block;
   position: absolute;
@@ -900,7 +1301,7 @@ html.about-blueprint-nav .bp-nav a:hover {
 }
 
 /* About hero : "Get Resume" button adopts the code/terminal theme in
-   code (matrix) mode only — scoped so other modes are untouched. */
+   code (matrix) mode only - scoped so other modes are untouched. */
 html.about-matrix-nav a[aria-label="Get Resume"] {
   background: rgba(0, 20, 5, 0.6) !important;
   color: #00ff66 !important;
@@ -1008,24 +1409,34 @@ html.about-matrix-nav a[aria-label="Get Resume"]:hover .connect-chevron {
   align-items: flex-end;
   justify-content: center;
 
-  /* Explicit width so the podium image, lights and base
-     overlay all scale as one grouped unit */
-  width: 430px;
+/* Explicit width so the podium image, lights and base
+       overlay all scale as one grouped unit */
+    width: 430px;
 
-  isolation: isolate;
+    isolation: isolate;
 
-  /* Allows the light to extend outside the image */
-  overflow: visible;
+    /* Allows the light to extend outside the image */
+    overflow: visible;
 
-  cursor: pointer;
+    cursor: pointer;
 
-  transition: opacity 0.6s ease, filter 0.6s ease, transform 0.6s ease;
+    /* No `filter` in this transition: animating it re-filters the beam
+       (blur + mask + clip-path) every frame and flickers. See the is-dimmed
+       rule below. */
+    transition: opacity 0.6s ease, transform 0.6s ease;
 }
 
-/* When a milestone is selected : the non-selected ones slowly fade out */
+/* When a milestone is selected : the non-selected ones slowly fade out.
+   NO `filter` here, deliberately. .podium-spotlight already stacks
+   filter: blur(15px) + a clip-path + two mask images with mask-composite, and a
+   filter on an ANCESTOR forces the whole subtree to be re-filtered every frame
+   that the filter animates. So for the 0.6s of this dim, the beam was re-blurred
+   and re-masked at each new scale - the per-frame variation is the "horror
+   house" flicker, and it appeared on whichever podium was mid-transition, which
+   is exactly the reported symptom. Dimming with opacity + scale alone gives a
+   clean cross-fade and leaves the beam's rasterisation untouched. */
 .podium-stage:has(.podium-item.is-selected) .podium-item.is-dimmed {
   opacity: 0;
-  filter: blur(6px);
   transform: scale(0.92);
   pointer-events: none;
 }
@@ -1118,7 +1529,7 @@ html.project-detail-open a[aria-label="Get Resume"] {
 
 /* Lift the whole projects section (and its close button) above the z-50
    navbar/connect chrome while a detail is open. The grid lives inside <main>
-   (z-10), so raising the grid alone isn't enough — the root-level fixed
+   (z-10), so raising the grid alone isn't enough - the root-level fixed
    navbar would still paint above it and swallow clicks on the X button.
    Raising <main> itself puts the entire detail view above the chrome. */
 html.project-detail-open main {
@@ -1131,18 +1542,26 @@ html.project-detail-open #projects-grid {
 
 
 /* =========================================================
-   SELECTED MILESTONE — RIGHT-SIDE INFORMATION CONSOLE
+   SELECTED MILESTONE - RIGHT-SIDE INFORMATION CONSOLE
    (garage/showroom "information console", no white card)
    ========================================================= */
 
 .podium-console {
   position: absolute;
-  top: 0;
+  /* Anchored to the BOTTOM of its wrapper, not top:0. This panel is absolutely
+     positioned inside a block that also holds the "Milestones" heading and its
+     subtitle, so top:0 + height:100% was spanning them and the panel's
+     number / category / name sat on top of the heading. Both this panel and
+     the close button are out of flow, so the podium stage is the wrapper's
+     last in-flow child and bottom:0 lands exactly on its base. The height
+     mirrors the stage's min-height at each breakpoint (see the responsive
+     block below) so the two always line up. */
+  bottom: 0;
   right: 0;
   z-index: 15;
 
   width: 44%;
-  height: 100%;
+  height: 520px;
 
   display: flex;
   align-items: stretch;
@@ -1156,10 +1575,15 @@ html.project-detail-open #projects-grid {
 
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 18px;
+  /* Top-aligned, not centred. The console box is exactly the podium stage, and
+     centring the panel inside it sat the action buttons low enough to fall
+     below the fold. Starting at the top also lines the "02 / Category / Name"
+     block up with the top of the milestone cards. */
+  justify-content: flex-start;
 
-  padding: 8px 4px;
+  gap: 14px;
+
+  padding: 12px 4px;
 }
 
 .console-head {
@@ -1200,11 +1624,11 @@ html.project-detail-open #projects-grid {
 
 .console-desc {
   margin: 0;
-  max-width: 48ch;
+  max-width: 46ch;
 
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   font-weight: 300;
-  line-height: 1.6;
+  line-height: 1.55;
   color: rgba(255, 255, 255, 0.62);
 }
 
@@ -1220,23 +1644,53 @@ html.project-detail-open #projects-grid {
 
 .console-highlights li {
   position: relative;
-  padding-left: 18px;
 
   font-size: 0.82rem;
   font-weight: 300;
   color: rgba(255, 255, 255, 0.78);
 }
 
-.console-highlights li::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 8px;
-  width: 6px;
-  height: 6px;
-  background: #6fe7ff;
-  box-shadow: 0 0 8px rgba(111, 231, 255, 0.6);
-  transform: rotate(45deg);
+/* The cyan diamond that used to sit on ::before is gone - each point carries
+   its own glyph now, so the row no longer needs the 18px indent it reserved. */
+
+/* A highlight can be a plain string, or { title, text } for a heading plus a
+   one-line explanation. The title sits on the bullet row, the text wraps under
+   it at a dimmer weight so the grid still reads as a scannable list. */
+.console-highlights li:has(.console-highlight-title) {
+  display: grid;
+  gap: 3px;
+  align-content: start;
+}
+
+.console-highlight-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.92);
+  letter-spacing: 0.01em;
+}
+
+.console-highlight-icon {
+  display: inline-flex;
+  flex: none;
+  color: #6fe7ff;
+  filter: drop-shadow(0 0 5px rgba(111, 231, 255, 0.35));
+}
+
+.console-highlight-icon svg {
+  width: 15px;
+  height: 15px;
+}
+
+.console-highlight-text {
+  font-size: 0.76rem;
+  font-weight: 300;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.52);
+  max-width: 34ch;
 }
 
 .console-label {
@@ -1302,6 +1756,20 @@ html.project-detail-open #projects-grid {
   stroke-linejoin: round;
 }
 
+/* not a link : explains why there is no repository to open (client work with
+   a private repo) instead of leaving a dead button */
+.console-btn--note {
+  cursor: default;
+  color: rgba(243, 240, 234, 0.55);
+  border-style: dashed;
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.015);
+}
+.console-btn--note:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  color: rgba(243, 240, 234, 0.55);
+}
+
 .console-btn:hover {
   border-color: rgba(111, 231, 255, 0.5);
   color: #6fe7ff;
@@ -1321,7 +1789,222 @@ html.project-detail-open #projects-grid {
 
 
 /* =========================================================
-   SELECTED MILESTONE — TECH-STACK MARQUEE
+   CONTACT FORM - hard-edged field style
+   Colours taken verbatim from the Uiverse.io reference
+   (ayyjayy2): --input-focus #2d8cf0, --font-color #323232,
+   --font-color-sub #666, --bg-color beige, --main-color black,
+   form background lightblue. Structure (5px radii, 2px borders,
+   4px offset shadow that collapses on press) is unchanged.
+   ========================================================= */
+.ct-card {
+  background: lightblue;
+  border: 2px solid black;
+  border-radius: 5px;
+  box-shadow: 4px 4px black;
+  padding: 20px;
+}
+
+/* Panels on the same page use the form's palette so the whole contact page
+   reads as one theme: beige surfaces, black hairline + hard shadow, blue
+   (#2d8cf0) as the single accent. */
+.ct-panel {
+  background: beige;
+  border: 2px solid black;
+  border-radius: 5px;
+  box-shadow: 4px 4px black;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+/* Hover feedback belongs to things you can actually act on, so the accent only
+   fires for links/buttons. Plain panels (contact fact rows, skill, certificate
+   and project cards) stay put on hover. */
+.ct-panel:is(a, button, [role='button']):hover {
+  border-color: #2d8cf0;
+}
+
+.ct-chip {
+  background: beige;
+  border: 2px solid black;
+  border-radius: 5px;
+  box-shadow: 4px 4px black;
+  color: #323232;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.15s ease,
+    color 0.18s ease;
+}
+
+.ct-chip:hover {
+  border-color: #2d8cf0;
+  color: #1b5c96;
+  transform: translate(1px, 1px);
+  box-shadow: 3px 3px black;
+}
+
+.ct-chip:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0 0 0 black;
+}
+
+/* Icon-only round variant of .ct-chip. Defined after it so the shape wins:
+   .ct-chip hard-codes border-radius: 5px, and an unlayered rule outranks any
+   plain Tailwind rounded-* utility, so this has to be its own class. */
+.ct-chip-round {
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ct-tag {
+  background: beige;
+  border: 2px solid black;
+  border-radius: 5px;
+  color: #323232;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 4px 10px;
+  transition: border-color 0.18s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.ct-tag:hover {
+  border-color: #2d8cf0;
+  box-shadow: 2px 2px black;
+  transform: translate(1px, 1px);
+}
+
+.ct-form {
+  --input-focus: #2d8cf0;
+  --font-color: #323232;
+  --font-color-sub: #666;
+  --bg-color: beige;
+  --main-color: black;
+
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 20px;
+}
+
+.ct-label {
+  display: block;
+  margin-bottom: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--font-color-sub);
+}
+
+.ct-input {
+  width: 100%;
+  height: 40px;
+  padding: 5px 10px;
+  border: 2px solid var(--main-color);
+  border-radius: 5px;
+  background-color: var(--bg-color);
+  box-shadow: 4px 4px var(--main-color);
+  color: var(--font-color);
+  font-size: 15px;
+  font-weight: 600;
+  outline: none;
+  transition: border-color 0.18s ease;
+}
+
+.ct-input::placeholder {
+  color: var(--font-color-sub);
+  opacity: 0.8;
+}
+
+.ct-input:focus {
+  border: 2px solid var(--input-focus);
+}
+
+/* iOS Safari zooms the viewport when focusing an input whose font-size is
+   under 16px, which then leaves the keyboard covering half the form. */
+@media (max-width: 640px) {
+  .ct-input {
+    font-size: 16px;
+  }
+}
+
+textarea.ct-input {
+  height: auto;
+  min-height: 132px;
+  padding-top: 10px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+select.ct-input {
+  appearance: none;
+  cursor: pointer;
+  padding-right: 40px;
+}
+
+select.ct-input option {
+  background: beige;
+  color: #323232;
+}
+
+.ct-error {
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #a32020;
+}
+
+.ct-btn {
+  margin-top: 30px;
+  height: 40px;
+  border: 2px solid var(--main-color);
+  border-radius: 5px;
+  background-color: var(--bg-color);
+  box-shadow: 4px 4px var(--main-color);
+  color: var(--font-color);
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, transform 0.15s ease, background-color 0.2s ease;
+}
+
+.ct-btn:hover:not(:disabled) {
+  background-color: #f7efd6;
+}
+
+.ct-btn:active:not(:disabled) {
+  box-shadow: 0 0 0 var(--main-color);
+  transform: translate(3px, 3px);
+}
+
+.ct-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ct-status {
+  padding: 12px 14px;
+  border: 2px solid;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.ct-status--ok {
+  border-color: #2d8cf0;
+  background: rgba(45, 140, 240, 0.1);
+  color: #17456f;
+}
+
+.ct-status--err {
+  border-color: #a32020;
+  background: rgba(163, 32, 32, 0.08);
+  color: #7a1c1c;
+}
+/* =========================================================
+   SELECTED MILESTONE - TECH-STACK MARQUEE
    Mirrors the hero TechMarquee; constrained to the left half
    (left edge → center vertical line) so it sits under the milestone.
    ========================================================= */
@@ -1578,12 +2261,18 @@ html.project-detail-open #projects-grid {
 }
 
 .podium-chevron--left {
-  left: clamp(24px, 3vw, 64px);
+  /* `left` grows INWARD: a bigger value slides this button toward the centre
+     and therefore CLOSER to its partner. To open the gap further the offset has
+     to go NEGATIVE, which pulls the button out past the Container's padding so
+     it sits near the section edge instead of crowding the podiums.
+     min() caps the reach at -16px so the mobile gutter (Container px-6) still
+     keeps it inside #projects-grid, which is overflow:hidden and would clip it. */
+  left: min(-4vw, -16px);
   transform: translateY(-50%);
 }
 
 .podium-chevron--right {
-  right: clamp(24px, 3vw, 64px);
+  right: min(-4vw, -16px);
   transform: translateY(-50%);
 }
 
@@ -1600,7 +2289,7 @@ html.project-detail-open #projects-grid {
   stroke-linejoin: round;
 }
 
-/* Flat milestone (no tilt, no border) — e.g. the "coming soon" jar */
+/* Flat milestone (no tilt, no border) - e.g. the "coming soon" jar */
 .podium-object-back.is-flat {
   left: 50%;
   bottom: 38%;
@@ -1675,6 +2364,21 @@ html.project-detail-open #projects-grid {
   pointer-events: none;
   opacity: 0.82;
 
+  /* Two fixes for the flickering seen while switching podiums:
+     1. transition on `top`. Selecting a podium jumps the light from -52% to
+        -28% (see .podium-item.is-selected .podium-spotlight). With no
+        transition that was a hard snap landing at the same moment the podium's
+        own 0.6s transform started, which read as a flash. Matching the item's
+        0.6s keeps the two moving as one.
+     2. will-change promotes the light to its own compositing layer. The podium
+        item animates `filter: blur()` and `scale` during a switch, and an
+        un-promoted child gets re-rasterised through that animating blur every
+        frame - the mask/clip/blur stack on this cone turns that into irregular
+        shimmer, which is the "horror house" flicker. Owning its layer means the
+        parent's blur no longer re-samples it. */
+  transition: top 0.6s ease;
+  will-change: opacity, transform;
+
   /* Conic gradient creates the cone angles naturally */
   background: conic-gradient(
     from 145deg at 50% 0%,
@@ -1718,6 +2422,11 @@ html.project-detail-open #projects-grid {
 
   width: 30px;
   height: 4px;
+
+  /* Same two fixes as .podium-spotlight: animate the -52% -> -28% jump on
+     selection, and keep the bulb off the parent's animating blur/scale layer. */
+  transition: top 0.6s ease;
+  will-change: opacity, transform;
 
   border-radius: 0 0 50% 50%;
 
@@ -1870,6 +2579,11 @@ html.project-detail-open #projects-grid {
     gap: 0;
   }
 
+  /* keep the console locked to the stage as its min-height drops */
+  .podium-console {
+    height: 420px;
+  }
+
   .podium-left,
   .podium-right {
     width: 30vw;
@@ -1878,7 +2592,7 @@ html.project-detail-open #projects-grid {
   .podium-center {
     width: 38vw;
 
-    transform: translateY(40px);
+    transform: translateY(34px);
   }
 
   .podium-spotlight {
@@ -1887,6 +2601,15 @@ html.project-detail-open #projects-grid {
 
   .podium-floor-glow {
   width: 94%;
+  }
+
+  /* Non-active podiums on tablet. The base dimmed state is tuned for the
+     full-size desktop podiums; at 30-38vw a 0.92 shrink opens visible gaps
+     between the slots, which are butted together with gap: 0 here. Ease it off.
+     No blur, for the reason given on the base is-dimmed rule. Scoped to this
+     breakpoint so desktop rendering is untouched. */
+  .podium-stage:has(.podium-item.is-selected) .podium-item.is-dimmed {
+    transform: scale(0.95);
   }
 }
 
@@ -1897,6 +2620,10 @@ html.project-detail-open #projects-grid {
     min-height: 340px;
 
     gap: 0;
+  }
+
+  .podium-console {
+    height: 340px;
   }
 
   .podium-left,
@@ -1934,6 +2661,23 @@ html.project-detail-open #projects-grid {
   }
   .podium-right.is-selected {
     transform: translateY(-130px) translateX(-44vw) scale(1.1);
+  }
+
+  /* Non-active podiums on phones. These are ~31-42vw, so the desktop 0.92 shrink
+     is wide enough to reveal the page through the gap: 0 stage. A barely-there
+     shrink keeps the row reading as three podiums while the selected one comes
+     forward. Desktop unaffected, and no blur - see the base is-dimmed rule. */
+  .podium-stage:has(.podium-item.is-selected) .podium-item.is-dimmed {
+    transform: scale(0.97);
+  }
+
+  /* The overhead light cone is proportionally far taller than the podium at this
+     width, so fade it down harder than the base rule does. Without this the beam
+     on a non-active podium still reads at nearly full strength against the much
+     shorter stage. */
+  .podium-item.is-dimmed .podium-spotlight,
+  .podium-item.is-dimmed .podium-light-source {
+    opacity: 0.35;
   }
 }
 
@@ -2025,4 +2769,482 @@ html.project-detail-open #projects-grid {
 .podium-item.podium-left .podium-caption-eyebrow,
 .podium-item.podium-right .podium-caption-eyebrow {
   margin-top: 8px;
+}
+
+/* ------------------------------------------------------------------
+   WhatsApp CTA - About page mode themes
+
+   The CTA is rendered by MainLayout on every route, so its theme has to
+   be opt-in and strictly scoped. Two independent guards keep it from
+   leaking:
+
+     1. The wrapper only receives a data-about-mode attribute when the
+        route is /about (see WhatsAppButton.jsx). That attribute is the
+        ONLY selector these rules key off, so a stale html.about-* class
+        left on <html> by any other component still cannot recolour it.
+     2. About.jsx removes about-matrix-nav / about-blueprint-nav /
+        about-test-nav on unmount, so the source signals reset too.
+
+   Default (no attribute) is WhatsApp green on every other page.
+   ------------------------------------------------------------------ */
+.wa-cta {
+  --wa-accent: #25d366;
+  --wa-accent-hover: #1fbc59;
+  --wa-accent-soft: rgba(37, 211, 102, 0.12);
+  --wa-glow: rgba(37, 211, 102, 0.38);
+}
+
+/* Blueprint : the hero's cyan, identical to --color-primary-light that
+   About.jsx sets on the root while this mode is active. */
+.wa-cta[data-about-mode='blueprint'] {
+  --wa-accent: #00d2ff;
+  --wa-accent-hover: #00a8d6;
+  --wa-accent-soft: rgba(0, 210, 255, 0.14);
+  --wa-glow: rgba(0, 210, 255, 0.38);
+}
+
+/* Matrix / code mode : matches the code-mode buttons, which are the nav
+   (.spotlight-nav) and the RESUME pill. Both are defined a few hundred lines
+   above under html.about-matrix-nav, and they use:
+     background rgba(0,20,5,.6) | border 1px #00ff66 | border-radius 0
+     box-shadow 0 0 18px rgba(0,255,102,.45)
+     hover background #031a09, glow 0 0 30px rgba(0,255,102,.75), colour #a3ffb4
+   Note the green is #00ff66 - the buttons' own ink - not the dimmer
+   #03a062 that About.jsx sets as --color-primary-light on the root. */
+.wa-cta[data-about-mode='matrix'] {
+  --wa-accent: #00ff66;
+  --wa-accent-hover: #a3ffb4;
+  --wa-accent-soft: rgba(0, 255, 102, 0.14);
+  --wa-glow: rgba(0, 255, 102, 0.45);
+}
+
+/* Test : built from test-error-popups.jsx and test-mode-background.jsx.
+   Those surfaces are a near-black translucent fill (rgba(8,8,10,.92)), a 1px
+   accent-red rule, and a much TIGHTER glow than blueprint or code mode -
+   0 0 6px on the status dot. #D2042D is the popup accent, #FF3B47 the bright
+   red the canvas and overlay labels use, #ff6b6b the popup title ink. */
+.wa-cta[data-about-mode='test'] {
+  --wa-accent: #ff3b47;
+  --wa-accent-hover: #ff6b6b;
+  --wa-accent-soft: rgba(255, 59, 71, 0.16);
+  --wa-glow: rgba(210, 4, 45, 0.9);
+}
+
+/* Design : no colour is defined for this mode anywhere on the page, so
+   this borrows the site's existing console accent. Change it here if the
+   design mode is given a proper token later. */
+.wa-cta[data-about-mode='design'] {
+  --wa-accent: #6fe7ff;
+  --wa-accent-hover: #4fd4ef;
+  --wa-accent-soft: rgba(111, 231, 255, 0.12);
+  --wa-glow: rgba(111, 231, 255, 0.38);
+}
+/* Blueprint : match the other blueprint buttons (BlueprintPillButton) without
+   copying their decoration. Those buttons are a TRANSPARENT pill with a solid
+   #00d2ff rule, a soft cyan glow and cyan text - the dashed outer frame, dotted
+   inner frame, W/H dimension labels and crosshair are deliberately left off,
+   since a floating circular CTA cannot carry dimension callouts and adding them
+   would be over-designing a control that must stay tappable.
+
+   Unlayered rules in this file outrank Tailwind's layered utilities, so these win
+   over bg-[var(--wa-accent)] / text-white / border-black/10 with no !important.
+   .wa-fab is present only while the CTA is closed, so the open panel keeps its
+   dark surface. */
+.wa-cta[data-about-mode='blueprint'] .wa-fab {
+  background-color: transparent;
+  border-color: #00d2ff;
+  /* White glyph. BlueprintPillButton's label resolves to white on hover
+     (group-hover:text-white), so white is that button's own resting ink -
+     cyan stays on the rule and the glow. */
+  color: #fff;
+  box-shadow: 0 0 15px rgba(0, 210, 255, 0.15);
+  transition: box-shadow 0.3s ease-out;
+}
+.wa-cta[data-about-mode='blueprint'] .wa-fab:hover {
+  box-shadow: 0 0 25px rgba(0, 210, 255, 0.35);
+}
+.wa-cta[data-about-mode='blueprint'] .wa-fab:active {
+  background-color: #001a2e;
+}
+
+/* Matrix / code mode : the CTA takes the same surface as the code-mode nav and
+   RESUME button - dark translucent green fill, 1px terminal-green rule, the
+   same two glows, and the sharp border-radius: 0 that defines this theme.
+   The square corner is the one deliberately borrowed detail: every code-mode
+   button is square, so a circle here would read as a different component. */
+.wa-cta[data-about-mode='matrix'] .wa-fab {
+  background-color: rgba(0, 20, 5, 0.6);
+  border: 1px solid #00ff66;
+  /* border-radius intentionally omitted - the CTA keeps rounded-full. The code
+     mode's own buttons are square, but a floating circular control reading as
+     a circle is worth more here than matching that detail. */
+  color: #00ff66;
+  box-shadow: 0 0 18px rgba(0, 255, 102, 0.45);
+  transition: box-shadow 0.3s ease-out;
+}
+.wa-cta[data-about-mode='matrix'] .wa-fab:hover {
+  background-color: #031a09;
+  color: #00ff66;
+  box-shadow: 0 0 30px rgba(0, 255, 102, 0.75);
+}
+
+/* Test : same construction as the code-mode rule above, from test mode's own
+   surfaces - near-black fill, 1px accent-red rule, tight glow. border-radius is
+   deliberately NOT set, so the element keeps the rounded-full from its class and
+   stays a circle: the test popups are small rounded cards, and the brief for
+   this control is to keep the round FAB shape. */
+.wa-cta[data-about-mode='test'] .wa-fab {
+  background-color: rgba(8, 8, 10, 0.92);
+  border: 1px solid #d2042d;
+  color: #ff3b47;
+  box-shadow: 0 0 6px rgba(210, 4, 45, 0.9);
+  transition: box-shadow 0.3s ease-out;
+}
+.wa-cta[data-about-mode='test'] .wa-fab:hover {
+  background-color: rgba(26, 6, 12, 0.95);
+  color: #ff3b47;
+  box-shadow: 0 0 14px rgba(255, 59, 71, 0.75);
+}
+.wa-cta[data-about-mode='test'] .wa-fab:active {
+  background-color: #2a0410;
+}
+
+/* ------------------------------------------------------------------
+   Blueprint : the dotted inner ring
+   BlueprintPillButton frames its target with a nested solid frame plus a
+   smaller dashed one. A 56px circle cannot carry that whole apparatus, but
+   the dashed inner ring alone is what makes the target read as a drawing
+   rather than a generic icon button, so that is the one detail borrowed.
+   display:none by default, so the ring costs nothing on other pages/modes. */
+.wa-fab-ring {
+  display: none;
+}
+.wa-cta[data-about-mode='blueprint'] .wa-fab-ring {
+  display: block;
+  position: absolute;
+  inset: 4px;
+  border: 1px dashed rgba(0, 210, 255, 0.45);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.wa-cta[data-about-mode='blueprint'] .wa-fab:hover .wa-fab-ring {
+  border-color: rgba(0, 210, 255, 0.75);
+}
+
+/* Blueprint : the outer dashed square.
+   BlueprintPillButton's outermost element is a "Technical Bounding Box" frame -
+   dashed, square (rounded-none), and a much fainter cyan than the target rule,
+   because it is background structure rather than the control itself. Values are
+   lifted from it: border-dashed border-[#00d2ff]/30 rounded-none.
+
+   offset -6px on bottom/right rather than inset:-6px, so it grows away from the
+   circle on the two sides that have room. A sibling of the fab, not a child,
+   because the fab clips its overflow for the open-panel morph. */
+.wa-fab-frame {
+  display: none;
+}
+.wa-cta[data-about-mode='blueprint'] .wa-fab-frame {
+  display: block;
+  position: absolute;
+  /* inset, NOT bottom/right with a fixed size. An absolutely positioned box
+     with no top/left does not centre - it falls back to its static position,
+     which shifted the square diagonally off the circle. Negative inset on all
+     four sides grows the box by an equal amount on every side, so it stays
+     concentric: 56px circle + 6px each way = 68px frame. */
+  inset: -6px;
+  border: 1px dashed rgba(0, 210, 255, 0.3);
+  border-radius: 0;
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------------------
+   Design : crayon
+   Mirrors CrayonButton.css, the treatment the design-mode hero buttons use:
+   a 3px dashed ink border, paper white, #333 glyph ink, and the waxy crayon
+   fill built from repeating-linear-gradient.
+
+   Two deliberate departures from crayon's own values:
+     - border-radius is a plain circle rather than crayon's hand-drawn lumpy
+       radius, because this is a circular FAB control.
+     - the crayon colour is the CTA's DEFAULT WhatsApp green (#25d366) instead
+       of crayon's --crayon-color (#4d7cff), so the fill matches the default
+       state exactly. The crayon TEXTURE is kept, only the hue changes. */
+.wa-cta[data-about-mode='design'] {
+  --wa-accent: #25d366;
+  --wa-accent-hover: #1fbc59;
+  --wa-accent-soft: rgba(37, 211, 102, 0.16);
+  --wa-glow: rgba(37, 211, 102, 0.38);
+}
+.wa-cta[data-about-mode='design'] .wa-fab {
+  background-color: #fdfbf7;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    #25d366 0px,
+    #25d366 3px,
+    rgba(37, 211, 102, 0.85) 4px,
+    #25d366 5px,
+    #25d366 8px
+  );
+  border: 3px dashed #444;
+  border-radius: 50%;
+  color: #333;
+  box-shadow: none;
+  transition: transform 0.1s ease;
+}
+.wa-cta[data-about-mode='design'] .wa-fab:active {
+  transform: scale(0.96);
+  background-image: repeating-linear-gradient(
+    -45deg,
+    #1fbc59 0px,
+    #1fbc59 3px,
+    rgba(31, 188, 89, 0.85) 4px,
+    #1fbc59 5px,
+    #1fbc59 8px
+  );
+}
+
+/* ==================================================================
+   MILESTONE CTA - next step under the podium stage
+
+   Reuses .console-btn / .console-btn--primary for the buttons so the CTA
+   and the project console share one button style. Only the layout block
+   below is new. Colours follow the section it sits in: #6fe7ff accent on
+   the dark console panel, Michroma for the heading to match the console
+   name, and Poppins for the supporting line so the two read as different
+   levels rather than one shouty pair.
+   ================================================================== */
+.milestone-cta {
+  position: relative;
+  z-index: 10;
+  /* Intentional reserved space, NOT leftover padding. A further section is
+     planned here between the milestones and this CTA, so the gap is sized to
+     read as an empty slot rather than excessive spacing - it makes the page
+     feel longer and gives the upcoming section somewhere to land. Do not
+     "tighten" this without the section being built. */
+  margin-top: 400px;
+
+  /* Full-bleed card: this is now a direct child of #projects-grid, so the
+     background spans the whole section with no viewport-width maths. Horizontal
+     padding lives on .milestone-cta-inner instead, which also caps the measure
+     so the copy is not stretched across a wide screen. */
+  /* Bottom padding is 0 and the bottom corners are square: the section's
+     pb-32 is gone, so this card now sits flush against the footer's top edge.
+     A 24px radius there would leave four notches of section background showing
+     against the straight edge of the panel. */
+  /* display:flex + align-items:center is what centres .milestone-cta-inner
+     vertically. That only reads as DEAD centre if the padding is symmetric -
+     with 160px above and 72px below, centring inside the content box would sit
+     the copy high. Symmetric padding makes the flex centring the visual centring. */
+  display: flex;
+  align-items: center;
+  padding: 140px 0;
+  border-radius: 24px 24px 0 0;
+  overflow: hidden;
+  isolation: isolate;
+
+  /* Left aligned, not centred: this CTA follows a centred podium stage, so
+     flipping the alignment keeps it from reading as more of the same block. */
+  text-align: left;
+
+  background-color: #0b1418;
+  background-image: url('/media/Cyan-Lit%20Minimalist%20Tech%20Workspace.webp');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Scrim over the artwork. The source is a cyan-lit workspace render with bright
+   highlights, and white body text sitting straight on it would lose contrast
+   exactly where the copy is. isolation:isolate + z-index:-1 keeps this behind
+   the text without escaping the card. */
+.milestone-cta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(7, 12, 15, 0.62) 0%, rgba(7, 12, 15, 0.78) 100%);
+  z-index: -1;
+}
+
+/* Projects only: tighten the gap above the footer.
+   .footer-shell ships mt-32 / md:mt-64 (128px, and 256px from 768px up).
+   That margin IS the whole gap below the projects CTA - #projects-grid itself
+   contributes nothing (pb-0) and the card's own padding sits inside it. On this
+   route that 256px stacked on the 280px reserved gap already inside the section,
+   making the footer a long scroll away. Trimmed to 6rem; every other route keeps
+   the original spacing. Unlayered, so it outranks the layered md:mt-64. */
+html.route-projects .footer-shell {
+  margin-top: 6rem;
+}
+
+/* Keeps the text at the same width it had inside Container (max-w-6xl with the
+   same px steps), while the card behind it spans the full section. */
+.milestone-cta-inner {
+  /* width:100% + margin-inline:auto inside the flex row: fills the row, then
+     centres the 72rem measure. Without width:100% the flex item would shrink to
+     its content and margin-inline:auto would have nothing to distribute. */
+  width: 100%;
+  max-width: 72rem;
+  margin-inline: auto;
+  padding-inline: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .milestone-cta-inner {
+    padding-inline: 2.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .milestone-cta-inner {
+    padding-inline: 3.5rem;
+  }
+}
+
+@media (min-width: 1536px) {
+  .milestone-cta-inner {
+    padding-inline: 5rem;
+  }
+}
+
+.milestone-cta-title {
+  font-family: 'Michroma', sans-serif;
+  font-size: 1.05rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #f3f0ea;
+  margin: 0 0 14px;
+}
+
+.milestone-cta-sub {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #aeb9bd;
+  margin: 0 0 28px;
+  /* Held to the left column. The inner wrapper is 72rem wide, so without this
+     the sentence ran past 1000px on a desktop screen and read as a band rather
+     than a paragraph. ch-based so it needs no breakpoint override: on a phone
+     the container is already narrower than this. */
+  max-width: 58ch;
+}
+
+.milestone-cta-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  justify-content: flex-start;
+}
+
+/* Body sans instead of the console's Michroma. Michroma is a wide display face
+   whose uppercase + wide tracking pairing is deliberate; dropping it for a text
+   face also means easing the tracking off, otherwise the same 0.12em looks
+   loose on a proportional sans. Scoped to the CTA - the project console keeps
+   Michroma, which suits its denser label/value pairing. */
+.milestone-cta-actions .console-btn {
+  font-family: var(--font-sans);
+  letter-spacing: 0.06em;
+}
+
+/* Right-pointing arrow, revealed on hover by growing from zero width. Collapsing
+   width rather than just fading keeps the label from shifting sideways as the
+   arrow appears, and gap: 8px from .console-btn holds the spacing throughout. */
+.milestone-cta-arrow {
+  width: 0;
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: width 0.25s ease, opacity 0.25s ease, transform 0.25s ease;
+}
+
+.milestone-cta-actions .console-btn:hover .milestone-cta-arrow,
+.milestone-cta-actions .console-btn:focus-visible .milestone-cta-arrow {
+  width: 14px;
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.milestone-cta-actions .console-btn:focus-visible {
+  outline: 2px solid #6fe7ff;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .milestone-cta-arrow {
+    transition: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .milestone-cta {
+    margin-top: 200px;
+    /* Flush bottom on mobile too, matching the desktop rule. */
+    padding: 90px 0;
+    border-radius: 18px 18px 0 0;
+  }
+
+  .milestone-cta-inner {
+    padding-inline: 1.5rem;
+  }
+
+  /* Projects only: tighten the gap above the footer.
+   .footer-shell ships mt-32 / md:mt-64 (128px, and 256px from 768px up).
+   That margin IS the whole gap below the projects CTA - #projects-grid itself
+   contributes nothing (pb-0) and the card's own padding sits inside it. On this
+   route that 256px stacked on the 280px reserved gap already inside the section,
+   making the footer a long scroll away. Trimmed to 6rem; every other route keeps
+   the original spacing. Unlayered, so it outranks the layered md:mt-64. */
+html.route-projects .footer-shell {
+  margin-top: 6rem;
+}
+
+/* Keeps the text at the same width it had inside Container (max-w-6xl with the
+   same px steps), while the card behind it spans the full section. */
+.milestone-cta-inner {
+  /* width:100% + margin-inline:auto inside the flex row: fills the row, then
+     centres the 72rem measure. Without width:100% the flex item would shrink to
+     its content and margin-inline:auto would have nothing to distribute. */
+  width: 100%;
+  max-width: 72rem;
+  margin-inline: auto;
+  padding-inline: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .milestone-cta-inner {
+    padding-inline: 2.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .milestone-cta-inner {
+    padding-inline: 3.5rem;
+  }
+}
+
+@media (min-width: 1536px) {
+  .milestone-cta-inner {
+    padding-inline: 5rem;
+  }
+}
+
+.milestone-cta-title {
+    font-size: 0.82rem;
+    letter-spacing: 0.12em;
+  }
+
+  .milestone-cta-sub {
+    font-size: 0.86rem;
+    margin-bottom: 22px;
+  }
+
+  /* Full-width stacked buttons rather than two cramped ones side by side:
+     these are the primary tap targets at the end of the page. */
+  .milestone-cta-actions {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+  }
+
+  .milestone-cta-actions .console-btn {
+    width: 100%;
+    justify-content: center;
+  }
 }
