@@ -7,3 +7,10 @@ dist/
 build/
 .vscode/
 .idea/
+
+# Django backend - no longer used by the site. frontend/src/data/content.js
+# replaced the REST API (see its header: "No server required"), and the only
+# network call in the whole frontend is the contact form posting to Web3Forms /
+# FormSubmit. Untracked, but the folder is left on disk: it was the admin for
+# that content, so keep it locally if you ever want to bring the API back.
+backend/

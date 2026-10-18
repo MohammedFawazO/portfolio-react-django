@@ -116,9 +116,11 @@ function ConnectSlot() {
           key="default-connect"
           // Pinned to the top-right of the page on every mode except blueprint,
           // which keeps its copy inside the hero section (see About.jsx).
+          // Visible on mobile too, where it pairs with the hamburger: the
+          // button sits left, this sits right, both on top-10 and both h-11.
           className={isProjects
-            ? "fixed right-6 top-10 z-50 max-md:hidden"
-            : "absolute right-6 top-10 z-50 max-md:hidden"}
+            ? "fixed right-6 top-10 z-50"
+            : "absolute right-6 top-10 z-50"}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 8 }}
@@ -223,7 +225,7 @@ function MainLayout() {
 
             <ConnectSlot />
 
-            <main className="relative z-10 grow">
+            <main className="page-shell relative z-10 grow">
               <Outlet />
             </main>
 

@@ -100,13 +100,13 @@ function paintResumeCover(ctx, w, h, cv) {
   }
 
   // header band with the role. Only a document that actually carries a photo
-  // reserves the right-hand column for its avatar - the photo-less CVs use the
+  // reserves the left-hand column for its avatar - the photo-less CVs use the
   // full width and centre their title, with their badge down in the footer.
   // coverTitle lets a cover show a shorter line than the panel title (e.g.
   // "Python Full Stack") so the type stays big and the band never crowds.
-  const reservedRight = cv.hasPhoto ? 260 : 0
-  const textCentre = (w - reservedRight) / 2
-  const textWidth = w - reservedRight - 120
+  const reservedLeft = cv.hasPhoto ? 260 : 0
+  const textCentre = reservedLeft + (w - reservedLeft) / 2
+  const textWidth = w - reservedLeft - 120
 
   ctx.fillStyle = accent
   ctx.fillRect(0, 0, w, 300)
@@ -179,7 +179,7 @@ function paintResumeCover(ctx, w, h, cv) {
   // obvious at a glance on the shelf; the photo-less one is flagged in the
   // footer instead, where it can never crowd the title.
   if (cv.hasPhoto) {
-    const cx = w - 140
+    const cx = 140
     const cy = 142
     const r = 64
     ctx.beginPath()
@@ -352,7 +352,7 @@ const cvDocuments = [
       </Helmet>
 
       {/* beige / black / blue theme, shared with the contact page and the CV form */}
-      <div className="min-h-screen bg-[#F5F5DC] py-[7rem] md:py-[9rem] pt-[7.5rem]">
+      <div className="page-tail-fade min-h-screen bg-[#F5F5DC] py-[7rem] md:py-[9rem] pt-[7.5rem]">
         {/* Container owns the site's even gutters (equal left and right) */}
         <Container size="lg">
           {/* Hero : the CV shelf. Every version of my resume, pick one, read

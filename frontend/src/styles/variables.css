@@ -33,6 +33,14 @@
   --color-accent-rgb: 111, 231, 255;
 
   /* ============================================================
+     CONTACT BLUE (navbar + contact form share one value)
+     Same #2d8cf0 the .ct-* form uses for focus/tag/success ink.
+     ============================================================ */
+  --color-nav-accent: #2d8cf0;
+  --color-nav-accent-hover: #1b5c96;
+  --color-nav-accent-rgb: 45, 140, 240;
+
+  /* ============================================================
      TEXT : ON DARK
      ============================================================ */
   --text-on-dark: #F5F7F7;

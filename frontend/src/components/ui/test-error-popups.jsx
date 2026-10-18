@@ -35,13 +35,36 @@ const LEVEL_COLORS = {
   INFO: '#9adcff',
 }
 
+const POPUP_W = 340
+const POPUP_W_MIN = 220
+const POP_GAP = 24
+
+// The popups are positioned against the hero, but their width was a hard 340px,
+// so on a phone any x put the card past the right edge and the section's
+// overflow-hidden clipped it. Measure the hero instead and shrink the card to
+// whatever is left between the gutters - on desktop 340px still fits, so the
+// clamp never engages and the layout is unchanged.
+function heroBox() {
+  if (typeof document === 'undefined') return { w: 800, h: 600 }
+  const hero = document.getElementById('about-hero-section')
+  if (!hero) return { w: window.innerWidth, h: 600 }
+  return { w: Math.min(hero.clientWidth, window.innerWidth), h: hero.clientHeight }
+}
+
+function fitWidth(w) {
+  return Math.min(w, Math.max(POPUP_W_MIN, heroBox().w - POP_GAP * 2))
+}
+
+function maxX() {
+  return Math.max(0, heroBox().w - fitWidth(POPUP_W) - POP_GAP)
+}
+
 function randomPos() {
-  const hero = typeof document !== 'undefined' ? document.getElementById('about-hero-section') : null
-  const maxX = hero ? Math.max(80, hero.clientWidth - 380) : Math.max(80, (typeof window !== 'undefined' ? window.innerWidth : 800) - 380)
-  const maxY = hero ? Math.max(60, hero.clientHeight - 360) : 200
-  const pad = 24
-  const x = pad + Math.random() * maxX
-  const y = pad + Math.random() * maxY
+  const { h } = heroBox()
+  const spanX = maxX()
+  const maxY = Math.max(60, h - 360)
+  const x = POP_GAP + Math.random() * spanX
+  const y = POP_GAP + Math.random() * maxY
   return { x, y }
 }
 
@@ -115,10 +138,10 @@ function ErrorPopup({ title, lines, status, accent = '#D2042D', delay = 0, reope
     if (!draggingRef.current) return
     const r = heroRect()
     const hero = typeof document !== 'undefined' ? document.getElementById('about-hero-section') : null
-    const maxX = hero ? Math.max(0, hero.clientWidth - 360) : 800
-    const maxY = hero ? Math.max(0, hero.clientHeight - 340) : 400
+    const limitX = maxX()
+    const maxY = hero ? Math.max(0, hero.clientHeight - fitWidth(POPUP_W)) : 400
     setPos({
-      x: Math.min(Math.max(0, e.clientX - r.left - offsetRef.current.x), maxX),
+      x: Math.min(Math.max(0, e.clientX - r.left - offsetRef.current.x), limitX),
       y: Math.min(Math.max(0, e.clientY - r.top - offsetRef.current.y), maxY),
     })
   }
@@ -146,7 +169,7 @@ function ErrorPopup({ title, lines, status, accent = '#D2042D', delay = 0, reope
           left: pos.x,
           top: pos.y,
           zIndex: 90,
-          width: minimized ? 220 : 340,
+          width: fitWidth(minimized ? POPUP_W_MIN : POPUP_W),
         }}
         onPointerDown={(e) => { e.stopPropagation(); onPointerDown(e) }}
         onPointerMove={onPointerMove}

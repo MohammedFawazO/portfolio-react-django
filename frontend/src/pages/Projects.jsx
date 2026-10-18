@@ -497,8 +497,8 @@ function Projects() {
       </Helmet>
 
       {/* Hero Section : pinned during scroll animation */}
-      <div ref={heroRef} className="h-[1400vh]">
-      <motion.section className="sticky top-0 h-screen min-h-175 bg-[#050505] overflow-hidden">
+      <div ref={heroRef} className="h-[1400vh] flex flex-col">
+      <motion.section className="sticky top-0 h-screen shrink-0 min-h-175 bg-[#050505] overflow-hidden">
       {/* Background : static, subtle central glow (behind text) */}
       <div className="absolute inset-0 z-0">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-150 h-150 rounded-full bg-[#D8B878]/5 blur-[150px]" />
@@ -756,7 +756,7 @@ function Projects() {
       </div>
 
       {/* Projects Content : slides up from bottom over the hero (redesigned) */}
-      <motion.div id="projects-grid" style={{ y: gridSlide }} className="relative z-30 bg-[linear-gradient(180deg,#1c1f24_0%,#101216_35%,#070809_100%)] pt-10 pb-0 overflow-hidden rounded-t-[40px]">
+      <motion.div id="projects-grid" style={{ y: gridSlide, marginBottom: -vh }} className="relative z-30 bg-[linear-gradient(180deg,#1c1f24_0%,#101216_35%,#070809_100%)] pt-10 pb-0 overflow-hidden rounded-t-[40px] flex-1 flex flex-col">
 
         <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-72 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.10),transparent_70%)]" />
         <Container>
@@ -1130,7 +1130,7 @@ function Projects() {
               100vw maths (which would overflow against the html
               scrollbar-gutter). The inner wrapper keeps the copy at the
               same measure it had inside Container. */}
-          <div className="milestone-cta">
+          <div className="milestone-cta page-tail-fade mt-auto">
             <div className="milestone-cta-inner">
               <h2 className="milestone-cta-title">Have a project in mind?</h2>
                 <p className="milestone-cta-sub">

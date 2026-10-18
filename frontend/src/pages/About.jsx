@@ -20,6 +20,7 @@ import { RedGlitchHeading } from '@/components/ui/red-glitch-heading'
 import TestErrorPopups from '@/components/ui/test-error-popups'
 import TestModeBackground from '@/components/ui/test-mode-background'
 import TestBugOverlay from '@/components/ui/test-bug-overlay'
+import { technologies } from '../components/ui/TechMarquee'
 import { Download, ArrowRight, Bug } from 'lucide-react'
 
 const fadeUp = {
@@ -83,6 +84,41 @@ function HoverColorAnnot({ label = 'hover color?', color = '#246bff', style, arr
         <path d={head} stroke="currentColor" strokeWidth="1.2" strokeLinecap="square" strokeLinejoin="round" />
       </svg>
     </div>
+  )
+}
+
+// Skill chips reuse the Home hero's marquee so a skill and its icon can never
+// drift apart. The marquee labels a few of them differently than the badge
+// does, hence the alias map rather than a straight name lookup.
+const SKILL_ICON_ALIAS = {
+  HTML: 'HTML5',
+  CSS: 'CSS3',
+  'Tailwind CSS': 'Tailwind',
+}
+
+// Railway and Render ship as white glyphs (Render's is an inline svg rather
+// than a URL, which is why the marquee does not just list an image for it).
+// They have to be flipped to read on the light beige badges, and left alone
+// again once a dark hero mode turns the badges dark.
+const WHITE_GLYPH_SKILLS = new Set(['Railway', 'Render'])
+
+const techByName = new Map(technologies.map((tech) => [tech.name, tech]))
+
+function SkillChip({ name }) {
+  const tech = techByName.get(SKILL_ICON_ALIAS[name] || name)
+  if (!tech) {
+    return <Badge variant="light" className="about-badge ct-tag">{name}</Badge>
+  }
+  const flip = WHITE_GLYPH_SKILLS.has(name) ? ' skill-swap-icon--flip' : ''
+  return (
+    <Badge variant="light" className="about-badge ct-tag skill-swap" title={name}>
+      <span className="skill-swap-label">{name}</span>
+      {tech.svg ? (
+        <span className={`skill-swap-icon skill-swap-icon--inline${flip}`} data-icon={name} aria-hidden="true">{tech.svg}</span>
+      ) : (
+        <img className={`skill-swap-icon${flip}`} data-icon={name} src={tech.image} alt="" aria-hidden="true" draggable="false" />
+      )}
+    </Badge>
   )
 }
 
@@ -656,12 +692,17 @@ function About() {
     letOrbitRun()
   }
 
+  // Kept in step with the Home hero's tech marquee
+  // (components/ui/TechMarquee.jsx) so the two never contradict each other.
+  // Three groups, not five: he builds whole applications end to end rather than
+  // specialising in one tier, so backend and frontend are one continuous stack
+  // and splitting them left two items stranded next to seven. "Data" and
+  // "Shipping" stay apart because they answer a different question - what the
+  // data lives in, and where the code is tracked and runs.
   const skills = {
-    Backend: ['Python', 'Django', 'Django REST Framework', 'REST APIs'],
-    Frontend: ['React', 'JavaScript', 'HTML', 'CSS', 'Tailwind CSS', 'Bootstrap'],
-    Databases: ['PostgreSQL', 'MySQL', 'SQLite', 'Supabase'],
-    Tools: ['Git', 'GitHub', 'Postman', 'Vite'],
-    Deployment: ['Render', 'Railway', 'Cloudflare', 'WhiteNoise'],
+    Development: ['Python', 'Django', 'React', 'JavaScript', 'HTML', 'CSS', 'Tailwind CSS'],
+    Data: ['PostgreSQL', 'SQLite', 'Supabase'],
+    Shipping: ['GitHub', 'Render', 'Railway'],
   }
 
   const philosophy = [
@@ -701,7 +742,7 @@ function About() {
             if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
           }
         }}
-        className={"relative pt-6 md:pt-8 pb-0 md:pb-0.5 overflow-hidden transition-colors duration-700 ease-out " + (showMatrix ? "bg-black matrix-mode" : showBlueprint ? "bg-[#001428]" : showTest ? "bg-[#070204]" : "bg-[#F5F7F7]")}>
+        className={"relative pt-6 lg:pt-8 pb-7 lg:pb-0.5 overflow-hidden transition-colors duration-700 ease-out " + (showMatrix ? "bg-black matrix-mode" : showBlueprint ? "bg-[#001428]" : showTest ? "bg-[#070204]" : "bg-[#F5F5DC]")}>
         {/* Design-mode graph-paper grid covering the whole hero */}
         {showDesign && (
           <div className="design-hero-grid absolute inset-0 z-0 pointer-events-none" />
@@ -765,7 +806,7 @@ function About() {
         )}
         <div
           className="absolute pointer-events-none"
-          style={{ top: '-15%', right: '-5%', width: '650px', height: '650px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(35,105,102,0.10) 0%, transparent 70%)' }}
+          style={{ top: '-15%', right: '-5%', width: 'min(650px, 120vw)', height: 'min(650px, 120vw)', borderRadius: '50%', background: 'radial-gradient(circle, rgba(35,105,102,0.10) 0%, transparent 70%)' }}
         />
         <div className={"absolute inset-0 z-45 pointer-events-none overflow-hidden transition-opacity duration-500 ease-out " + (showMatrix ? "opacity-100" : "opacity-0")}>
           {showMatrix && <MatrixRain variant="cyan" fixedColor="#03A062" />}
@@ -797,9 +838,9 @@ function About() {
           )}
         </AnimatePresence>
         {showTest && <TestErrorPopups />}
-        <Container size="lg" className="px-8!">
-          <div className="grid md:grid-cols-2 gap-10 md:gap-16 items-center">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} className={"relative z-70 transition-[padding,margin] duration-700 ease-out" + (showMatrix || showBlueprint ? " pl-6 md:pl-12" : "") + (showBlueprint ? " mt-16" : "")}>
+        <Container size="lg" className="px-4! sm:px-6! lg:px-8!">
+          <div className="grid gap-5 lg:grid-cols-2 lg:gap-16 items-center">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} className={"relative z-70 pt-20 md:pt-0 transition-[padding,margin] duration-700 ease-out" + (showMatrix || showBlueprint ? " pl-4 lg:pl-12" : "") + (showBlueprint ? " mt-8 lg:mt-16" : "")}>
               {designModeActive && (
                 <div className="absolute left-1 top-0 -translate-y-full z-80 flex items-center pointer-events-none">
                   <TypingLoader />
@@ -975,7 +1016,7 @@ function About() {
                   />
                 </div>
               ) : (
-                <h1 className={"font-(family-name:--font-display) leading-[1.02] font-semibold tracking-tight uppercase whitespace-nowrap transition-[color,font-size,letter-spacing,opacity] duration-700 ease-out " + (showMatrix ? "text-[34px] sm:text-[50px] md:text-[66px] text-white blueprint-hero-type hero-heading" : showBlueprint ? "text-[24px] sm:text-[36px] md:text-[48px] text-white blueprint-hero-type" : "text-[22px] sm:text-[32px] md:text-[42px] text-[#0A3332]")}>
+                <h1 className={"font-(family-name:--font-display) leading-[1.02] font-semibold tracking-tight uppercase lg:whitespace-nowrap transition-[color,font-size,letter-spacing,opacity] duration-700 ease-out " + (showMatrix ? "text-[20px] sm:text-[26px] lg:text-[66px] text-white blueprint-hero-type hero-heading" : showBlueprint ? "text-[17px] sm:text-[22px] lg:text-[48px] text-white blueprint-hero-type" : "text-[20px] sm:text-[26px] lg:text-[42px] text-[#001428]")}>
                   Mohammed Fawaz O
                 </h1>
               )}
@@ -1034,7 +1075,7 @@ function About() {
                   , building production-ready web applications with Django, React, and clean architecture.
                 </NeonRGBTextEffect>
               ) : (
-              <p key={introReplayKey} className={"text-[18px] md:text-[20px] font-light mt-2 max-w-xl leading-relaxed transition-[color,font-size,margin,letter-spacing,opacity] duration-700 ease-out " + (showMatrix ? "text-white/80 blueprint-hero-type hero-description" : showBlueprint ? "text-white/80 blueprint-hero-type" : "text-[#405354]")}>
+              <p key={introReplayKey} className={"text-[16px] lg:text-[20px] font-light mt-2 max-w-xl leading-relaxed transition-[color,font-size,margin,letter-spacing,opacity] duration-700 ease-out " + (showMatrix ? "text-white/80 blueprint-hero-type hero-description" : showBlueprint ? "text-white/80 blueprint-hero-type" : "text-[#323232]")}>
                 {showBlueprint ? (<span className="inline-block border border-dashed border-[#00d2ff] px-2 py-0.5 text-[#00d2ff]">Python</span>) : showMatrix ? (<span className="keyword">Python</span>) : 'Python'} Full Stack Developer from{' '}
                 <span className="relative inline-block whitespace-nowrap">
                   Kerala, India
@@ -1188,13 +1229,13 @@ function About() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                className={"mt-5 transition-[margin] duration-700 ease-out" + (showMatrix || showBlueprint ? " -ml-6 md:-ml-12" : "")}
+                className={"mt-5 transition-[margin] duration-700 ease-out" + (showMatrix || showBlueprint ? " -ml-4 lg:-ml-12" : "")}
               >
                 <AnimatePresence mode="wait">
                   {showDesign ? (
                     <motion.div
                       key="design"
-                      className="flex flex-wrap items-center gap-4 mt-6"
+                      className="flex flex-wrap items-center gap-3 lg:gap-4 mt-4 lg:mt-6"
                       initial={{ opacity: 0, scale: 1.45, filter: 'blur(8px)', x: -24 }}
                       animate={{ opacity: 1, scale: 1, filter: 'blur(0px)', x: 0 }}
                       exit={{ opacity: 0, scale: 0.65, filter: 'blur(10px)', x: 24 }}
@@ -1219,8 +1260,8 @@ function About() {
                     </motion.div>
                   ) : (
                       <motion.div
-                        key="default"
-                        className="flex items-center gap-0"
+key="default"
+                      className="flex flex-wrap items-center gap-3 lg:gap-0"
                         initial={{ opacity: 0, y: 16, scale: 0.9 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -12, scale: 0.82, filter: 'blur(5px)' }}
@@ -1230,7 +1271,7 @@ function About() {
                           {showTest ? (
                             <motion.div
                               key="test"
-                              className="flex items-center gap-4 sm:gap-6 flex-wrap"
+                              className="flex flex-wrap items-center gap-3 lg:gap-6"
                               initial={{ opacity: 0, scale: 0.97, filter: 'blur(6px)' }}
                               animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
                               exit={{ opacity: 0, scale: 0.97, filter: 'blur(6px)' }}
@@ -1254,7 +1295,7 @@ label="./view-projects"
                           ) : showBlueprint ? (
                             <motion.div
                               key="bp"
-                              className="flex items-center -mt-4"
+                              className="flex flex-wrap items-center -mt-4 gap-3 lg:gap-0"
                               initial={{ opacity: 0, scale: 0.97, filter: 'blur(6px)' }}
                               animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
                               exit={{ opacity: 0, scale: 0.97, filter: 'blur(6px)' }}
@@ -1263,8 +1304,8 @@ label="./view-projects"
                               <span style={{ transform: 'scale(0.85) translateY(-6px)', transformOrigin: 'center' }} className="inline-block">
                                 <BlueprintPillButton label="VIEW_MY_WORK" onClick={(e) => { e.stopPropagation(); navigate('/projects'); }} />
                               </span>
-                              <div className="w-12" />
-                              <span className="-ml-20 inline-block" style={{ transform: 'scale(0.85) translateY(-6px)', transformOrigin: 'center' }}>
+                              <div className="w-0 lg:w-12" />
+                              <span className="lg:-ml-20 inline-block" style={{ transform: 'scale(0.85) translateY(-6px)', transformOrigin: 'center' }}>
                                 <BlueprintPillButton label="RESUME" onClick={handleResumeDownload} heightOnRight hoverIcon={<Download />} />
                               </span>
                             </motion.div>
@@ -1306,7 +1347,7 @@ label="./view-projects"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-              className="relative z-60 flex justify-end mt-4 md:mt-[7mm]"
+              className="relative z-60 flex justify-end mt-4 lg:mt-[7mm]"
             >
               <div
                 ref={groupRef}
@@ -1318,7 +1359,7 @@ label="./view-projects"
                 onBlur={letOrbitRun}
               >
                 <div
-                  className={"about-photo-card relative min-h-100 " + (!showBlueprint && !showMatrix && !showDesign && !showTest ? 'rounded-2xl p-2 bg-white shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5),0_18px_36px_-18px_rgba(0,0,0,0.4)]' : '')}
+                  className={"about-photo-card relative min-h-[220px] sm:min-h-[280px] lg:min-h-100 " + (!showBlueprint && !showMatrix && !showDesign && !showTest ? 'rounded-2xl p-2 bg-white shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5),0_18px_36px_-18px_rgba(0,0,0,0.4)]' : '')}
                   style={{
                     perspective: '1000px',
                     transition: 'box-shadow 0.7s cubic-bezier(0.22, 1, 0.36, 1)',
@@ -1331,7 +1372,7 @@ label="./view-projects"
                   }}
                   >
                     <div
-                      className={"relative overflow-hidden min-h-100 rounded-xl transition-colors duration-500 ease-out"}
+                      className={"relative overflow-hidden min-h-[220px] sm:min-h-[280px] lg:min-h-100 rounded-xl transition-colors duration-500 ease-out"}
                     >
                   {(showBlueprint || showMatrix || showDesign || showTest) && (
                     <canvas
@@ -1343,7 +1384,7 @@ label="./view-projects"
                   <img
                     src="/media/about%20default.png"
                     alt="Mohammed Fawaz O"
-                    className="relative z-20 w-full h-full min-h-100 object-cover cursor-pointer"
+                    className="relative z-20 w-full h-full min-h-[220px] sm:min-h-[280px] lg:min-h-100 object-cover cursor-pointer"
                   />
                   <div
                     aria-hidden="true"
@@ -1550,74 +1591,98 @@ label="./view-projects"
 
       {/* Everything below the hero wears the hero's mode theme */}
       <div className={"about-body about-mode-" + pageMode}>
-      {/* Story + Quick Info */}
-      <section className="about-section about-section--main bg-[#F5F7F7] py-16 md:py-20">
+      {/* Left column is the two narrative blocks (About + Experience), right
+          column the two card groups (Quick Info + Skills), so the page reads
+          as one column of prose beside one column of reference. */}
+      <section className="about-section about-section--main bg-[#F5F5DC] py-16 md:py-20">
         <Container size="lg" className="px-8!">
-          <div className="grid md:grid-cols-2 gap-12 mb-20">
+          <div className="grid md:grid-cols-2 items-start gap-12 mb-20">
+            <div>
             <motion.div custom={0.1} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-              <h3 className="about-body-title text-[20px] font-medium text-[#0A3332] mb-5 font-(family-name:--font-display)">My Story</h3>
-              <div className="about-body-copy space-y-4 text-[#405354] leading-[1.85] text-[16px]">
+              <h3 className="about-body-title text-[20px] font-medium text-black mb-5 font-(family-name:--font-display)">A Little About Me</h3>
+              <div className="about-body-copy space-y-4 text-[#323232] leading-[1.85] text-[16px]">
                 <p>
-                  I started my programming journey with Python because I enjoyed solving logical problems. There was something satisfying about writing code that actually did something useful.
+                  I'm someone who enjoys figuring things out, asking questions, and understanding how things work. I like the feeling of turning a confusing problem into something simple and useful, and I'm usually more interested in understanding <em>why</em> something works than just knowing that it does.
                 </p>
                 <p>
-                  As I learned web development, I became interested in building complete applications instead of just websites. I wanted to understand how things worked end-to-end : from the database to the user interface.
+                  That curiosity is what drew me to programming. What started with Python gradually became an interest in building complete applications and seeing an idea take shape into something people can actually use.
                 </p>
                 <p>
-                  I focused on Django because it forced me to learn backend architecture properly. Authentication, APIs, databases, deployment : I wanted to understand all of it, not just one piece.
+                  I'm still learning, experimenting, and finding better ways to approach problems. I don't expect to know everything, but I value being willing to learn, taking the time to understand things properly, and improving with every challenge. I'd rather work through a problem and learn something meaningful than take a shortcut I don't understand.
                 </p>
                 <p>
-                  After becoming comfortable with Django, I started learning React to build modern frontend applications. Instead of following tutorials, I built this portfolio entirely with Django REST Framework and React to understand how real full-stack applications work.
+                  Today, I build with Django and React, with a particular interest in creating practical, reliable applications. Beyond the technologies, I want my work to reflect how I approach things: with curiosity, patience, attention to detail, and a genuine desire to build something useful.
                 </p>
               </div>
             </motion.div>
 
+            <motion.div custom={0.15} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} className="mt-10">
+              <h3 className="about-body-title text-[20px] font-medium text-black mb-5 font-(family-name:--font-display)">Work Experience</h3>
+              <div className="about-body-copy space-y-4 text-[#323232] leading-[1.85] text-[16px]">
+                <p>
+                  Over the past year I've worked as a freelance web developer, building web applications for people who needed them built. It's the kind of work I've learned the most from, because every project arrives with its own problem, its own users, and its own definition of what finished actually means.
+                </p>
+                <p>
+                  The work runs end to end. Before anything is written there's a lot of understanding : what the client really needs, what the data has to hold, how the pieces fit together. Then the building, the testing, the deployment, and the quieter part afterwards where you maintain what you shipped. I've learned more from that whole cycle than from any single step of it.
+                </p>
+                <p>
+                  What I enjoy is the variety. No two projects ask the same question, and each one means understanding something I didn't know before. I also get to see a real person actually use the thing I helped make, which is a lot more satisfying than a project that only exists on my own machine.
+                </p>
+                <p>
+                  I'm still early in my career and honest about that. What I bring is a willingness to learn properly, patience with problems that don't have an obvious answer, and care about the details that decide whether software feels good to use or doesn't. Freelancing taught me to be that kind of developer, and I'd like to carry it into a full-time role.
+                </p>
+              </div>
+            </motion.div>
+            </div>
+
+            <div className="space-y-10">
             <motion.div custom={0.2} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-              <h3 className="about-body-title text-[20px] font-medium text-[#0A3332] mb-5 font-(family-name:--font-display)">Quick Info</h3>
+              <h3 className="about-body-title text-[20px] font-medium text-black mb-5 font-(family-name:--font-display)">Quick Info</h3>
               <div className="space-y-4">
                 {[
                   { label: 'Name', value: 'Mohammed Fawaz O' },
                   { label: 'Location', value: 'Dubai, UAE' },
                   { label: 'Education', value: 'Bachelor of Computer Applications (BCA)' },
-                  { label: 'Focus', value: 'Django, React, REST APIs, Production Applications' },
+                  { label: 'Experience', value: 'Freelance Web Developer, 1+ year' },
+                  { label: 'Languages', value: 'English, Malayalam, Tamil, Hindi' },
                 ].map((info) => (
-                  <Card key={info.label} variant="light" className="about-card-light p-5!">
-                    <p className="about-info-label text-[11px] text-[#718082] uppercase tracking-[0.18em] font-mono mb-1">{info.label}</p>
-                    <p className="about-info-value text-[#0A3332] font-medium">{info.value}</p>
+                  <Card key={info.label} variant="light" className="about-card-light ct-panel p-5!">
+                    <p className="about-info-label text-[11px] text-[#666] uppercase tracking-[0.18em] font-mono mb-1">{info.label}</p>
+                    <p className="about-info-value text-[#323232] font-medium">{info.value}</p>
                   </Card>
                 ))}
               </div>
             </motion.div>
-          </div>
 
-          {/* Skills */}
-          <div className="mb-20">
-            <SectionHeading tone="light" className="about-section-heading" eyebrow="Capabilities" title="Skills" subtitle="Technologies I work with across the stack." alignment="left" />
-            <StaggerChildren className="grid md:grid-cols-3 lg:grid-cols-5 gap-4">
-              {Object.entries(skills).map(([category, items]) => (
-                <StaggerItem key={category}>
-                  <Card variant="light" className="about-card-light p-6! h-full">
-                    <h4 className="about-skill-title text-[11px] font-medium text-[#236966] mb-4 uppercase tracking-[0.18em] font-mono">{category}</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {items.map((skill) => (
-                        <Badge key={skill} variant="light" className="about-badge">{skill}</Badge>
-                      ))}
-                    </div>
-                  </Card>
-                </StaggerItem>
-              ))}
-            </StaggerChildren>
+            <div>
+              <SectionHeading tone="beige" className="about-section-heading !mb-5" subtitleClassName="mt-5" title="Skills" subtitle="Technologies I work with across the stack." alignment="left" />
+              <StaggerChildren className="grid gap-4">
+                {Object.entries(skills).map(([category, items]) => (
+                  <StaggerItem key={category}>
+                    <Card variant="light" className="about-card-light ct-panel p-6! h-full">
+                      <h4 className="about-skill-title text-[11px] font-medium text-[#2d8cf0] mb-4 uppercase tracking-[0.18em] font-mono">{category}</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {items.map((skill) => (
+                          <SkillChip key={skill} name={skill} />
+                        ))}
+                      </div>
+                    </Card>
+                  </StaggerItem>
+                ))}
+              </StaggerChildren>
+            </div>
+            </div>
           </div>
 
           {/* Philosophy */}
           <div className="mb-4">
-            <SectionHeading tone="light" className="about-section-heading" eyebrow="Why Me" title="What I bring to the table" subtitle="Principles that shape how I build software." alignment="left" />
+            <SectionHeading tone="beige" className="about-section-heading !mb-5" subtitleClassName="mt-5" title="What I bring to the table" subtitle="Principles that shape how I build software." alignment="center" />
             <StaggerChildren className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               {philosophy.map((item, index) => (
                 <StaggerItem key={index}>
-                  <Card variant="teal" className="about-card-teal p-6! h-full">
-                    <h4 className="about-card-teal-title text-[18px] font-medium text-[#F5F7F7] mb-2 font-(family-name:--font-display)">{item.title}</h4>
-                    <p className="about-card-teal-text text-[#B8F2FA] text-[14px] leading-[1.7]">{item.description}</p>
+                  <Card variant="teal" className="about-card-teal ct-card p-6! h-full">
+                    <h4 className="about-card-teal-title text-[18px] font-medium text-black mb-2 font-(family-name:--font-display)">{item.title}</h4>
+                    <p className="about-card-teal-text text-[#323232] text-[14px] leading-[1.7]">{item.description}</p>
                   </Card>
                 </StaggerItem>
               ))}
@@ -1626,17 +1691,23 @@ label="./view-projects"
         </Container>
       </section>
 
-      {/* Mission : Teal feature band */}
-      <section className="about-section about-section--mission bg-[#0A3332] py-20 md:py-24">
+      {/* Mission : light-blue feature band, the same surface the contact form
+          card uses. Inset with rounded corners rather than full-bleed, and
+          the hard rule above it is gone.
+          Padding uses pt-/pb- on purpose: utilities.css redefines .py-20 and
+          .py-12 against --space-20 / --space-12, and variables.css only
+          defines --space-1..--space-8, so those two utilities are invalid and
+          resolve to zero. There is no .pt-* or .pb-* override to collide with. */}
+      <section className="about-section about-section--mission page-tail-fade bg-[#ADD8E6] rounded-t-none rounded-b-3xl pt-10 pb-10 md:pt-14 md:pb-14">
         <Container size="lg" className="px-8!">
           <div className="text-center max-w-3xl mx-auto">
-            <span className="about-mission-eyebrow text-[11px] font-mono text-[#6FE7FF] uppercase tracking-[0.3em] font-medium">
+            <span className="about-mission-eyebrow text-[11px] font-mono text-[#2d8cf0] uppercase tracking-[0.3em] font-medium">
               My Mission
             </span>
-            <h3 className="about-mission-title font-(family-name:--font-display) text-[34px] md:text-[44px] leading-[1.1] font-semibold text-[#F5F7F7] mt-4 mb-5">
+            <h3 className="about-mission-title font-(family-name:--font-display) text-[34px] md:text-[44px] leading-[1.1] font-semibold text-black mt-5 mb-5">
               Software that actually works.
             </h3>
-            <p className="about-mission-copy text-[#B8F2FA] text-[18px] font-light leading-[1.7]">
+            <p className="about-mission-copy text-[#323232] text-[18px] font-light leading-[1.7]">
               To build web applications that solve real problems for real users in real businesses. Not
               demo projects or tutorial clones : production-ready code that delivers.
             </p>

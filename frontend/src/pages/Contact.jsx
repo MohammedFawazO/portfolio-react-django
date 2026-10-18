@@ -36,7 +36,7 @@ function Contact() {
 
       {/* Page painted in the same palette as the form: beige surfaces, black
           hairlines and hard shadows, #2d8cf0 as the only accent. */}
-      <div className="relative min-h-screen overflow-hidden bg-[#F5F5DC] pb-24 pt-24 sm:pb-28 sm:pt-28 md:pb-40 md:pt-32">
+      <div className="page-tail-fade relative min-h-screen overflow-hidden bg-[#F5F5DC] pb-24 pt-24 sm:pb-28 sm:pt-28 md:pb-40 md:pt-32">
         {/* max-md override only: styles/utilities.css redefines .px-6 unlayered
             as var(--space-6) = 4rem, which outranks the sm:/lg: variants and
             leaves just 247px of content width on a 375px phone. Desktop keeps

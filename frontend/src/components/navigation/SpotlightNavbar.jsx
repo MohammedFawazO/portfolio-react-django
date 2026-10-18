@@ -41,8 +41,8 @@ const defaultItems = [
   { label: 'Home', href: '/' },
   { label: 'About', href: '/about' },
   { label: 'Projects', href: '/projects' },
-  { label: 'Contact', href: '/contact' },
   { label: 'Resume', href: '/resume' },
+  { label: 'Contact', href: '/contact' },
 ]
 
 // Routes are compared normalised (see navActive.js) so "/about/" or
@@ -117,7 +117,7 @@ export function MobileMenu({ items, activeIndex, onItemClick, variant = 'default
         aria-controls="mobile-menu-panel"
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          'hamburger liquid-glass !fixed top-10 right-5 z-[70] md:hidden w-11 h-11 rounded-full flex items-center justify-center cursor-pointer p-0',
+          'hamburger liquid-glass !fixed top-10 left-5 z-[70] md:hidden w-11 h-11 rounded-full flex items-center justify-center cursor-pointer p-0',
           open && 'is-open',
           isTest && '!bg-[#070204] !border !border-[#D2042D]'
         )}
@@ -137,9 +137,9 @@ export function MobileMenu({ items, activeIndex, onItemClick, variant = 'default
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.98 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            style={{ transformOrigin: 'top right' }}
+            style={{ transformOrigin: 'top left' }}
             className={cn(
-              'md:hidden !fixed top-[5.5rem] right-5 z-[70] w-56 rounded-2xl border backdrop-blur-xl p-2 shadow-2xl',
+              'md:hidden !fixed top-[5.5rem] left-5 z-[70] w-56 rounded-2xl border backdrop-blur-xl p-2 shadow-2xl',
               isTest
                 ? 'border-[#D2042D]/40 bg-[rgba(7,2,4,0.95)]'
                 : 'border-white/10 bg-[rgba(10,12,15,0.92)]'
@@ -502,10 +502,10 @@ const measure = () => {
                 onClick={() => handleItemClick(item, idx)}
                 className={cn(
                   'px-3 py-2 text-sm font-medium transition-colors duration-200 rounded-full',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--border-focus)]',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-nav-accent)]',
                   activeIndex === idx
-                    ? 'is-active text-[var(--color-primary-light)]'
-                    : 'text-[var(--text-secondary)] hover:text-[var(--color-primary-light)]'
+                    ? 'is-active text-[var(--color-nav-accent)]'
+                    : 'text-[var(--text-secondary)] hover:text-[var(--color-nav-accent)]'
                 )}
               >
                 {item.label}
@@ -521,7 +521,7 @@ const measure = () => {
             opacity: hoverX !== null ? 1 : 0,
             background: `radial-gradient(
               120px circle at var(--spotlight-x) 100%,
-              rgba(var(--color-primary-light-rgb), 0.15) 0%,
+              rgba(var(--color-nav-accent-rgb), 0.15) 0%,
               transparent 50%
             )`,
           }}
@@ -534,7 +534,7 @@ style={{
             opacity: 'var(--ambience-show, 0)',
             background: `radial-gradient(
               30px circle at var(--ambience-x) 0%,
-              rgba(var(--color-primary-light-rgb), 1) 0%,
+              rgba(var(--color-nav-accent-rgb), 1) 0%,
               transparent 100%
             )`,
           }}

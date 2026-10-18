@@ -114,6 +114,27 @@ body {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
+/* Beige routes (About, Contact, Resume). The glass furniture - the navbar pill
+   and the "Get Resume" CTA - is a dark-surface recipe: 5% white over black, so
+   it is only legible on a dark backdrop. Over the beige pages it just tints
+   them beige. Those routes get solid white with dark ink instead.
+   The :not() guard keeps each hero mode's own navbar/CTA theme winning, and this
+   block deliberately sits above the mode rules so it cannot outrank them. */
+html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .about-matrix-nav, .about-test-nav) :is(.spotlight-nav, a[aria-label='Get Resume']) {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .about-matrix-nav, .about-test-nav) :is(.spotlight-nav, a[aria-label='Get Resume']) :is(a, .connect-btn-label) {
+  color: #323232;
+  transition: color 0.2s ease;
+}
+
+html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .about-matrix-nav, .about-test-nav) :is(.spotlight-nav, a[aria-label='Get Resume']) :is(a, .connect-btn-label):is(:hover, .is-active) {
+  color: var(--color-nav-accent, #2d8cf0);
+}
+
 @keyframes moveBackground {
   from {
     background-position: 0% 0%;
@@ -215,7 +236,10 @@ body {
   --orbit-dip-h: 3.4rem;
 }
 
-@media (min-width: 768px) {
+/* Desktop-only nudge. 1024px, not 768px: the hero drops to a single column
+   below lg, and the section now carries matching bottom padding so the 22px
+   shift is not clipped on phones and tablets. */
+@media (min-width: 1024px) {
   .about-photo-group {
     transform: translateY(30px);
   }
@@ -309,11 +333,18 @@ body {
    About page : everything below the hero inherits the hero's mode
    The hero itself is untouched - these rules only restyle .about-body.
    ========================================================================== */
+/* Default wears the site palette the contact + résumé pages use: beige
+   surfaces, black hairlines and hard shadows, #2d8cf0 as the only accent.
+   The hero sits outside this wrapper, so it keeps its own light look.
+   The wrapper paints nothing: both of its sections already carry their own
+   background, and leaving this transparent is what lets the mission band's
+   faded bottom edge reveal the fixed video behind the page. The four mode
+   blocks below still set this background, so nothing changes for them. */
 .about-body {
   position: relative;
   isolation: isolate;
-  background: #f5f7f7;
-  color: #405354;
+  background-color: transparent;
+  color: #323232;
   transition:
     background-color 0.7s ease,
     color 0.7s ease;
@@ -337,6 +368,158 @@ body {
 .about-body .about-section-heading h2 { transition: color 0.6s ease; }
 .about-body .about-section-heading > p { transition: color 0.6s ease; }
 .about-body .about-section-heading > div > span:nth-child(2) { transition: color 0.6s ease; }
+
+/* One size for every heading below the hero. The block has two heading
+   families that had drifted apart - the hand-written h3s (about-body-title)
+   were 20px, SectionHeading's h2 34/48px. Both now share the original 20px so
+   nothing in the body jumps size. A single rule scoped to .about-body, so
+   SectionHeading itself is untouched - Resume and Projects share it.
+   The mission band's title is deliberately excluded: it is a display line in
+   its own feature band and keeps its own 34/44px scale. */
+.about-body :is(.about-body-title, .about-section-heading h2) {
+  font-size: 20px;
+  line-height: 1.3;
+  letter-spacing: normal;
+  font-weight: 600;
+}
+
+/* Skill chips swap their label for the matching Home-hero marquee icon on
+   hover, and the chip itself shrinks to icon size while it happens.
+   Label and icon share one grid cell, so the chip is always exactly as wide
+   as its widest child - there is no second box to resize out of step.
+   The label collapses via max-width rather than width, because width cannot be
+   transitioned from its intrinsic `auto` size; the cap sits far above the
+   longest label so it never clips anything at rest. The icon is held at
+   opacity 0 rather than display:none so its transition can actually run. */
+.skill-swap {
+  display: inline-grid;
+  place-items: center;
+}
+.skill-swap > * {
+  grid-area: 1 / 1;
+}
+.skill-swap-label {
+  max-width: 20rem;
+  overflow: hidden;
+  white-space: nowrap;
+  transition:
+    max-width 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.07s,
+    opacity 0.24s ease 0.05s,
+    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.05s,
+    filter 0.3s ease 0.05s;
+}
+.skill-swap-icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.3) rotate(-35deg);
+  transition:
+    opacity 0.22s ease 0.07s,
+    transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) 0.07s;
+}
+.skill-swap-icon--inline {
+  display: grid;
+  place-items: center;
+}
+.skill-swap-icon--inline svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+.skill-swap:hover .skill-swap-label,
+.skill-swap:focus-visible .skill-swap-label {
+  max-width: 0;
+  opacity: 0;
+  filter: blur(4px);
+  transform: scale(0.75);
+}
+.skill-swap:hover .skill-swap-icon,
+.skill-swap:focus-visible .skill-swap-icon {
+  opacity: 1;
+  transform: scale(1) rotate(0deg);
+}
+
+/* Colour flipping. The white glyphs are invisible on the light beige badges,
+   so they invert there; on the three dark hero modes the badges go dark and
+   the inversion has to come off again, while GitHub's near-black mark needs
+   the opposite treatment. */
+.skill-swap-icon--flip {
+  filter: invert(1);
+}
+:is(.about-mode-blueprint, .about-mode-matrix, .about-mode-test) .skill-swap-icon--flip {
+  filter: none;
+}
+:is(.about-mode-blueprint, .about-mode-matrix, .about-mode-test) .skill-swap-icon[data-icon='GitHub'] {
+  filter: invert(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skill-swap-label,
+  .skill-swap-icon {
+    transition: none;
+  }
+  .skill-swap-icon {
+    transform: none;
+  }
+  .skill-swap:hover .skill-swap-label {
+    max-width: 0;
+  }
+}
+
+
+/* ==========================================================================
+   PAGE-TAIL FADE
+   Every route's last block gets .page-tail-fade, which masks its own bottom
+   edge so it dissolves instead of ending on a hard horizontal line into the
+   fixed footer video. The black it dissolves into is supplied once, by
+   <main>'s underlay, rather than per page - so the treatment is identical
+   everywhere and cannot be clipped by a page's own overflow-hidden.
+
+   Both windows start at the same offset measured from the bottom of the page
+   (40px mobile / 56px desktop). That shared origin is what locks the two
+   gradients together: the block uncovers solid black exactly as its own mask
+   reaches zero, and the black then dissolves back into the footage further
+   down. The window is sized to sit inside the bottom padding of the blocks
+   it is applied to, so it never eats the last line of copy.
+   ========================================================================== */
+.page-shell::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% - 56px);
+  height: 316px;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    var(--bg-primary) 0,
+    var(--bg-primary) 56px,
+    transparent 316px
+  );
+}
+.page-tail-fade {
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 56px), transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 56px), transparent 100%);
+}
+@media (max-width: 767px) {
+  .page-shell::before {
+    top: calc(100% - 40px);
+    height: 220px;
+    background: linear-gradient(
+      to bottom,
+      var(--bg-primary) 0,
+      var(--bg-primary) 40px,
+      transparent 220px
+    );
+  }
+  .page-tail-fade {
+    -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 40px), transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 calc(100% - 40px), transparent 100%);
+  }
+}
 
 /* --- BLUEPRINT ------------------------------------------------------------ */
 .about-mode-blueprint {
@@ -1819,7 +2002,7 @@ html.project-detail-open #projects-grid {
    fires for links/buttons. Plain panels (contact fact rows, skill, certificate
    and project cards) stay put on hover. */
 .ct-panel:is(a, button, [role='button']):hover {
-  border-color: #2d8cf0;
+  border-color: var(--color-nav-accent, #2d8cf0);
 }
 
 .ct-chip {
@@ -1833,8 +2016,8 @@ html.project-detail-open #projects-grid {
 }
 
 .ct-chip:hover {
-  border-color: #2d8cf0;
-  color: #1b5c96;
+  border-color: var(--color-nav-accent, #2d8cf0);
+  color: var(--color-nav-accent-hover, #1b5c96);
   transform: translate(1px, 1px);
   box-shadow: 3px 3px black;
 }
@@ -1869,13 +2052,13 @@ html.project-detail-open #projects-grid {
 }
 
 .ct-tag:hover {
-  border-color: #2d8cf0;
+  border-color: var(--color-nav-accent, #2d8cf0);
   box-shadow: 2px 2px black;
   transform: translate(1px, 1px);
 }
 
 .ct-form {
-  --input-focus: #2d8cf0;
+  --input-focus: var(--color-nav-accent, #2d8cf0);
   --font-color: #323232;
   --font-color-sub: #666;
   --bg-color: beige;
@@ -1993,7 +2176,7 @@ select.ct-input option {
 }
 
 .ct-status--ok {
-  border-color: #2d8cf0;
+  border-color: var(--color-nav-accent, #2d8cf0);
   background: rgba(45, 140, 240, 0.1);
   color: #17456f;
 }
@@ -3016,12 +3199,10 @@ select.ct-input option {
 .milestone-cta {
   position: relative;
   z-index: 10;
-  /* Intentional reserved space, NOT leftover padding. A further section is
-     planned here between the milestones and this CTA, so the gap is sized to
-     read as an empty slot rather than excessive spacing - it makes the page
-     feel longer and gives the upcoming section somewhere to land. Do not
-     "tighten" this without the section being built. */
-  margin-top: 400px;
+  /* The 400px reserved gap above this card is gone. It was held open for a
+     further section that was never built between the milestones and the CTA,
+     so it only read as dead space. The card's own padding:140px 0 carries the
+     breathing room now. Reinstate a margin here if that section lands. */
 
   /* Full-bleed card: this is now a direct child of #projects-grid, so the
      background spans the whole section with no viewport-width maths. Horizontal
@@ -3063,6 +3244,11 @@ select.ct-input option {
   inset: 0;
   background: linear-gradient(180deg, rgba(7, 12, 15, 0.62) 0%, rgba(7, 12, 15, 0.78) 100%);
   z-index: -1;
+}
+
+/* Projects only: collapse the 100vh layout offset caused by #projects-grid translateY(-vh) */
+html.route-projects #projects-grid {
+  margin-bottom: -100vh;
 }
 
 /* Projects only: tighten the gap above the footer.

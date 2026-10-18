@@ -4,7 +4,7 @@ import Container from '../ui/Container'
 
 function Contact() {
   return (
-    <section id="home-contact" className="relative py-[7rem] md:py-[9rem] bg-white overflow-hidden">
+    <section id="home-contact" className="page-tail-fade relative py-[7rem] md:py-[9rem] bg-white overflow-hidden">
       {/* Teal → dark gradient wash */}
       <div
         className="absolute inset-0 pointer-events-none"

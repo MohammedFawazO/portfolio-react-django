@@ -242,8 +242,8 @@ export function RedGlitchHeading({
   }, [text, interval, pool.length])
 
   const TEXT =
-    'leading-[1.05] font-semibold tracking-tight uppercase whitespace-nowrap ' +
-    'text-[32px] sm:text-[46px] md:text-[60px] ' +
+    'leading-[1.05] font-semibold tracking-tight uppercase lg:whitespace-nowrap ' +
+    'text-[22px] sm:text-[30px] lg:text-[60px] ' +
     className
 
   const fontStyle = {
