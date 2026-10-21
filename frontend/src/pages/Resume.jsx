@@ -333,6 +333,27 @@ const cvDocuments = [
         { label: 'Open in tab', href: '/media/cv/python-fullstack-developer-ats.pdf', tone: 'light', icon: 'globe', variant: 'console', download: false },
       ],
     },
+  {
+      id: 'data-entry',
+      title: 'Data Entry Specialist',
+      author: 'Operations CV',
+      year: '2026',
+      stars: 4,
+      metaLabel: 'No photo, ATS-safe',
+      badge: 'Operations · fast and accurate',
+      hasPhoto: false,
+      sections: ['Profile', 'Experience', 'Key Skills', 'Education', 'Tools', 'Languages'],
+      desc: 'My resume aimed at data entry and administrative work: accurate record keeping, clean data handling, spreadsheet work and the kind of careful, repetitive attention that keeps a database trustworthy. Same single-column, text-only layout so it survives an ATS filter.',
+      backBg: '#1f3a2e',
+      backInk: '226,242,232',
+      spineBg: '#12251c',
+      spineInk: '#c8f0d8',
+      accent: '#1f3a2e',
+      actions: [
+        { label: 'Download PDF', href: '/media/cv/data-entry.pdf', tone: 'accent', icon: 'download', variant: 'console' },
+        { label: 'Open in tab', href: '/media/cv/data-entry.pdf', tone: 'light', icon: 'globe', variant: 'console', download: false },
+      ],
+    },
   ].map((cv) => ({
     ...cv,
     // the 3D index page lists this document's real sections instead of the
@@ -396,7 +417,7 @@ const cvDocuments = [
           </section>
 
           {/* Professional Summary */}
-          <Card variant="teal" className="ct-card !p-7 mb-12">
+          <Card variant="teal" className="ct-card p-7! mb-12">
             <h3 className="text-[11px] font-medium text-black uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] mb-4">Professional Summary</h3>
             <p className="text-[#323232] text-[16px] leading-[1.8]">
               Python Full Stack Developer with experience building production-ready web applications using Django,
@@ -412,7 +433,7 @@ const cvDocuments = [
             <StaggerChildren className="space-y-5">
               {experience.map((exp, index) => (
                 <StaggerItem key={index}>
-                  <Card variant="light" className="ct-panel !p-7">
+                  <Card variant="light" className="ct-panel p-7!">
                     <div className="flex flex-wrap justify-between items-start gap-2 mb-3">
                       <h4 className="text-[20px] font-semibold text-black font-[family-name:var(--font-display)]">{exp.title}</h4>
                       <span className="text-[12px] text-[#666] uppercase tracking-[0.14em] font-[family-name:var(--font-mono)]">{exp.period}</span>
@@ -439,7 +460,7 @@ const cvDocuments = [
             <StaggerChildren className="space-y-5">
               {education.map((edu, index) => (
                 <StaggerItem key={index}>
-                  <Card variant="light" className="ct-panel !p-7">
+                  <Card variant="light" className="ct-panel p-7!">
                     <div className="flex flex-wrap justify-between items-start gap-2 mb-2">
                       <h4 className="text-[20px] font-semibold text-black font-[family-name:var(--font-display)]">{edu.degree}</h4>
                       <span className="text-[12px] text-[#666] uppercase tracking-[0.14em] font-[family-name:var(--font-mono)]">{edu.period}</span>
@@ -457,7 +478,7 @@ const cvDocuments = [
             <StaggerChildren className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               {Object.entries(skills).map(([category, items]) => (
                 <StaggerItem key={category}>
-                  <Card variant="light" className="ct-panel !p-6 h-full">
+                  <Card variant="light" className="ct-panel p-6! h-full">
                     <h4 className="text-[11px] font-medium text-[#2d8cf0] mb-4 uppercase tracking-[0.18em] font-[family-name:var(--font-mono)]">{category}</h4>
                     <div className="flex flex-wrap gap-2">
                       {items.map((skill) => (

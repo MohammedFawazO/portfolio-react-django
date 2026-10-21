@@ -720,7 +720,7 @@ function Projects() {
                      <div className="h-7 flex items-center justify-center">
                        <CountUp target={stat.value} active={countStarted} suffix={stat.suffix} delay={i * 0.15} />
                      </div>
-                     <span className="text-[10px] text-[rgba(255,255,255,.55)] font-mono uppercase tracking-[0.15em] leading-tight text-center min-h-[26px]">
+                     <span className="text-[10px] text-[rgba(255,255,255,.55)] font-mono uppercase tracking-[0.15em] leading-tight text-center min-h-6.5">
                        {stat.label}
                      </span>
                    </div>

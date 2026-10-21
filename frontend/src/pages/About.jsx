@@ -840,7 +840,7 @@ function About() {
         {showTest && <TestErrorPopups />}
         <Container size="lg" className="px-4! sm:px-6! lg:px-8!">
           <div className="grid gap-5 lg:grid-cols-2 lg:gap-16 items-center">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} className={"relative z-70 pt-20 md:pt-0 transition-[padding,margin] duration-700 ease-out" + (showMatrix || showBlueprint ? " pl-4 lg:pl-12" : "") + (showBlueprint ? " mt-8 lg:mt-16" : "")}>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} className={"relative z-70 pt-20 md:pt-0 max-lg:text-center transition-[padding,margin] duration-700 ease-out" + (showMatrix || showBlueprint ? " lg:pl-12 max-lg:px-4" : "") + (showBlueprint ? " mt-8 lg:mt-16" : "")}>
               {designModeActive && (
                 <div className="absolute left-1 top-0 -translate-y-full z-80 flex items-center pointer-events-none">
                   <TypingLoader />
@@ -1016,14 +1016,14 @@ function About() {
                   />
                 </div>
               ) : (
-                <h1 className={"font-(family-name:--font-display) leading-[1.02] font-semibold tracking-tight uppercase lg:whitespace-nowrap transition-[color,font-size,letter-spacing,opacity] duration-700 ease-out " + (showMatrix ? "text-[20px] sm:text-[26px] lg:text-[66px] text-white blueprint-hero-type hero-heading" : showBlueprint ? "text-[17px] sm:text-[22px] lg:text-[48px] text-white blueprint-hero-type" : "text-[20px] sm:text-[26px] lg:text-[42px] text-[#001428]")}>
+                <h1 className={"font-(family-name:--font-display) leading-[1.02] font-semibold tracking-tight uppercase lg:whitespace-nowrap max-lg:text-balance transition-[color,font-size,letter-spacing,opacity] duration-700 ease-out " + (showMatrix ? "text-[27px] max-lg:sm:text-[36px] lg:text-[66px] text-white blueprint-hero-type hero-heading" : showBlueprint ? "text-[23px] max-lg:sm:text-[29px] lg:text-[48px] text-white blueprint-hero-type" : "text-[30px] max-lg:sm:text-[42px] lg:text-[42px] text-[#001428]")}>
                   Mohammed Fawaz O
                 </h1>
               )}
               {showTest ? (
                 <NeonRGBTextEffect
                   key={introReplayKey}
-                  className="font-light mt-2 leading-relaxed font-mono"
+                  className="font-light mt-2 max-w-xl leading-relaxed font-mono max-lg:mx-auto max-lg:mt-3 max-lg:text-pretty"
                 >
                   Python Full Stack Developer from{' '}
                   <span className="relative inline-block whitespace-nowrap">
@@ -1075,7 +1075,7 @@ function About() {
                   , building production-ready web applications with Django, React, and clean architecture.
                 </NeonRGBTextEffect>
               ) : (
-              <p key={introReplayKey} className={"text-[16px] lg:text-[20px] font-light mt-2 max-w-xl leading-relaxed transition-[color,font-size,margin,letter-spacing,opacity] duration-700 ease-out " + (showMatrix ? "text-white/80 blueprint-hero-type hero-description" : showBlueprint ? "text-white/80 blueprint-hero-type" : "text-[#323232]")}>
+              <p key={introReplayKey} className={"text-[16px] lg:text-[20px] font-light mt-2 max-w-xl leading-relaxed max-lg:mx-auto max-lg:mt-3 max-lg:text-pretty transition-[color,font-size,margin,letter-spacing,opacity] duration-700 ease-out " + (showMatrix ? "text-white/80 blueprint-hero-type hero-description" : showBlueprint ? "text-white/80 blueprint-hero-type" : "text-[#323232]")}>
                 {showBlueprint ? (<span className="inline-block border border-dashed border-[#00d2ff] px-2 py-0.5 text-[#00d2ff]">Python</span>) : showMatrix ? (<span className="keyword">Python</span>) : 'Python'} Full Stack Developer from{' '}
                 <span className="relative inline-block whitespace-nowrap">
                   Kerala, India
@@ -1229,13 +1229,13 @@ function About() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                className={"mt-5 transition-[margin] duration-700 ease-out" + (showMatrix || showBlueprint ? " -ml-4 lg:-ml-12" : "")}
+                className={"mt-5 transition-[margin] duration-700 ease-out max-lg:flex max-lg:justify-center max-lg:mt-5" + (showMatrix || showBlueprint ? " -ml-4 lg:-ml-12 max-lg:-mx-4" : "")}
               >
                 <AnimatePresence mode="wait">
                   {showDesign ? (
                     <motion.div
                       key="design"
-                      className="flex flex-wrap items-center gap-3 lg:gap-4 mt-4 lg:mt-6"
+                      className="flex flex-wrap items-center gap-3 lg:gap-4 mt-4 lg:mt-6 max-lg:justify-center"
                       initial={{ opacity: 0, scale: 1.45, filter: 'blur(8px)', x: -24 }}
                       animate={{ opacity: 1, scale: 1, filter: 'blur(0px)', x: 0 }}
                       exit={{ opacity: 0, scale: 0.65, filter: 'blur(10px)', x: 24 }}
@@ -1271,7 +1271,7 @@ key="default"
                           {showTest ? (
                             <motion.div
                               key="test"
-                              className="flex flex-wrap items-center gap-3 lg:gap-6"
+                              className="flex flex-wrap items-center gap-3 lg:gap-6 max-lg:justify-center"
                               initial={{ opacity: 0, scale: 0.97, filter: 'blur(6px)' }}
                               animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
                               exit={{ opacity: 0, scale: 0.97, filter: 'blur(6px)' }}
@@ -1295,7 +1295,7 @@ label="./view-projects"
                           ) : showBlueprint ? (
                             <motion.div
                               key="bp"
-                              className="flex flex-wrap items-center -mt-4 gap-3 lg:gap-0"
+                              className="flex flex-wrap items-center -mt-4 gap-3 lg:gap-0 max-lg:justify-center"
                               initial={{ opacity: 0, scale: 0.97, filter: 'blur(6px)' }}
                               animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
                               exit={{ opacity: 0, scale: 0.97, filter: 'blur(6px)' }}
@@ -1312,7 +1312,7 @@ label="./view-projects"
                           ) : (
                             <motion.div
                               key="def"
-                              className={"flex items-center justify-end gap-4" + (showMatrix ? " ml-12" : "")}
+                              className={"flex items-center justify-end gap-4 max-lg:flex-wrap max-lg:justify-center" + (showMatrix ? " ml-12 max-lg:mx-12 max-lg:ml-0" : "")}
                               initial={{ opacity: 0, scale: 0.97, filter: 'blur(6px)' }}
                               animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
                               exit={{ opacity: 0, scale: 0.97, filter: 'blur(6px)' }}
@@ -1347,11 +1347,11 @@ label="./view-projects"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-              className="relative z-60 flex justify-end mt-4 lg:mt-[7mm]"
+              className="relative z-60 flex justify-end mt-0 max-lg:-mx-4 lg:mt-[7mm]"
             >
               <div
                 ref={groupRef}
-                className={"about-photo-group group relative w-full max-w-[540px]" + (showBlueprint ? " bp-on" : "") + (anyModeOn ? " is-mode-on" : "")}
+                className={"about-photo-group group relative w-full max-w-135" + (showBlueprint ? " bp-on" : "") + (anyModeOn ? " is-mode-on" : "")}
                 onMouseMove={handleMove}
                 onMouseLeave={handleLeave}
                 onMouseEnter={holdOrbit}
@@ -1359,7 +1359,7 @@ label="./view-projects"
                 onBlur={letOrbitRun}
               >
                 <div
-                  className={"about-photo-card relative min-h-[220px] sm:min-h-[280px] lg:min-h-100 " + (!showBlueprint && !showMatrix && !showDesign && !showTest ? 'rounded-2xl p-2 bg-white shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5),0_18px_36px_-18px_rgba(0,0,0,0.4)]' : '')}
+                  className={"about-photo-card relative min-h-95 sm:min-h-105 lg:min-h-100 " + (!showBlueprint && !showMatrix && !showDesign && !showTest ? 'rounded-2xl p-2 bg-white shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5),0_18px_36px_-18px_rgba(0,0,0,0.4)]' : '')}
                   style={{
                     perspective: '1000px',
                     transition: 'box-shadow 0.7s cubic-bezier(0.22, 1, 0.36, 1)',
@@ -1372,7 +1372,7 @@ label="./view-projects"
                   }}
                   >
                     <div
-                      className={"relative overflow-hidden min-h-[220px] sm:min-h-[280px] lg:min-h-100 rounded-xl transition-colors duration-500 ease-out"}
+                      className={"relative overflow-hidden min-h-95 sm:min-h-105 lg:min-h-100 rounded-xl transition-colors duration-500 ease-out"}
                     >
                   {(showBlueprint || showMatrix || showDesign || showTest) && (
                     <canvas
@@ -1384,7 +1384,7 @@ label="./view-projects"
                   <img
                     src="/media/about%20default.png"
                     alt="Mohammed Fawaz O"
-                    className="relative z-20 w-full h-full min-h-[220px] sm:min-h-[280px] lg:min-h-100 object-cover cursor-pointer"
+                    className="relative z-20 w-full h-full min-h-95 sm:min-h-105 lg:min-h-100 object-cover cursor-pointer"
                   />
                   <div
                     aria-hidden="true"
@@ -1597,7 +1597,11 @@ label="./view-projects"
       <section className="about-section about-section--main bg-[#F5F5DC] py-16 md:py-20">
         <Container size="lg" className="px-8!">
           <div className="grid md:grid-cols-2 items-start gap-12 mb-20">
-            <div>
+            {/* Below md this is a single full-width column, so on large phones
+                and in landscape the prose would run to ~88 characters a line.
+                max-w-prose (65ch) caps the measure and centres it; from md up
+                the grid owns the width and the cap is dropped. */}
+            <div className="max-w-prose mx-auto order-2 md:order-1 md:max-w-none md:mx-0">
             <motion.div custom={0.1} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }}>
               <h3 className="about-body-title text-[20px] font-medium text-black mb-5 font-(family-name:--font-display)">A Little About Me</h3>
               <div className="about-body-copy space-y-4 text-[#323232] leading-[1.85] text-[16px]">
@@ -1635,7 +1639,7 @@ label="./view-projects"
             </motion.div>
             </div>
 
-            <div className="space-y-10">
+            <div className="space-y-10 order-1 md:order-2">
             <motion.div custom={0.2} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }}>
               <h3 className="about-body-title text-[20px] font-medium text-black mb-5 font-(family-name:--font-display)">Quick Info</h3>
               <div className="space-y-4">
@@ -1655,7 +1659,7 @@ label="./view-projects"
             </motion.div>
 
             <div>
-              <SectionHeading tone="beige" className="about-section-heading !mb-5" subtitleClassName="mt-5" title="Skills" subtitle="Technologies I work with across the stack." alignment="left" />
+              <SectionHeading tone="beige" className="about-section-heading mb-5!" subtitleClassName="mt-5" title="Skills" subtitle="Technologies I work with across the stack." alignment="left" />
               <StaggerChildren className="grid gap-4">
                 {Object.entries(skills).map(([category, items]) => (
                   <StaggerItem key={category}>
@@ -1676,7 +1680,7 @@ label="./view-projects"
 
           {/* Philosophy */}
           <div className="mb-4">
-            <SectionHeading tone="beige" className="about-section-heading !mb-5" subtitleClassName="mt-5" title="What I bring to the table" subtitle="Principles that shape how I build software." alignment="center" />
+            <SectionHeading tone="beige" className="about-section-heading mb-5!" subtitleClassName="mt-5" title="What I bring to the table" subtitle="Principles that shape how I build software." alignment="center" />
             <StaggerChildren className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               {philosophy.map((item, index) => (
                 <StaggerItem key={index}>

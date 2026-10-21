@@ -245,6 +245,21 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   }
 }
 
+/* Mobile-only: a shallower dip. Below lg the photo is full-bleed and sits in a
+   single narrow column, so the desktop window (5.25rem x 3.4rem) swallows a
+   large share of the ring and the button reads as vanishing for most of its
+   travel. Tightening it keeps the effect legible without touching desktop. */
+@media (max-width: 1023.98px) {
+  .about-photo-group {
+    --orbit-dip-w: 4.25rem;
+    --orbit-dip-h: 2.6rem;
+    /* The hero gutter is already cancelled at this width, so the group's own
+       padding is the only thing left holding the photo in. Trimming it hands
+       that space back to the card. Desktop keeps the full 1.75rem. */
+    padding: 0.875rem;
+  }
+}
+
 .about-photo-orbit {
   position: absolute;
   inset: 0;
@@ -385,30 +400,49 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
 
 /* Skill chips swap their label for the matching Home-hero marquee icon on
    hover, and the chip itself shrinks to icon size while it happens.
-   Label and icon share one grid cell, so the chip is always exactly as wide
-   as its widest child - there is no second box to resize out of step.
-   The label collapses via max-width rather than width, because width cannot be
-   transitioned from its intrinsic `auto` size; the cap sits far above the
-   longest label so it never clips anything at rest. The icon is held at
-   opacity 0 rather than display:none so its transition can actually run. */
+
+   The shrink is a grid-track animation, not a max-width one. max-width had to
+   be capped at 20rem so it sat above the longest label and never clipped at
+   rest - but that cap is far wider than any individual label (about 90px), so
+   for roughly the first 70% of the transition max-width was still above the
+   text and nothing moved at all. The label only snapped shut over the closing
+   frames, which is exactly the jumpy, glitchy read.
+
+   Animating the track from 1fr to 0fr collapses it proportionally instead:
+   1fr resolves to the label's own width rather than a fixed ceiling, so the
+   motion starts on frame one and is smooth the whole way. The icon is taken
+   out of flow and centred, so it stays put while the track closes under it and
+   the resting chip carries no dead space where the icon used to sit.
+
+   The chip still changes width, so siblings in the wrapping row still shift
+   and can briefly pass under a stationary cursor. That is inherent to the
+   reflow, not something the transition can tune away. */
 .skill-swap {
   display: inline-grid;
+  grid-template-columns: 1fr;
   place-items: center;
-}
-.skill-swap > * {
-  grid-area: 1 / 1;
+  position: relative;
+  transition: grid-template-columns 0.42s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .skill-swap-label {
-  max-width: 20rem;
+  grid-area: 1 / 1;
+  /* Grid items default to min-width:auto, which would refuse to shrink below
+     the text's intrinsic width and stall the track animation at zero. */
+  min-width: 0;
   overflow: hidden;
   white-space: nowrap;
   transition:
-    max-width 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.07s,
-    opacity 0.24s ease 0.05s,
-    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.05s,
-    filter 0.3s ease 0.05s;
+    opacity 0.24s ease 0.1s,
+    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.06s,
+    filter 0.3s ease 0.06s;
 }
 .skill-swap-icon {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  /* Centred with the individual translate property so it composes with the
+     scale/rotate below instead of fighting it. */
+  translate: -50% -50%;
   width: 18px;
   height: 18px;
   object-fit: contain;
@@ -416,8 +450,8 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   pointer-events: none;
   transform: scale(0.3) rotate(-35deg);
   transition:
-    opacity 0.22s ease 0.07s,
-    transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) 0.07s;
+    opacity 0.22s ease 0.12s,
+    transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) 0.12s;
 }
 .skill-swap-icon--inline {
   display: grid;
@@ -428,9 +462,12 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   height: 18px;
   display: block;
 }
+.skill-swap:hover,
+.skill-swap:focus-visible {
+  grid-template-columns: 0fr;
+}
 .skill-swap:hover .skill-swap-label,
 .skill-swap:focus-visible .skill-swap-label {
-  max-width: 0;
   opacity: 0;
   filter: blur(4px);
   transform: scale(0.75);
@@ -456,6 +493,9 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
 }
 
 @media (prefers-reduced-motion: reduce) {
+  /* The track is what collapses now, so it needs the transition suppressed and
+     the end state forced - the same job the old max-width override did. */
+  .skill-swap,
   .skill-swap-label,
   .skill-swap-icon {
     transition: none;
@@ -463,8 +503,9 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   .skill-swap-icon {
     transform: none;
   }
-  .skill-swap:hover .skill-swap-label {
-    max-width: 0;
+  .skill-swap:hover,
+  .skill-swap:focus-visible {
+    grid-template-columns: 0fr;
   }
 }
 
@@ -869,6 +910,8 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   );
   -webkit-mask: linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   pointer-events: none;
@@ -912,6 +955,8 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
     rgba(0, 0, 0, 0.34) 100%
   );
   -webkit-mask: linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
@@ -1050,24 +1095,24 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
 }
 
 @keyframes gridDrift {
-  '0%': { background-position: '0px 0px'; }
-  '100%': { background-position: '320px 320px'; }
+  0% { background-position: 0px 0px; }
+  100% { background-position: 320px 320px; }
 }
 
 @keyframes scanY {
-  '0%': { top: '0%'; }
-  '50%': { top: '100%'; }
-  '100%': { top: '0%'; }
+  0% { top: 0%; }
+  50% { top: 100%; }
+  100% { top: 0%; }
 }
 
 @keyframes gridMove {
-  '0%': { background-position: '0px 0px'; }
-  '100%': { background-position: '240px 240px'; }
+  0% { background-position: 0px 0px; }
+  100% { background-position: 240px 240px; }
 }
 
 @keyframes radarScan {
-  '0%, 100%': { top: '0%'; opacity: 0.2; }
-  '50%': { top: '100%'; opacity: 0.8; }
+  0%, 100% { top: 0%; opacity: 0.2; }
+  50% { top: 100%; opacity: 0.8; }
 }
 
 @layer utilities {
@@ -2081,13 +2126,16 @@ html.project-detail-open #projects-grid {
   color: var(--font-color-sub);
 }
 
+/* Fields sit on white rather than the page's beige so they read as inputs,
+   not as more page. Keeps the same black hairline and hard shadow, so only
+   the surface changed. */
 .ct-input {
   width: 100%;
   height: 40px;
   padding: 5px 10px;
   border: 2px solid var(--main-color);
   border-radius: 5px;
-  background-color: var(--bg-color);
+  background-color: #ffffff;
   box-shadow: 4px 4px var(--main-color);
   color: var(--font-color);
   font-size: 15px;
@@ -2128,9 +2176,9 @@ select.ct-input {
 }
 
 select.ct-input option {
-  background: beige;
+  background: #ffffff;
   color: #323232;
-}
+  }
 
 .ct-error {
   margin-top: 8px;
@@ -2139,11 +2187,15 @@ select.ct-input option {
   color: #a32020;
 }
 
+/* Restored to the original button treatment - beige fill, 2px black hairline,
+   4px hard shadow, 40px tall, 17px semibold - with the one change asked for:
+   the corners are fully rounded instead of 5px. Shape is what separates it
+   from .ct-input, since the two otherwise share every surface property. */
 .ct-btn {
   margin-top: 30px;
   height: 40px;
   border: 2px solid var(--main-color);
-  border-radius: 5px;
+  border-radius: 9999px;
   background-color: var(--bg-color);
   box-shadow: 4px 4px var(--main-color);
   color: var(--font-color);
@@ -2160,6 +2212,14 @@ select.ct-input option {
 .ct-btn:active:not(:disabled) {
   box-shadow: 0 0 0 var(--main-color);
   transform: translate(3px, 3px);
+}
+
+/* Not in the original, but the inputs have one and the button did not - kept
+   so the form is fully keyboard navigable. Delete if you want a byte-exact
+   revert. */
+.ct-btn:focus-visible {
+  outline: 2px solid var(--color-nav-accent, #2d8cf0);
+  outline-offset: 2px;
 }
 
 .ct-btn:disabled {

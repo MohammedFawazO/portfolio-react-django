@@ -152,9 +152,9 @@ function ContactForm() {
         {errors.message && <p className="ct-error">{errors.message}</p>}
       </div>
 
-      <button type="submit" disabled={loading} className="ct-btn">
-        {loading ? 'Sending…' : 'Send Message'}
-      </button>
+<button type="submit" disabled={loading} className="ct-btn">
+          {loading ? 'Sending…' : 'Send Message'}
+        </button>
 
       {/* explicit result state, announced to screen readers */}
       <div aria-live="polite" className={status ? '' : 'sr-only'}>

@@ -22,6 +22,20 @@ const fadeUp = {
 
 function Hero() {
   const [showConnect, setShowConnect] = useState(false)
+
+  // The hero's Resume button downloads the IT Software Support CV straight
+  // from the page rather than routing to /resume. Same synthetic-anchor trick
+  // ConnectButton.jsx and About.jsx use, so the browser treats it as a download
+  // instead of navigating.
+  const handleResumeDownload = () => {
+    const a = document.createElement('a')
+    a.href = '/media/cv/it-software-support.pdf'
+    a.download = 'Mohammed-Fawaz-O-IT-Software-Support-CV.pdf'
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+  }
+
   const { introDone } = useEntryIntro()
   const reveal = introDone
   const heroVideoRef = useRef(null)
@@ -316,7 +330,7 @@ function Hero() {
                   className="flex flex-wrap items-center gap-4"
                >
                 <Link to="/projects">
-                  <GenerateButton hue={150}>
+                  <GenerateButton hue={190}>
                     <span className="flex items-center gap-2 group/btn">
                       View Projects
                       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover/btn:translate-x-1.5 group-hover/btn:scale-110 transition-all duration-300">
@@ -326,7 +340,7 @@ function Hero() {
                   </GenerateButton>
                 </Link>
 
-                <Link to="/resume" className="resume-link">
+                <div className="resume-link">
                   <style>{`
                     @keyframes bounce-down {
                       0%, 100% { transform: translateY(0); }
@@ -338,7 +352,7 @@ function Hero() {
                       animation: bounce-down 0.6s ease-in-out;
                     }
                   `}</style>
-                  <GenerateButton hue={45}>
+                  <GenerateButton hue={190} onClick={handleResumeDownload}>
                     <span className="flex items-center gap-2">
                       Resume
                       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="resume-icon">
@@ -347,9 +361,9 @@ function Hero() {
                         <line x1="12" x2="12" y1="15" y2="3"/>
                       </svg>
                     </span>
-                  </GenerateButton>
-                 </Link>
-               </motion.div>
+</GenerateButton>
+                </div>
+              </motion.div>
               )}
              </div>
            </div>
@@ -441,7 +455,7 @@ function Hero() {
 
           <div className="flex flex-row items-center justify-center gap-4 mt-[2vh]">
             <Link to="/projects">
-              <GenerateButton hue={150}>
+              <GenerateButton hue={190}>
                 <span className="flex items-center gap-2 group/btn">
                   View Projects
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover/btn:translate-x-1.5 group-hover/btn:scale-110 transition-all duration-300">
@@ -450,18 +464,18 @@ function Hero() {
                 </span>
               </GenerateButton>
             </Link>
-            <Link to="/resume" className="resume-link">
-              <GenerateButton hue={45}>
+<div className="resume-link">
+              <GenerateButton hue={190} onClick={handleResumeDownload}>
                 <span className="flex items-center gap-2">
                   Resume
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="resume-icon">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <path d="M21 15v4a4 4 0 0 1-4 4H5a4 4 0 0 1-4-4v-4"/>
                     <polyline points="7 10 12 15 17 10"/>
                     <line x1="12" x2="12" y1="15" y2="3"/>
                   </svg>
                 </span>
               </GenerateButton>
-            </Link>
+            </div>
           </div>
         </motion.div>
         )}
