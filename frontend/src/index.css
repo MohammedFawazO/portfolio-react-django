@@ -162,6 +162,21 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   }
 }
 
+/* iconNudge with a rest beat: one up-down bounce, then hold still for the
+   remainder of the cycle before bouncing again. Used by the blueprint pill
+   button's hover icon so the download arrow doesn't hammer continuously. */
+@keyframes iconNudgePause {
+  0% {
+    transform: translateY(0);
+  }
+  31.25% {
+    transform: translateY(-4px);
+  }
+  62.5%, 100% {
+    transform: translateY(0);
+  }
+}
+
 @keyframes iconNudgeX {
   0%, 100% {
     transform: translateX(0);
@@ -309,6 +324,11 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   will-change: transform;
   transition:
     background-color 0.3s ease,
+    /* The blueprint toggle is the one that changes its rule and its glow on
+       hover, so both have to be transitionable here - this rule is unlayered
+       and therefore outranks any Tailwind transition utility on the element. */
+    border-color 0.3s ease,
+    box-shadow 0.3s ease,
     scale 0.3s ease,
     opacity 0.5s ease;
 
@@ -399,42 +419,55 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
 }
 
 /* Skill chips swap their label for the matching Home-hero marquee icon on
-   hover, and the chip itself shrinks to icon size while it happens.
+   hover. The chip KEEPS ITS WIDTH: the label fades out where it stands and
+   the icon takes the middle of the same box. Nothing in the wrapping row
+   moves, so a hover can never resize the chip or slide a neighbouring chip
+   under the cursor.
 
-   The shrink is a grid-track animation, not a max-width one. max-width had to
-   be capped at 20rem so it sat above the longest label and never clipped at
-   rest - but that cap is far wider than any individual label (about 90px), so
-   for roughly the first 70% of the transition max-width was still above the
-   text and nothing moved at all. The label only snapped shut over the closing
-   frames, which is exactly the jumpy, glitchy read.
+   The collapse is gone for that reason. The chip used to close its grid track
+   from 1fr to 0fr so it would shrink to icon size, which meant every hover
+   resized the chip and pulled the rest of the row along - the jumpy, glitchy
+   read. The track stays open now, so the width never changes and the only
+   motion left is the label and the icon crossing over each other.
 
-   Animating the track from 1fr to 0fr collapses it proportionally instead:
-   1fr resolves to the label's own width rather than a fixed ceiling, so the
-   motion starts on frame one and is smooth the whole way. The icon is taken
-   out of flow and centred, so it stays put while the track closes under it and
-   the resting chip carries no dead space where the icon used to sit.
+   The chip selectors are qualified with .ct-tag on purpose. The chip is also a
+   .ct-tag, and that rule carries a transition shorthand of its own and sits
+   later in the file - at the same specificity it won, so whatever transition
+   was declared here was silently replaced. Qualifying raises these above it.
+   The badge's own properties are folded into the shorthand so it keeps its
+   border, shadow and nudge.
 
-   The chip still changes width, so siblings in the wrapping row still shift
-   and can briefly pass under a stationary cursor. That is inherent to the
-   reflow, not something the transition can tune away. */
-.skill-swap {
+   The two directions are staggered on the way out. The label waits for the
+   icon to finish leaving before it starts coming back - the icon's fade takes
+   550ms and the label's return does not start until 600ms, so the text is
+   never revealed underneath an icon that is still there. The way in is
+   immediate in the other direction: the label goes at once and the icon
+   arrives over it.
+
+   The transition that runs is the one declared on the state the element is
+   moving TO, so the base rules carry the outward timing (the delayed return)
+   and the hover rules carry the inward one. */
+.ct-tag.skill-swap {
   display: inline-grid;
   grid-template-columns: 1fr;
   place-items: center;
   position: relative;
-  transition: grid-template-columns 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
 }
 .skill-swap-label {
   grid-area: 1 / 1;
   /* Grid items default to min-width:auto, which would refuse to shrink below
-     the text's intrinsic width and stall the track animation at zero. */
+     the text's intrinsic width and hold the chip open in a narrow row. */
   min-width: 0;
   overflow: hidden;
   white-space: nowrap;
   transition:
-    opacity 0.24s ease 0.1s,
-    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.06s,
-    filter 0.3s ease 0.06s;
+    opacity 0.3s ease 0.6s,
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.6s,
+    filter 0.3s ease 0.6s;
 }
 .skill-swap-icon {
   position: absolute;
@@ -450,8 +483,8 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   pointer-events: none;
   transform: scale(0.3) rotate(-35deg);
   transition:
-    opacity 0.22s ease 0.12s,
-    transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) 0.12s;
+    opacity 0.55s ease 0s,
+    transform 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) 0s;
 }
 .skill-swap-icon--inline {
   display: grid;
@@ -462,15 +495,15 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   height: 18px;
   display: block;
 }
-.skill-swap:hover,
-.skill-swap:focus-visible {
-  grid-template-columns: 0fr;
-}
 .skill-swap:hover .skill-swap-label,
 .skill-swap:focus-visible .skill-swap-label {
   opacity: 0;
   filter: blur(4px);
   transform: scale(0.75);
+  transition:
+    opacity 0.24s ease 0s,
+    transform 0.42s cubic-bezier(0.22, 1, 0.36, 1) 0s,
+    filter 0.28s ease 0s;
 }
 .skill-swap:hover .skill-swap-icon,
 .skill-swap:focus-visible .skill-swap-icon {
@@ -494,18 +527,26 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
 
 @media (prefers-reduced-motion: reduce) {
   /* The track is what collapses now, so it needs the transition suppressed and
-     the end state forced - the same job the old max-width override did. */
+     the end state forced - the same job the old max-width override did. The
+     hover rules carry their own transition, so they have to be suppressed as
+     well: otherwise the swap would still animate for anyone who asked for
+     reduced motion. */
   .skill-swap,
   .skill-swap-label,
-  .skill-swap-icon {
+  .skill-swap-icon,
+  .ct-tag.skill-swap,
+  .ct-tag.skill-swap:hover,
+  .ct-tag.skill-swap:focus-visible,
+  .skill-swap:hover .skill-swap-label,
+  .skill-swap:focus-visible .skill-swap-label,
+  .skill-swap:hover .skill-swap-icon,
+  .skill-swap:focus-visible .skill-swap-icon {
     transition: none;
   }
-  .skill-swap-icon {
+  .skill-swap-icon,
+  .skill-swap:hover .skill-swap-icon,
+  .skill-swap:focus-visible .skill-swap-icon {
     transform: none;
-  }
-  .skill-swap:hover,
-  .skill-swap:focus-visible {
-    grid-template-columns: 0fr;
   }
 }
 
@@ -718,25 +759,48 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
 
 /* --- TEST / DEBUG --------------------------------------------------------- */
 .about-mode-test {
-  background: #070204;
+  background-color: #070204;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      rgba(210, 4, 45, 0.055) 0 1px,
+      transparent 1px 28px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(210, 4, 45, 0.055) 0 1px,
+      transparent 1px 28px
+    );
   color: #ffd7dd;
   font-family: "Courier New", "Courier", monospace;
 }
 .about-mode-test .about-section--main {
-  background-color: #070204;
-  background-image: repeating-linear-gradient(
-    45deg,
-    rgba(210, 4, 45, 0.07) 0 14px,
-    transparent 14px 28px
-  );
+  background-color: transparent;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      rgba(210, 4, 45, 0.055) 0 1px,
+      transparent 1px 28px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(210, 4, 45, 0.055) 0 1px,
+      transparent 1px 28px
+    );
 }
 .about-mode-test .about-section--mission {
-  background-color: #12030a;
-  background-image: repeating-linear-gradient(
-    45deg,
-    rgba(210, 4, 45, 0.12) 0 14px,
-    transparent 14px 28px
-  );
+  background-color: rgba(18, 3, 10, 0.85);
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      rgba(210, 4, 45, 0.07) 0 1px,
+      transparent 1px 28px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(210, 4, 45, 0.07) 0 1px,
+      transparent 1px 28px
+    );
   border-top: 1px solid rgba(210, 4, 45, 0.5);
 }
 .about-mode-test .about-body-title,
@@ -1255,6 +1319,11 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   opacity: 1;
   transform: translateY(-2px);
 }
+/* Arrows stay baseline-centered in their [ ] (the -2px lift is for the
+   download icon only). */
+.matrix-mode .btn-matrix:hover .matrix-dl-icon--flat {
+  transform: none;
+}
 .matrix-mode .btn-matrix span {
   color: #00ff66;
 }
@@ -1548,47 +1617,54 @@ html.about-matrix-nav a[aria-label="Get Resume"]:hover {
   font-weight: bold;
 }
 /* On hover in matrix mode only, wrap the label and the icon in their own
-   [ ] brackets. Each wrap has its own before/after pseudo-elements so
-   they align with the text/icon they bracket. */
+   [ ] brackets. Absolute-positioned like the hero .matrix-btn-label /
+   .matrix-dl-wrap so the brackets blink in over the hover padding instead
+   of reflowing the text (the old width-transition version shoved the
+   label around on every hover = glitchy). */
 html.about-matrix-nav .connect-btn-label-wrap,
 html.about-matrix-nav .connect-btn-icon-wrap {
   position: relative;
   display: inline-flex;
   align-items: center;
+  white-space: nowrap;
+}
+html.about-matrix-nav .connect-btn:hover .connect-btn-label-wrap {
+  padding: 0 8px;
 }
 html.about-matrix-nav .connect-btn-icon-wrap {
   padding-block: 0.15rem;
+}
+html.about-matrix-nav .connect-btn:hover .connect-btn-icon-wrap {
+  padding: 0.15rem 8px;
 }
 html.about-matrix-nav .connect-btn-label-wrap::before,
 html.about-matrix-nav .connect-btn-label-wrap::after,
 html.about-matrix-nav .connect-btn-icon-wrap::before,
 html.about-matrix-nav .connect-btn-icon-wrap::after {
-  display: inline-block;
-  width: 0;
-  overflow: hidden;
-  white-space: pre;
-  transition: width 0.2s ease;
-  vertical-align: middle;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #00ff66;
+  opacity: 0;
+  pointer-events: none;
+  letter-spacing: normal;
+  transition: opacity 0.16s steps(2, end);
 }
-html.about-matrix-nav .connect-btn:hover .connect-btn-label-wrap::before {
+html.about-matrix-nav .connect-btn-label-wrap::before,
+html.about-matrix-nav .connect-btn-icon-wrap::before {
   content: '[';
-  width: 1ch;
-  margin-right: 0.3ch;
+  left: 0;
 }
-html.about-matrix-nav .connect-btn:hover .connect-btn-label-wrap::after {
+html.about-matrix-nav .connect-btn-label-wrap::after,
+html.about-matrix-nav .connect-btn-icon-wrap::after {
   content: ']';
-  width: 1ch;
-  margin-left: 0.3ch;
+  right: 0;
 }
-html.about-matrix-nav .connect-btn:hover .connect-btn-icon-wrap::before {
-  content: '[';
-  width: 1ch;
-  margin-right: 0.3ch;
-}
+html.about-matrix-nav .connect-btn:hover .connect-btn-label-wrap::before,
+html.about-matrix-nav .connect-btn:hover .connect-btn-label-wrap::after,
+html.about-matrix-nav .connect-btn:hover .connect-btn-icon-wrap::before,
 html.about-matrix-nav .connect-btn:hover .connect-btn-icon-wrap::after {
-  content: ']';
-  width: 1ch;
-  margin-left: 0.3ch;
+  opacity: 1;
 }
 
 /* Default mode : up-and-down bounce on the download icon when hovering
@@ -1600,8 +1676,14 @@ html.about-matrix-nav .connect-btn:hover .connect-btn-icon-wrap::after {
 .connect-btn:hover .connect-chevron {
   animation: connect-chevron-bounce 0.8s ease-in-out infinite;
 }
+/* In matrix mode the chevron matches the hero .matrix-dl-icon hover:
+   one choppy translateY step, no bounce loop. */
+html.about-matrix-nav a[aria-label="Get Resume"] .connect-chevron {
+  transition: transform 0.16s steps(2, end);
+  animation: none !important;
+}
 html.about-matrix-nav a[aria-label="Get Resume"]:hover .connect-chevron {
-  animation: chevron-slide-choppy 0.32s steps(2, end) infinite !important;
+  transform: translateY(-2px);
 }
 
 /* =========================================================
@@ -2102,6 +2184,13 @@ html.project-detail-open #projects-grid {
   transform: translate(1px, 1px);
 }
 
+/* Skill pills: hover border follows the active about-mode accent instead of
+   the default nav blue, which read as a foreign colour on the dark themes. */
+.about-mode-blueprint .about-badge.ct-tag:hover { border-color: #00d2ff; }
+.about-mode-matrix .about-badge.ct-tag:hover { border-color: #00ff66; }
+.about-mode-test .about-badge.ct-tag:hover { border-color: #ff3b47; }
+.about-mode-design .about-badge.ct-tag:hover { border-color: #246bff; }
+
 .ct-form {
   --input-focus: var(--color-nav-accent, #2d8cf0);
   --font-color: #323232;
@@ -2330,6 +2419,15 @@ select.ct-input option {
               left 0.55s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* The snapshot doubles as a link to the live site (same target as the
+   console's LIVE button), but ONLY in project focus mode (a milestone is
+   selected): there the detail console is open and a click on the snapshot
+   should jump to the site. The base rule above keeps it click-through in
+   the default view, where clicking the podium selects the project instead. */
+.podium-item.is-selected .podium-snapshot-link .podium-object-back {
+  pointer-events: auto;
+}
+
 /* Placeholder shown on a podium when a milestone has no screenshot yet,
    so the slot never renders as a blank/broken image. */
 .podium-placeholder {
@@ -2517,6 +2615,16 @@ select.ct-input option {
 .podium-chevron--right {
   right: min(-4vw, -16px);
   transform: translateY(-50%);
+}
+
+/* Focus mode (selected milestone): chevrons sit further out for a wider
+   gap around the content. Default-mode chevrons keep the offset above.
+   Higher specificity than --left/--right so it wins regardless of order. */
+.podium-chevron--selected.podium-chevron--left {
+  left: min(-8vw, -32px);
+}
+.podium-chevron--selected.podium-chevron--right {
+  right: min(-8vw, -32px);
 }
 
 .podium-chevron svg {
@@ -3053,10 +3161,13 @@ select.ct-input option {
      box-shadow 0 0 18px rgba(0,255,102,.45)
      hover background #031a09, glow 0 0 30px rgba(0,255,102,.75), colour #a3ffb4
    Note the green is #00ff66 - the buttons' own ink - not the dimmer
-   #03a062 that About.jsx sets as --color-primary-light on the root. */
+   #03a062 that About.jsx sets as --color-primary-light on the root.
+   --wa-accent-hover is only read by the panel's Open in WhatsApp fill,
+   so it uses the dim #03a062 (the hero's secondary green) - #a3ffb4
+   read as washed-out mint under white text. */
 .wa-cta[data-about-mode='matrix'] {
   --wa-accent: #00ff66;
-  --wa-accent-hover: #a3ffb4;
+  --wa-accent-hover: #03a062;
   --wa-accent-soft: rgba(0, 255, 102, 0.14);
   --wa-glow: rgba(0, 255, 102, 0.45);
 }
@@ -3380,15 +3491,9 @@ html.route-projects .footer-shell {
   justify-content: flex-start;
 }
 
-/* Body sans instead of the console's Michroma. Michroma is a wide display face
-   whose uppercase + wide tracking pairing is deliberate; dropping it for a text
-   face also means easing the tracking off, otherwise the same 0.12em looks
-   loose on a proportional sans. Scoped to the CTA - the project console keeps
-   Michroma, which suits its denser label/value pairing. */
-.milestone-cta-actions .console-btn {
-  font-family: var(--font-sans);
-  letter-spacing: 0.06em;
-}
+/* Identical to every other .console-btn on the site (project console, resume,
+   books showcase): Michroma, uppercase, 0.12em tracking. No overrides here -
+   the buttons should read as the same component everywhere. */
 
 /* Right-pointing arrow, revealed on hover by growing from zero width. Collapsing
    width rather than just fading keeps the label from shifting sideways as the

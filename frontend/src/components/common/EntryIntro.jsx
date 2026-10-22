@@ -16,10 +16,16 @@ const WHEEL_COOLDOWN = 16
 const GESTURE_END_MS = 250
 const TOUCH_CLICK_GUARD_MS = 700
 const TOUCH_SWIPE_FACTOR = 1.1
-const CLICK_PX = 120
+const TOUCH_TAP_SLOP = 40
 const MOBILE_BREAKPOINT = 768
 const DESKTOP_INTRO_SRC = '/media/entry-intro.mp4'
 const MOBILE_INTRO_SRC = '/media/mobile%20intro%20.mp4'
+// Temporary switch: the zoom into the scene is off on a phone while the
+// mobile overlays are sized by hand. Set it back to false when they are right.
+const MOBILE_ZOOM_OFF = false
+// Temporary switch: the touch scroll lock. It is on by default and only the
+// scroll driven zoom above is held back on a phone.
+const SCROLL_LOCK_OFF = false
 
 export default function EntryIntro() {
   const { markDone } = useEntryIntro()
@@ -71,6 +77,10 @@ export default function EntryIntro() {
   useEffect(() => {
     if (!isHome) {
       markDone()
+      // Leaving the home route mid-intro must take the overlay down with it.
+      // `show` is only ever initialised once, so without this the full-screen
+      // black intro stays parked over the whole site.
+      setShow(false)
     }
   }, [isHome, markDone])
 
@@ -102,7 +112,15 @@ export default function EntryIntro() {
       intentRef.current?.(dy)
     }
     window.addEventListener('wheel', onWheel, { passive: false })
-    const preventScroll = (e) => e.preventDefault()
+    // The touch scroll lock. It keeps one finger from dragging the page under
+    // the overlay, but it lets a two finger gesture through so the pinch zoom
+    // on a phone still works - the overlay's touch-action already makes the
+    // browser refuse the pan on its own.
+    const preventScroll = (e) => {
+      if (SCROLL_LOCK_OFF) return
+      if (e.touches.length > 1) return
+      e.preventDefault()
+    }
     window.addEventListener('touchmove', preventScroll, { passive: false })
     return () => {
       if (!finishedRef.current) unlockScroll()
@@ -116,6 +134,13 @@ export default function EntryIntro() {
     const el = sceneRef.current
     if (!el) return
     el.style.transformOrigin = originRef.current
+    // Temporary: the zoom into the scene is switched off on a phone so the
+    // mobile overlays can be sized by hand - zoom the page and read the
+    // numbers off. Everything else still runs; only the scale is held at 1.
+    if (isMobile && MOBILE_ZOOM_OFF) {
+      el.style.transform = 'scale(1)'
+      return
+    }
     el.style.transform = `scale(${1 + p * spanRef.current})`
   }
 
@@ -254,35 +279,45 @@ export default function EntryIntro() {
   })
 
   // The white hint vanished into the bright floor of both clips, so it now
-  // wears the site accent on every viewport. On a phone the gesture is a
-  // swipe, not a scroll - a tap is swallowed by the touch/click guard - so the
-  // wording follows the gesture.
+  // wears the site's dark ink instead - black on a phone, #323232 on desktop,
+  // which is the colour the rest of the light furniture uses.
+  //
+  // The hint names the gesture that actually works at each step. A click or a
+  // tap only lifts the black panels over the screens - the zoom and the entry
+  // are driven by the scroll gesture on both platforms (a wheel on desktop, an
+  // upward swipe on a phone).
   const hintLabel = !revealed
     ? isMobile
-      ? 'Swipe up to reveal'
+      ? 'Tap or swipe up to reveal'
       : 'Click or scroll to reveal'
     : covered
       ? isMobile
         ? 'Swipe up again to enter'
         : 'Scroll again to enter'
       : isMobile
-        ? 'Swipe up to enter'
-        : 'Scroll to enter'
+        ? 'Swipe up to zoom in'
+        : 'Scroll to zoom in'
 
   return (
     <>
       {show && (
         <motion.div
           className="fixed inset-0 max-h-[100dvh] z-[100] bg-black cursor-pointer select-none"
-          style={{ pointerEvents: exiting ? 'none' : 'auto' }}
+          style={{
+            pointerEvents: exiting ? 'none' : 'auto',
+            // pinch-zoom, and nothing else: the browser refuses the one finger
+            // pan itself, so the script never has to cancel a touch and the
+            // pinch on a phone survives.
+            touchAction: 'pinch-zoom',
+          }}
           initial={{ opacity: 1 }}
           animate={{ opacity: exiting ? 0 : 1 }}
           transition={{ duration: exiting ? TRANSITION_S : 0, ease: TRANSITION_EASE }}
           onClick={() => {
             if (performance.now() - lastTouchAtRef.current < TOUCH_CLICK_GUARD_MS) return
-            if (!revealed) reveal()
-            else if (coveredRef.current) startTransition()
-            else advanceZoom(CLICK_PX)
+            // A click only lifts the black panels over the screens. The zoom
+            // and the entry belong to the scroll gesture, on both platforms.
+            reveal()
           }}
           onTouchStart={(e) => {
             lastTouchAtRef.current = performance.now()
@@ -292,8 +327,13 @@ export default function EntryIntro() {
             lastTouchAtRef.current = performance.now()
             if (touchStartY.current === null) return
             const deltaY = e.changedTouches[0].clientY - touchStartY.current
-            if (deltaY < -40) handleScrollIntent(deltaY * -TOUCH_SWIPE_FACTOR)
             touchStartY.current = null
+            if (deltaY < -TOUCH_TAP_SLOP) {
+              handleScrollIntent(deltaY * -TOUCH_SWIPE_FACTOR)
+            } else if (Math.abs(deltaY) < TOUCH_TAP_SLOP) {
+              // A tap is the phone's version of a click - it lifts the panels.
+              reveal()
+            }
           }}
         >
           <div
@@ -331,42 +371,57 @@ export default function EntryIntro() {
                 overlays sit over the two monitors of that composition. The
                 mobile clip is a portrait crop of the same room, so it carries its
                 own pair of overlays - the desktop ones would land on the wall
-                and the floor instead of the screens. */}
+                and the floor instead of the screens.
+
+                The boxes are shares of the frame, never pixels. The clip fills
+                the frame outright, so a percentage here is a percentage of the
+                picture and of the screen at the same time: the panels keep
+                their size relative to the screen whatever the window is, and
+                only the absolute size follows it. The mobile numbers were cut
+                against a 440 x 956 viewport and the desktop ones against a
+                laptop. */}
             <svg
-              className={`absolute pointer-events-none ${
+              className={`absolute pointer-events-none overflow-visible ${
                 isMobile
-                  ? 'bottom-[47.5%] left-[13%] w-[23%] h-[13%]'
-                  : 'bottom-[calc(55%_-_6.5rem)] left-[20.5%] w-44 h-40'
+                  ? 'top-[41.2%] left-[19.2%] w-[14.2%] h-[8.4%]'
+                  : 'top-[39.6%] left-[20.8%] w-[12%] h-[20.3%]'
               }`}
-              viewBox="0 0 176 160"
+              viewBox="0 0 100 100"
               preserveAspectRatio="none"
               style={{
                 transformOrigin: 'bottom center',
                 transform: `scaleY(${revealed ? 1 : 0})`,
                 opacity: revealed ? 1 : 0,
-                transition: 'transform 0.7s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.7s ease-out',
+                // Only the transform is transitioned. An opacity fade would run
+                // the panel at partial alpha while it grows, so a black cover
+                // reads as a grey wash over the bright room and the code
+                // behind it shows through.
+                transition: 'transform 0.7s cubic-bezier(0.16, 1, 0.3, 1)',
               }}
             >
+              {/* Both panels are trapezoids: the top edge stays level and in
+                  place while the bottom right corner rides up and the bottom
+                  left corner drops and shifts in, the way the screen sits in
+                  the clip. A rotation would have swung the top edge with it,
+                  so the shape is cut directly instead - the box overflows its
+                  viewBox, which is why the svg is allowed to overflow. */}
               <path
-                d="M14 32 L162 34 L162 136 L14 140 Z"
+                d={isMobile ? 'M12 0 H96 V100 L12 104 Z' : 'M3 0 H100 V96 L4 104 Z'}
                 fill="black"
-                stroke="black"
-                strokeWidth="10"
-                strokeLinejoin="round"
               />
             </svg>
             <div
               ref={rectRef}
               className={`absolute bg-black rounded-sm pointer-events-none ${
                 isMobile
-                  ? 'bottom-[48.5%] left-[33%] w-[34%] h-[11%]'
-                  : 'bottom-[43%] right-[38.3%] w-89 h-25.5'
+                  ? 'top-[41.2%] left-[35.5%] w-[26.2%] h-[7.2%]'
+                  : 'top-[39.7%] left-[35.6%] w-[26.5%] h-[17.9%]'
               }`}
               style={{
                 transformOrigin: 'bottom center',
                 transform: `scaleY(${revealed ? 1 : 0})`,
                 opacity: revealed ? 1 : 0,
-                transition: 'transform 0.7s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.7s ease-out',
+                transition: 'transform 0.7s cubic-bezier(0.16, 1, 0.3, 1)',
               }}
             />
           </div>

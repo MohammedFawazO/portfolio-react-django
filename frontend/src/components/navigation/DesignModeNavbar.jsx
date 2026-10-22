@@ -214,6 +214,47 @@ function DesignModeNavbar({
         }
 
         /*
+         * Non-active hover : a sketchy underline draws itself in,
+         * reusing the active line's hand-drawn treatment (same rotate /
+         * skew) but in charcoal so it never competes with the blue
+         * active state. Scales from the left like a pen stroke.
+         */
+        .design-nav-link:not(.design-nav-link-active)::after {
+          content: "";
+
+          position: absolute;
+
+          left: 14px;
+          right: 14px;
+          bottom: 6px;
+
+          height: 2px;
+
+          background: rgba(36, 36, 36, 0.55);
+          border-radius: 1px;
+
+          transform:
+            rotate(-0.8deg)
+            skewX(-8deg)
+            scaleX(0);
+
+          transform-origin: left center;
+
+          transition:
+            transform 240ms cubic-bezier(0.16, 1, 0.3, 1),
+            background-color 240ms ease;
+        }
+
+        .design-nav-link:not(.design-nav-link-active):hover::after {
+          transform:
+            rotate(-0.8deg)
+            skewX(-8deg)
+            scaleX(1);
+
+          background: rgba(36, 36, 36, 0.8);
+        }
+
+        /*
          * Active state is intentionally not a polished
          * pill / background state.
          */
@@ -365,6 +406,9 @@ function DesignModeNavbar({
           .design-nav-link {
             transition: none;
           }
+          .design-nav-link:not(.design-nav-link-active)::after {
+            transition: none;
+          }
         }
 
         /*
@@ -382,6 +426,11 @@ function DesignModeNavbar({
           }
 
           .design-active-line {
+            left: 7px;
+            right: 7px;
+          }
+
+          .design-nav-link:not(.design-nav-link-active)::after {
             left: 7px;
             right: 7px;
           }

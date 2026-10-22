@@ -148,8 +148,8 @@ export const BlueprintPillButton = ({
               {/* Centered Button Text String */}
               <span className="relative z-10 inline-flex items-center text-xs font-black tracking-widest text-[#00d2ff] group-hover:text-white transition-colors duration-150 drop-shadow-[0_0_2px_rgba(0,210,255,0.5)]">
                 {label}
-                {isHovered && hoverIcon && (
-                  <span className={"inline-flex items-center text-[#00d2ff] ml-2 transition-all duration-200 " + (isHovered ? "opacity-100 w-auto animate-[iconNudge_1s_ease-in-out_infinite]" : "opacity-0 w-0")}>
+                {hoverIcon && (
+                  <span className={"inline-flex items-center text-[#00d2ff] ml-2 transition-all duration-300 overflow-hidden " + (isHovered ? "opacity-100 w-[1.25rem] animate-[iconNudgePause_1.6s_ease-in-out_infinite]" : "opacity-0 w-0")}>
                     <span className="inline-flex [&_svg]:size-3.5">{hoverIcon}</span>
                   </span>
                 )}

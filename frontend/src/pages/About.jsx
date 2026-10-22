@@ -1,5 +1,6 @@
 import { Helmet } from 'react-helmet-async'
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import SectionHeading from '../components/ui/SectionHeading'
@@ -31,6 +32,45 @@ const fadeUp = {
 const ARROW_A = { main: 'M14 3C11 9 21 12 16 18C13 21 19 23 23 26', head: 'M18 19L23 26L16 25', w: 48, h: 44 }
 const ARROW_B = { main: 'M10 5C16 1 13 11 22 13C31 15 15 19 24 23C29 26 17 27 27 30', head: 'M22 24L27 30L19 29', w: 58, h: 52 }
 const ARROW_C = { main: 'M15 7C11 11 21 12 17 18C14 23 23 22 19 28', head: 'M15 23L19 28L13 27', w: 40, h: 38 }
+
+// The pill-button crosshair, but always on and covering the whole viewport.
+// Portaled to <body> so no ancestor stacking context or transform can bury it.
+// Lines are written straight to refs on mousemove (same as the buttons) so the
+// reticle sits exactly on the cursor tip. Fades out over anything the buttons,
+// pills and hero image would react to.
+function BlueprintCursorCrosshair() {
+  const wrapRef = useRef(null)
+  const hLineRef = useRef(null)
+  const vLineRef = useRef(null)
+  useEffect(() => {
+    let hidden = false
+    // Same method as BlueprintPillButton's crosshair: position is measured
+    // against the CONTAINER's own bounding rect (not raw client coords) and
+    // written straight onto the lines in the handler, so the intersection
+    // lands exactly on the cursor tip.
+    const onMove = (e) => {
+      const rect = wrapRef.current ? wrapRef.current.getBoundingClientRect() : { left: 0, top: 0 }
+      const x = e.clientX - rect.left
+      const y = e.clientY - rect.top
+      if (hLineRef.current) hLineRef.current.style.top = `${y}px`
+      if (vLineRef.current) vLineRef.current.style.left = `${x}px`
+      const over = !!e.target.closest && e.target.closest('a, button, [role="button"], img, svg, .ct-tag, .about-badge')
+      if (over !== hidden && wrapRef.current) {
+        hidden = over
+        wrapRef.current.style.opacity = over ? '0' : '1'
+      }
+    }
+    window.addEventListener('mousemove', onMove, { passive: true })
+    return () => window.removeEventListener('mousemove', onMove)
+  }, [])
+  return createPortal(
+    <div ref={wrapRef} style={{ position: 'fixed', inset: 0, zIndex: 9999, pointerEvents: 'none', opacity: 1, transition: 'opacity 0.2s ease' }}>
+      <div ref={hLineRef} style={{ position: 'absolute', left: 0, right: 0, height: '1px', background: 'rgba(0,210,255,0.5)', top: 0 }} />
+      <div ref={vLineRef} style={{ position: 'absolute', top: 0, bottom: 0, width: '1px', background: 'rgba(0,210,255,0.5)', left: 0 }} />
+    </div>,
+    document.body
+  )
+}
 
 function TypingLoader({ text = 'icons/illustrations loading...', className = '' }) {
   const [count, setCount] = useState(0)
@@ -382,6 +422,17 @@ function About() {
     else releaseOrbit()
   }, [showBlueprint, showMatrix, showDesign, showTest, parkOrbit, releaseOrbit])
 
+  const deactivateMode = useCallback(() => {
+    if (showBlueprint || showMatrix || showDesign || showTest) {
+      setShowBlueprint(false)
+      setShowMatrix(false)
+      setShowDesign(false)
+      setShowTest(false)
+      releaseOrbit()
+      stopInk()
+    }
+  }, [showBlueprint, showMatrix, showDesign, showTest, releaseOrbit])
+
   useEffect(() => {
     startOrbitLoop()
     return () => {
@@ -728,20 +779,10 @@ function About() {
 
 
       {/* Hero */}
+      {showBlueprint && <BlueprintCursorCrosshair />}
       <section
         id="about-hero-section"
-        onClick={() => {
-          // Clicking anywhere in the hero resets any active mode back to default
-          if (showBlueprint || showMatrix || showDesign || showTest) {
-            setShowBlueprint(false);
-            setShowMatrix(false);
-            setShowDesign(false);
-            setShowTest(false);
-            releaseOrbit();
-            trailRef.current = [];
-            if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
-          }
-        }}
+        onClick={deactivateMode}
         className={"relative pt-6 lg:pt-8 pb-7 lg:pb-0.5 overflow-hidden transition-colors duration-700 ease-out " + (showMatrix ? "bg-black matrix-mode" : showBlueprint ? "bg-[#001428]" : showTest ? "bg-[#070204]" : "bg-[#F5F5DC]")}>
         {/* Design-mode graph-paper grid covering the whole hero */}
         {showDesign && (
@@ -1319,7 +1360,14 @@ label="./view-projects"
                               transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
                             >
                               <MorphyButton onClick={(e) => { e.stopPropagation(); navigate('/projects'); }} className={showMatrix ? " btn-matrix" : ""} morphStyle="icon" morphDir="down-left" activeIcon={<ArrowRight />} blueprint={showBlueprint} disableMorph={showMatrix} nudgeAxis="x" hoverNarrow>
-                                {showMatrix ? <span className="matrix-btn-label">View My Work</span> : "View My Work"}
+                                {showMatrix ? (
+                                  <>
+                                    <span className="matrix-btn-label">View My Work</span>
+                                    <span className="matrix-dl-wrap">
+                                      <ArrowRight className="matrix-dl-icon matrix-dl-icon--flat" />
+                                    </span>
+                                  </>
+                                ) : "View My Work"}
                               </MorphyButton>
                               <MorphyButton onClick={handleResumeDownload} className={showMatrix ? " btn-matrix" : ""} morphStyle="icon" activeIcon={<Download />} morphDir="down-left" blueprint={showBlueprint} disableMorph={showMatrix} hoverNarrow>
                                 {showMatrix ? (
@@ -1333,7 +1381,7 @@ label="./view-projects"
                               </MorphyButton>
                             </motion.div>
                           )}
-                        </AnimatePresence>
+                      </AnimatePresence>
                       </motion.div>
                   )}
                 </AnimatePresence>
@@ -1405,18 +1453,50 @@ label="./view-projects"
                   onClick={(e) => { e.stopPropagation(); toggleMode('blueprint') }}
                   aria-label="Toggle blueprint"
                   aria-pressed={showBlueprint}
-                  className={"about-photo-btn about-photo-btn--blueprint w-11 h-11 rounded-full backdrop-blur-md bg-[#0041BA]/75 border border-white/50 text-[#F5F7F7] flex items-center justify-center shadow-[0_4px_14px_rgba(0,0,0,0.25)] hover:bg-[#0041BA] hover:scale-110" + (showBlueprint ? " is-active ring-2 ring-white scale-105" : "") + (showMatrix || showDesign || showTest ? " opacity-0 scale-50 pointer-events-none is-hidden" : "")}
+                  className={
+                    // Blueprint mode is cyan wireframe on transparent everywhere
+                    // else - the nav, the RESUME pill, the floating CTA - so this
+                    // toggle is drawn from the same sheet: the theme's own paper
+                    // colour and grid, a cyan rule, a dashed survey circle and
+                    // the corner crop marks of a drawing. No solid blue chip, no
+                    // white dot grid.
+                    'about-photo-btn about-photo-btn--blueprint w-11 h-11 rounded-full overflow-hidden ' +
+                    'flex items-center justify-center border border-[#00d2ff]/70 text-[#00d2ff] ' +
+                    // #001428 is the blueprint surface (.about-mode-blueprint),
+                    // with the same cyan grid the sections are drawn on.
+                    'bg-[#001428] backdrop-blur-md ' +
+                    'shadow-[0_0_15px_rgba(0,210,255,0.15)] ' +
+                    'hover:shadow-[0_0_26px_rgba(0,210,255,0.45)] hover:scale-110' +
+                    // Engaged: the theme's card fill (rgba(0,52,102,.35)) over
+                    // the paper, with the cyan rule at full strength.
+                    (showBlueprint
+                      ? ' is-active bg-[rgba(0,52,102,0.45)] border-[#00d2ff] shadow-[0_0_26px_rgba(0,210,255,0.55)] ring-2 ring-[#00d2ff]/60 scale-105'
+                      : '') +
+                    (showMatrix || showDesign || showTest
+                      ? ' opacity-0 scale-50 pointer-events-none is-hidden'
+                      : '')
+                  }
                   style={{
                     rotate: counterSpin,
                     ...(dockedBtn === 'blueprint' ? { x: dockX, y: dockY } : {}),
+                    // Blueprint paper: the theme's own cyan grid, at half its
+                    // cell so a 44px chip still shows a few lines.
                     backgroundImage:
-                      'radial-gradient(circle at 14px 14px, rgba(255,255,255,1) 1.2px, transparent 1.4px), radial-gradient(circle at 28px 14px, rgba(255,255,255,1) 1.2px, transparent 1.4px), radial-gradient(circle at 14px 28px, rgba(255,255,255,1) 1.2px, transparent 1.4px), radial-gradient(circle at 28px 28px, rgba(255,255,255,1) 1.2px, transparent 1.4px), linear-gradient(to right, rgba(255,255,255,0.45) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.45) 1px, transparent 1px)',
-                    backgroundSize:
-                      '49px 49px, 49px 49px, 49px 49px, 49px 49px, 7px 7px, 7px 7px',
-                    backgroundPosition: '0 0, 0 0, 0 0, 0 0, 0 0, 0 0',
-                    backgroundRepeat: 'repeat, repeat, repeat, repeat, repeat, repeat',
+                      'linear-gradient(to right, rgba(0,210,255,0.14) 1px, transparent 1px), linear-gradient(to bottom, rgba(0,210,255,0.14) 1px, transparent 1px)',
+                    backgroundSize: '14px 14px, 14px 14px',
+                    backgroundPosition: '0 0, 0 0',
+                    backgroundRepeat: 'repeat, repeat',
                   }}
                 >
+                  {/* The drafting marks on the sheet: a crosshair through the
+                      centre, a dashed survey circle and the four crop marks in
+                      the corners. */}
+                  <svg viewBox="0 0 44 44" aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full">
+                    <line x1="4" y1="22" x2="40" y2="22" stroke="#00d2ff" strokeWidth="0.6" opacity="0.45" />
+                    <line x1="22" y1="4" x2="22" y2="40" stroke="#00d2ff" strokeWidth="0.6" opacity="0.45" />
+                    <circle cx="22" cy="22" r="9.5" fill="none" stroke="#00d2ff" strokeWidth="0.8" strokeDasharray="3 2.5" opacity="0.9" />
+                    <path d="M7 12 V7 H12 M32 7 H37 V12 M37 32 V37 H32 M12 37 H7 V32" fill="none" stroke="#00d2ff" strokeWidth="0.9" opacity="0.75" />
+                  </svg>
                 </motion.button>
                 <motion.button
                   ref={modeButtonRefs.matrix}
@@ -1590,19 +1670,31 @@ label="./view-projects"
       </section>
 
       {/* Everything below the hero wears the hero's mode theme */}
-      <div className={"about-body about-mode-" + pageMode}>
-      {/* Left column is the two narrative blocks (About + Experience), right
-          column the two card groups (Quick Info + Skills), so the page reads
-          as one column of prose beside one column of reference. */}
-      <section className="about-section about-section--main bg-[#F5F5DC] py-16 md:py-20">
+      <div className={"about-body about-mode-" + pageMode} onClick={deactivateMode}>
+      {/* Two columns of two blocks each: the narrative column (About +
+          Experience) beside the reference column (Quick Info + Skills). The
+          four blocks sit in a GRID rather than in two column wrappers, so the
+          second row starts at one height - the Work Experience heading and the
+          Skills heading then land on the same line on desktop, in every mode
+          and in the default, because the row follows the taller of the two
+          blocks above it whatever the mode does to the type. Below md the grid
+          is a single column and the blocks stack in the order they read best:
+          the two reference blocks first. */}
+      <section className="about-section about-section--main bg-[#F5F5DC] pt-16 pb-4 md:pt-20 md:pb-6">
         <Container size="lg" className="px-8!">
-          <div className="grid md:grid-cols-2 items-start gap-12 mb-20">
+          <div className="grid md:grid-cols-2 items-start gap-x-12 gap-y-12 mb-20">
             {/* Below md this is a single full-width column, so on large phones
                 and in landscape the prose would run to ~88 characters a line.
                 max-w-prose (65ch) caps the measure and centres it; from md up
                 the grid owns the width and the cap is dropped. */}
-            <div className="max-w-prose mx-auto order-2 md:order-1 md:max-w-none md:mx-0">
-            <motion.div custom={0.1} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }}>
+            <motion.div
+              custom={0.1}
+              variants={fadeUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              className="order-3 md:order-none md:col-start-1 md:row-start-1 max-w-prose mx-auto md:max-w-none md:mx-0"
+            >
               <h3 className="about-body-title text-[20px] font-medium text-black mb-5 font-(family-name:--font-display)">A Little About Me</h3>
               <div className="about-body-copy space-y-4 text-[#323232] leading-[1.85] text-[16px]">
                 <p>
@@ -1620,7 +1712,14 @@ label="./view-projects"
               </div>
             </motion.div>
 
-            <motion.div custom={0.15} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} className="mt-10">
+            <motion.div
+              custom={0.15}
+              variants={fadeUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              className="order-4 md:order-none md:col-start-1 md:row-start-2 max-w-prose mx-auto md:max-w-none md:mx-0"
+            >
               <h3 className="about-body-title text-[20px] font-medium text-black mb-5 font-(family-name:--font-display)">Work Experience</h3>
               <div className="about-body-copy space-y-4 text-[#323232] leading-[1.85] text-[16px]">
                 <p>
@@ -1637,10 +1736,15 @@ label="./view-projects"
                 </p>
               </div>
             </motion.div>
-            </div>
 
-            <div className="space-y-10 order-1 md:order-2">
-            <motion.div custom={0.2} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }}>
+            <motion.div
+              custom={0.2}
+              variants={fadeUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              className="order-1 md:order-none md:col-start-2 md:row-start-1"
+            >
               <h3 className="about-body-title text-[20px] font-medium text-black mb-5 font-(family-name:--font-display)">Quick Info</h3>
               <div className="space-y-4">
                 {[
@@ -1658,7 +1762,7 @@ label="./view-projects"
               </div>
             </motion.div>
 
-            <div>
+            <div className="order-2 md:order-none md:col-start-2 md:row-start-2">
               <SectionHeading tone="beige" className="about-section-heading mb-5!" subtitleClassName="mt-5" title="Skills" subtitle="Technologies I work with across the stack." alignment="left" />
               <StaggerChildren className="grid gap-4">
                 {Object.entries(skills).map(([category, items]) => (
@@ -1675,11 +1779,10 @@ label="./view-projects"
                 ))}
               </StaggerChildren>
             </div>
-            </div>
           </div>
 
           {/* Philosophy */}
-          <div className="mb-4">
+          <div>
             <SectionHeading tone="beige" className="about-section-heading mb-5!" subtitleClassName="mt-5" title="What I bring to the table" subtitle="Principles that shape how I build software." alignment="center" />
             <StaggerChildren className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               {philosophy.map((item, index) => (
@@ -1698,17 +1801,17 @@ label="./view-projects"
       {/* Mission : light-blue feature band, the same surface the contact form
           card uses. Inset with rounded corners rather than full-bleed, and
           the hard rule above it is gone.
-          Padding uses pt-/pb- on purpose: utilities.css redefines .py-20 and
-          .py-12 against --space-20 / --space-12, and variables.css only
-          defines --space-1..--space-8, so those two utilities are invalid and
-          resolve to zero. There is no .pt-* or .pb-* override to collide with. */}
+          The eyebrow line ("My Mission") is gone; the title sits at the top of
+          the band now, so it carries no top margin - the band's own pt-/pb-
+          hold the space. Those utilities are used on purpose: utilities.css
+          redefines .py-20 and .py-12 against --space-20 / --space-12, and
+          variables.css only defines --space-1..--space-8, so those two
+          utilities are invalid and resolve to zero. There is no .pt-* or .pb-*
+          override to collide with. */}
       <section className="about-section about-section--mission page-tail-fade bg-[#ADD8E6] rounded-t-none rounded-b-3xl pt-10 pb-10 md:pt-14 md:pb-14">
         <Container size="lg" className="px-8!">
           <div className="text-center max-w-3xl mx-auto">
-            <span className="about-mission-eyebrow text-[11px] font-mono text-[#2d8cf0] uppercase tracking-[0.3em] font-medium">
-              My Mission
-            </span>
-            <h3 className="about-mission-title font-(family-name:--font-display) text-[34px] md:text-[44px] leading-[1.1] font-semibold text-black mt-5 mb-5">
+            <h3 className="about-mission-title font-(family-name:--font-display) text-[34px] md:text-[44px] leading-[1.1] font-semibold text-black mb-5">
               Software that actually works.
             </h3>
             <p className="about-mission-copy text-[#323232] text-[18px] font-light leading-[1.7]">

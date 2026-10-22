@@ -1,8 +1,13 @@
-import { Link, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { ArrowRight, Download } from 'lucide-react'
+import { Download } from 'lucide-react'
 import { BlueprintPillButton } from '@/components/ui/blueprint-pill-button'
 import GlitchScanGridButton from '@/components/ui/glitch-scan-grid-button'
+
+// The CV every Get Resume control hands over. One path, one file name, so the
+// navbar CTA, the About page and the hero all give the visitor the same
+// document under the same name.
+const RESUME_URL = '/media/resume.pdf'
+const RESUME_FILE = 'Mohammed-Fawaz-O-Resume.pdf'
 
 function useModeClass(className) {
   const [active, setActive] = useState(false)
@@ -18,14 +23,13 @@ function useModeClass(className) {
 }
 
 export default function ConnectButton({ className = '' }) {
-  const navigate = useNavigate()
   const blueprint = useModeClass('about-blueprint-nav')
   const test = useModeClass('about-test-nav')
 
   const handleResumeDownload = () => {
     const a = document.createElement('a')
-    a.href = '/media/resume.pdf'
-    a.download = 'Mohammed-Fawaz-O-Resume.pdf'
+    a.href = RESUME_URL
+    a.download = RESUME_FILE
     document.body.appendChild(a)
     a.click()
     a.remove()
@@ -64,8 +68,14 @@ export default function ConnectButton({ className = '' }) {
   }
 
   return (
-    <Link
-      to="/contact"
+    // A real download, not a route. The label says Get Resume and the chevron
+    // is a download arrow, so the click has to hand the CV over - the same
+    // file and the same file name the About page and the hero use. The
+    // `download` attribute keeps the browser on the page instead of opening
+    // the PDF viewer, and it is same origin, so the attribute is honoured.
+    <a
+      href={RESUME_URL}
+      download={RESUME_FILE}
       aria-label="Get Resume"
       className={[
         'inline-flex items-center h-11 px-5 rounded-full',
@@ -76,8 +86,6 @@ export default function ConnectButton({ className = '' }) {
         className,
       ].join(' ')}
     >
-      <style>{`
-      `}</style>
       <span className="connect-btn inline-flex items-center gap-1.5">
         <span className="connect-btn-label-wrap">
           <span className="connect-btn-label">Get Resume</span>
@@ -101,6 +109,6 @@ export default function ConnectButton({ className = '' }) {
           </svg>
         </span>
       </span>
-    </Link>
+    </a>
   )
 }

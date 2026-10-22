@@ -869,6 +869,8 @@ function Projects() {
 
               {slots.map((p, i) => {
                 const slotName = ['left', 'center', 'right'][i]
+                const live = PROJECT_INFO[p.id] && PROJECT_INFO[p.id].live
+                const liveHref = live && live !== '#' ? live : null
                 return (
                   <div
                     key={slotName}
@@ -930,11 +932,27 @@ function Projects() {
                         transition={{ duration: SWITCH_DURATION, ease: SWITCH_EASE }}
                       >
                         {p.milestone ? (
-                          <img
-                            src={p.milestone}
-                            alt={`${p.title} milestone`}
-                            className={`podium-object-back ${p.tilt ? '' : 'is-flat'}`}
-                          />
+                          liveHref ? (
+                            <a
+                              href={liveHref}
+                              target="_blank"
+                              rel="noreferrer"
+                              aria-label={`Open ${p.title} website`}
+                              className="podium-snapshot-link"
+                            >
+                              <img
+                                src={p.milestone}
+                                alt={`${p.title} milestone`}
+                                className={`podium-object-back ${p.tilt ? '' : 'is-flat'}`}
+                              />
+                            </a>
+                          ) : (
+                            <img
+                              src={p.milestone}
+                              alt={`${p.title} milestone`}
+                              className={`podium-object-back ${p.tilt ? '' : 'is-flat'}`}
+                            />
+                          )
                         ) : (
                           <div
                             className={`podium-object-back podium-placeholder ${p.tilt ? '' : 'is-flat'}`}

@@ -395,7 +395,7 @@ const measure = () => {
       <div className={cn('relative z-50 w-full pointer-events-none', className)} style={{ paddingTop: '24px' }}>
         {!isMobile && (
           <div className="flex justify-center">
-            <div className="relative px-7 py-3 sm:px-8 sm:py-3.5 rounded-none bg-[#080204]/95 backdrop-blur-md border border-[#D2042D]/40 shadow-[0_4px_14px_rgba(0,0,0,0.5),inset_0_0_10px_rgba(210,4,45,0.06)]">
+            <div className="relative px-7 py-3 sm:px-8 sm:py-3.5 rounded-none bg-[#080204]/95 backdrop-blur-md border border-[#D2042D]/40 shadow-[0_4px_14px_rgba(0,0,0,0.5),inset_0_0_10px_rgba(210,4,45,0.06)] pointer-events-auto overflow-hidden">
               <div className="absolute inset-0 pointer-events-none overflow-hidden">
                 <div className="absolute inset-0 bg-[repeating-linear-gradient(0deg,transparent,transparent_2px,rgba(210,4,45,0.03)_2px,rgba(210,4,45,0.03)_4px)]" />
                 <div className="scanline-animation absolute inset-0 bg-gradient-to-b from-transparent via-[#D2042D]/5 to-transparent animate-[scanline_4s_linear_infinite]" />
@@ -410,15 +410,18 @@ const measure = () => {
                       onMouseEnter={() => setHoveredIdx(idx)}
                       onMouseLeave={() => setHoveredIdx(null)}
                       className={cn(
-                        'relative px-3 py-1.5 text-[14px] font-bold tracking-[0.1em] uppercase transition-colors duration-200 rounded-none overflow-hidden',
+                        'relative inline-block px-3 py-1.5 text-[14px] font-bold tracking-[0.1em] uppercase transition-colors duration-200 rounded-none overflow-hidden',
                         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D2042D]',
                         activeIndex === idx
                           ? 'text-[#D2042D] drop-shadow-[0_0_8px_rgba(255,59,71,0.85)]'
-                          : 'text-[#E5E7EB] hover:text-white'
+                          : `text-[#E5E7EB] hover:text-white${hoveredIdx === idx ? ' test-nav-glitch' : ''}`
                       )}
                       style={{ fontFamily: "'Pixel Digivolve', monospace" }}
                     >
-                      <span className="relative z-10">{displayLabels[idx] || item.label}</span>
+                      <span className="relative z-10 inline-block">
+                        <span className="invisible" aria-hidden="true">{item.label.toUpperCase()}</span>
+                        <span className="absolute inset-0 whitespace-nowrap">{displayLabels[idx] || item.label}</span>
+                      </span>
                       {activeIndex === idx && (
                         <span className="absolute inset-0 pointer-events-none overflow-hidden">
                           <span className="absolute inset-x-0 h-10 pointer-events-none animate-[navScanline_2.5s_ease-in-out_infinite]" style={{ top: 0, background: 'linear-gradient(180deg, transparent 0%, rgba(255,59,71,0.35) 65%, rgba(255,59,71,0.95) 100%)' }}>
@@ -450,6 +453,26 @@ const measure = () => {
             60% { transform: translateY(200%); }
             60.01% { transform: translateY(-100%); }
             100% { transform: translateY(-100%); }
+          }
+          /* Same glitch language as GlitchScanGridButton: RGB-split slice jitter
+             in steps(2), burst first ~400ms then idle, repeating every 2s. */
+          @keyframes test-nav-glitch-anim {
+            0%, 20% { transform: translate(0, 0); text-shadow: 0 0 8px rgba(255,59,71,0.85); }
+            2% { transform: translate(-2px, 1px); text-shadow: 2px 0 0 #FF3B47, -2px 0 0 #00F0FF; }
+            4% { transform: translate(2px, -1px); text-shadow: -2px 0 0 #FF3B47, 2px 0 0 #00F0FF; opacity: 0.6; }
+            6% { transform: translate(-1px, 0); text-shadow: 1px 0 0 #D2042D, -1px 0 0 #00F0FF; opacity: 1; }
+            8% { transform: translate(1px, 1px); text-shadow: -1.5px 0 0 #FF3B47, 1.5px 0 0 #00F0FF; }
+            10% { transform: translate(0, 0); text-shadow: 0 0 10px rgba(255,59,71,0.9); }
+            12% { transform: translate(-2px, -1px); text-shadow: 2px 0 0 #D2042D, -2px 0 0 #00F0FF; opacity: 0.7; }
+            14% { transform: translate(1px, 0); text-shadow: -1px 0 0 #FF3B47, 1px 0 0 #00F0FF; opacity: 1; }
+            16% { transform: translate(-1px, 1px); text-shadow: 1.5px 0 0 #FF3B47, -1.5px 0 0 #00F0FF; }
+            18%, 100% { transform: translate(0, 0); text-shadow: 0 0 8px rgba(255,59,71,0.85); }
+          }
+          .test-nav-glitch {
+            animation: test-nav-glitch-anim 2s steps(2, jump-start) infinite;
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .test-nav-glitch { animation: none; }
           }
           .moving-stripes {
             width: 100%;

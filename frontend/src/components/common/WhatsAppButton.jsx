@@ -95,6 +95,18 @@ const WHATSAPP_OPTIONS = whatsappPrompts.options.map((opt) => ({
   text: opt.text.replace('{name}', whatsappPrompts.name),
 }))
 
+// The transition for a panel row.
+//
+// The rows cascade in when the panel opens, so the entrance needs a per-row
+// delay. `transition-delay` however applies to EVERY transitioned property, so
+// a plain delay on the row also held the hover colour back by the same
+// 150-380ms - the "Open WhatsApp" row looked unresponsive under the pointer.
+// The delay is therefore written per property: the entrance (opacity and
+// transform) carries it, the colours never do, so a hover reacts at once.
+const ROW_EASE = 'cubic-bezier(0.32,0.72,0,1)'
+const rowTransition = (delayMs) =>
+  `opacity 300ms ${ROW_EASE} ${delayMs}ms, transform 300ms ${ROW_EASE} ${delayMs}ms, color 150ms ease 0ms, background-color 150ms ease 0ms`
+
 // Whether a pre-filled message has already been sent during this visit.
 //
 // A wa.me deep link cannot merge with a draft. The protocol has no append
@@ -346,19 +358,33 @@ function WhatsAppButton() {
         setRestBottom(`${Math.round(nextBottom)}px`)
     }
     compute()
+    // Scroll fires far more often than the screen refreshes, and every call
+    // reads layout, which forces a synchronous reflow of the page. One call per
+    // frame is enough to track the boundary, and it keeps the page - and
+    // anything animating alongside it, such as the panel morph - from
+    // stuttering on a fast scroll.
+    let frame = 0
+    const schedule = () => {
+      if (frame) return
+      frame = requestAnimationFrame(() => {
+        frame = 0
+        compute()
+      })
+    }
     // passive: these only read layout, so the browser never waits on them to
     // paint while scrolling.
-    window.addEventListener('scroll', compute, { passive: true })
-    window.addEventListener('resize', compute)
+    window.addEventListener('scroll', schedule, { passive: true })
+    window.addEventListener('resize', schedule)
 
     // Extra vs the reference: Home keeps growing after mount as sections animate
     // in and fonts land, so the footer can rise with the pointer stationary.
-    const ro = new ResizeObserver(compute)
+    const ro = new ResizeObserver(schedule)
     ro.observe(document.body)
 
     return () => {
-      window.removeEventListener('scroll', compute)
-      window.removeEventListener('resize', compute)
+      if (frame) cancelAnimationFrame(frame)
+      window.removeEventListener('scroll', schedule)
+      window.removeEventListener('resize', schedule)
       ro.disconnect()
     }
   }, [])
@@ -433,23 +459,27 @@ function WhatsAppButton() {
             off at the circle's edge. This wrapper has no overflow clipping. */}
         {!open && <span className="wa-fab-frame" aria-hidden="true" />}
 
-        <div
-          // Explicit px while open, so width and height interpolate over the
-          // same 420ms and the panel grows along one diagonal. Falls back to
-          // 252px only if measurement somehow produced nothing.
-          style={open && panelHeight ? { height: `${panelHeight}px` } : undefined}
-          className={[
-            'relative origin-bottom-right overflow-hidden border',
-            // Both dimensions are declared as explicit lengths, never `auto`.
-            // `auto` is not an interpolable target here: the height resolved to
-            // its final size on the first frame while the width was still easing,
-            // so the panel shot upwards and only then spread sideways. Fixed
-            // bottom+right plus a synced width/height transition makes it grow
-            // along one diagonal, away from the corner it is pinned to.
-            'transition-[width,height,border-radius,padding,background-color,border-color,box-shadow]',
-            'duration-420 ease-[cubic-bezier(0.32,0.72,0,1)]',
-            open
-              ? 'w-67 max-w-[calc(100vw-2rem)] max-h-[calc(100dvh-1.5rem)] scale-100 rounded-lg border-white/10 bg-[rgba(10,12,15,0.95)] p-1.5 shadow-[0_18px_50px_rgba(0,0,0,0.55)] backdrop-blur-xl'
+          <div
+            // Explicit px while open, so width and height interpolate over the
+            // same 420ms and the panel grows along one diagonal. Falls back to
+            // 252px only if measurement somehow produced nothing.
+            style={open && panelHeight ? { height: `${panelHeight}px` } : undefined}
+            className={[
+              'relative origin-bottom-right overflow-hidden border',
+              // Both dimensions are declared as explicit lengths, never `auto`.
+              // `auto` is not an interpolable target here: the height resolved to
+              // its final size on the first frame while the width was still easing,
+              // so the panel shot upwards and only then spread sideways. Fixed
+              // bottom+right plus a synced width/height transition makes it grow
+              // along one diagonal, away from the corner it is pinned to.
+              'transition-[width,height,border-radius,padding,background-color,border-color,box-shadow]',
+              'duration-420 ease-[cubic-bezier(0.32,0.72,0,1)]',
+              // The panel is 95% opaque, so a backdrop blur behind it was never
+              // visible - but it made every frame of the morph re-render and
+              // blur the page behind it, over a full screen video that is
+              // playing. That was the lag on hover.
+              open
+                ? 'w-67 max-w-[calc(100vw-2rem)] max-h-[calc(100dvh-1.5rem)] scale-100 rounded-lg border-white/10 bg-[rgba(10,12,15,0.95)] p-1.5 shadow-[0_18px_50px_rgba(0,0,0,0.55)]'
               // wa-fab only exists in the closed state, so the blueprint override
               // in index.css (transparent + cyan rule) can never bleed onto the
               // open panel, which keeps its dark surface.
@@ -535,10 +565,9 @@ function WhatsAppButton() {
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={onPromptClick}
-                  style={{ transitionDelay: open ? `${150 + i * 55}ms` : '0ms' }}
+                  style={{ transition: rowTransition(open ? 150 + i * 55 : 0) }}
                   className={[
                     'flex w-full shrink-0 items-center gap-2.5 whitespace-nowrap rounded-md px-2.5 py-2 text-left text-[13px] font-medium',
-                    'transition-[opacity,transform,color,background-color] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]',
                     'focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-white',
                     '[-webkit-tap-highlight-color:transparent]',
                     open ? 'translate-y-0 text-white/70 opacity-100' : 'translate-y-1.5 text-white/70 opacity-0',
@@ -557,12 +586,10 @@ function WhatsAppButton() {
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => setOpen(false)}
-              style={{ transitionDelay: open ? '380ms' : '0ms' }}
+              style={{ transition: rowTransition(open ? 380 : 0) }}
               className={[
                 'mt-1 flex w-full shrink-0 items-center justify-center gap-2 rounded-md px-2.5 py-2.5',
                 "font-['Michroma',sans-serif] text-[0.62rem] uppercase tracking-[0.16em]",
-                'transition-[opacity,transform,background-color]',
-                'duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]',
                 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white',
                 '[-webkit-tap-highlight-color:transparent]',
                 open

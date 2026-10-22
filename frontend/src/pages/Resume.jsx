@@ -402,7 +402,7 @@ const cvDocuments = [
                 showDetailPanel={true}
                 showCarousel={true}
                 themeColors={{
-                  navy: '#000000',
+                  navy: '#12333A',
                   pink: '#2d8cf0',
                   cream: '#F5F5DC',
                   lav: '#666666',
@@ -411,6 +411,11 @@ const cvDocuments = [
                   bgDark: '#000000',
                   foregroundLight: '#323232',
                   foregroundDark: '#F5F5DC',
+                  // Opened CV: warm paper with dark teal ink and the blue accent
+                  // from the rest of the page, instead of the old black focus.
+                  focusBg: '#F1ECDC',
+                  focusFg: '#1E3A40',
+                  focusAccent: '#1A6AA8',
                 }}
               />
             </div>

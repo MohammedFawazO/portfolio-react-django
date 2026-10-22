@@ -29,11 +29,11 @@ const CONSOLE_ACTION_CLASS =
 
 const CONSOLE_TONE_CLASS = {
   light:
-    'border-[rgba(255,255,255,0.22)] bg-[rgba(255,255,255,0.04)] text-[#F3F0EA] hover:border-[var(--bs-peri)]/55 hover:bg-[rgba(111,231,255,0.07)] hover:text-[var(--bs-peri)]',
+    'border-[var(--bs-focus-fg)]/25 bg-[var(--bs-focus-fg)]/5 text-[var(--bs-focus-fg)] hover:border-[var(--bs-focus-accent)]/60 hover:bg-[var(--bs-focus-accent)]/10 hover:text-[var(--bs-focus-accent)]',
   accent:
-    'border-[var(--bs-peri)]/55 bg-[rgba(111,231,255,0.14)] text-[var(--bs-peri)] hover:border-[var(--bs-peri)] hover:bg-[rgba(111,231,255,0.24)]',
+    'border-[var(--bs-focus-accent)]/50 bg-[var(--bs-focus-accent)]/10 text-[var(--bs-focus-accent)] hover:border-[var(--bs-focus-accent)] hover:bg-[var(--bs-focus-accent)]/20',
   muted:
-    'border-dashed border-[rgba(255,255,255,0.18)] bg-transparent text-[rgba(243,240,234,0.6)] hover:border-[rgba(255,255,255,0.3)] hover:text-[rgba(243,240,234,0.8)]',
+    'border-dashed border-[var(--bs-focus-fg)]/20 bg-transparent text-[var(--bs-focus-fg)]/60 hover:border-[var(--bs-focus-fg)]/35 hover:text-[var(--bs-focus-fg)]/80',
 };
 
 const GlobeIcon = () => (
@@ -81,14 +81,18 @@ function DetailActions({ actions }) {
       : `${ACTION_BASE_CLASS} ${tone} ${isIconOnly ? 'w-[54px] px-0' : ''}`;
 
     if (action.href) {
-      const external = /^https?:/i.test(action.href);
+      // A download action hands the file over; anything else is a plain link
+      // and opens in a new tab, so the visitor keeps the page they came from.
+      // The old test only opened a tab for an absolute http(s) href, which
+      // left the same-site "Open in tab" actions navigating away in place.
+      const isDownload = action.download !== false;
       return (
         <a
           key={i}
           href={action.href}
-          download={action.download !== false ? '' : undefined}
-          target={external && action.download === false ? '_blank' : undefined}
-          rel={external ? 'noreferrer' : undefined}
+          download={isDownload ? '' : undefined}
+          target={isDownload ? undefined : '_blank'}
+          rel={isDownload ? undefined : 'noreferrer'}
           className={cls}
         >
           {icon}
@@ -141,6 +145,7 @@ export function BooksShowcase({
   const closeBtnRef = useRef(null);
   const dpRef = useRef(null);
   const shiftCarouselRef = useRef(() => {});
+  const switchDetailRef = useRef(() => {});
 
   const onBookSelectRef = useRef(onBookSelect);
   useEffect(() => {
@@ -1159,6 +1164,69 @@ export function BooksShowcase({
       }, 1600);
     }
 
+    // Swap the open document for its neighbour without dropping back to the
+    // shelf. The outgoing CV slides out, the incoming one slides in with its
+    // cover already opening, and the hero carousel window is kept on the new
+    // document so closing returns to the CV that was last read.
+    function switchDetail(dir) {
+      if (state.mode !== 'detail' || !state.selected || N <= 1) return;
+      const from = state.selected;
+      const fromIdx = bookInstances.indexOf(from);
+      if (fromIdx < 0) return;
+      const toIdx = ((fromIdx + dir) % N + N) % N;
+      const to = bookInstances[toIdx];
+      if (!to || to === from || !SLOTS.detail) return;
+
+      carouselStart = ((toIdx - Math.floor(VISIBLE / 2)) % N + N) % N;
+      currentWindow = windowIndices(carouselStart, N, VISIBLE);
+      rebuildHitMeshes();
+
+      state.selected = to;
+      openDocRef.current = { id: to.cfg?.id ?? null };
+      setSelectedCfg(to.cfg);
+      onBookSelectRef.current?.(to.cfg);
+
+      const f = from.springs;
+      f.px.t = SLOTS.detail.p[0] + dir * 4.6;
+      f.pz.t = SLOTS.detail.p[2] - 1.2;
+      from.slotScale = SLOTS.detail.s * 0.78;
+      setT(() => {
+        if (state.selected !== from) from.root.visible = false;
+      }, 420);
+
+      const d = SLOTS.detail;
+      const s = to.springs;
+      // A right click pulls the next CV in from the left while the current one
+      // leaves to the right; the left chevron mirrors that.
+      s.px.set(d.p[0] - dir * 5.2);
+      s.py.set(d.p[1]);
+      s.pz.set(d.p[2]);
+      s.rx.set(d.r[0]);
+      s.ry.set(d.r[1]);
+      s.rz.set(d.r[2]);
+      s.sc.set(d.s * 0.9);
+      s.cover.set(0);
+      s.coverB.set(0);
+      s.drag.set(0);
+      s.tiltX.set(0);
+      s.tiltY.set(0);
+      s.lift.set(0);
+      to.root.visible = true;
+      to.slotScale = d.s;
+      to.orbY = 0;
+      to.orbYv = 0;
+      to.orbPhase = 'idle';
+      to.orbTarget = 0;
+      to.orbXs.set(0);
+      setTargets(to, d);
+
+      leaves.deactivate();
+      setT(() => {
+        if (state.selected === to && state.mode === 'detail') leaves.activate(to);
+      }, 300);
+    }
+    switchDetailRef.current = switchDetail;
+
     const onCloseClick = () => close();
     closeBtnRef.current?.addEventListener('click', onCloseClick);
 
@@ -1297,10 +1365,15 @@ export function BooksShowcase({
 
     const onKeydown = (e) => {
       if (e.key === 'Escape') close();
+      if (state.mode === 'detail' && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) {
+        switchDetail(e.key === 'ArrowRight' ? 1 : -1);
+        e.preventDefault();
+        return;
+      }
       if (state.mode !== 'hero') return;
       if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
         if (e.shiftKey) {
-          shiftCarousel(e.key === 'ArrowRight' ? 1 : -1);
+          shiftCarousel(e.key === 'ArrowRight' ? -1 : 1);
         } else {
           const d = e.key === 'ArrowRight' ? 1 : -1;
           state.kbIndex = ((state.kbIndex < 0 ? (d > 0 ? -1 : 1) : state.kbIndex) + d + VISIBLE) % VISIBLE;
@@ -1654,11 +1727,19 @@ export function BooksShowcase({
     '--bs-bg-dark': themeColors?.bgDark ?? themeColors?.bg ?? '#18181b',
     '--bs-fg-light': themeColors?.foregroundLight ?? '#18181b',
     '--bs-fg-dark': themeColors?.foregroundDark ?? '#fafafa',
+    // Focus (detail) view has its own palette so the shelf can stay dark while
+    // the opened CV reads like a sheet of paper. Defaults keep the old dark
+    // look for any other use of the showcase.
+    '--bs-focus-bg': themeColors?.focusBg ?? themeColors?.navy ?? '#141a32',
+    '--bs-focus-fg': themeColors?.focusFg ?? themeColors?.cream ?? '#fdfbf4',
+    '--bs-focus-accent': themeColors?.focusAccent ?? themeColors?.peri ?? '#96a2de',
   };
 
   const panelVisible = uiMode === 'detail';
   const heroWordVisible = mounted && uiMode === 'hero';
   const canCarousel = showCarousel && books.length > 3;
+  const canSwitchDetail = books.length > 1;
+  const selectedIndex = selectedCfg ? books.findIndex((b) => b.id === selectedCfg.id) : -1;
 
   const delayMap = {
     50: 'delay-[50ms]',
@@ -1695,7 +1776,7 @@ export function BooksShowcase({
         'transition-colors duration-500 ease-out',
         uiMode === 'hero'
           ? 'bg-[var(--bs-bg-light)] text-[var(--bs-fg-light)] dark:bg-[var(--bs-bg-dark)] dark:text-[var(--bs-fg-dark)]'
-          : 'bg-[var(--bs-navy)] text-[var(--bs-cream)]',
+          : 'bg-[var(--bs-focus-bg)] text-[var(--bs-focus-fg)]',
         className,
       )}
       style={{ ...themeVars, '--font-display': SHOWCASE_DISPLAY_FONT, '--font-sans': SHOWCASE_TEXT_FONT, '--font-mono': SHOWCASE_TEXT_FONT, '--font-heading': SHOWCASE_DISPLAY_FONT }}
@@ -1735,8 +1816,8 @@ export function BooksShowcase({
         <>
           <button
             type="button"
-            aria-label="Previous books"
-            onClick={() => shiftCarouselRef.current(-1)}
+            aria-label="Next books"
+            onClick={() => shiftCarouselRef.current(1)}
             className={`absolute left-3 top-1/2 z-30 -translate-y-1/2 inline-flex h-11 w-11 items-center justify-center rounded-full bg-[var(--bs-cream)]/90 text-[var(--bs-navy)] shadow-lg transition-all duration-300 hover:scale-105 hover:bg-[var(--bs-cream)] @min-[768px]:left-6 @min-[768px]:h-12 @min-[768px]:w-12 ${uiMode === 'hero' ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
               }`}
           >
@@ -1744,8 +1825,8 @@ export function BooksShowcase({
           </button>
           <button
             type="button"
-            aria-label="Next books"
-            onClick={() => shiftCarouselRef.current(1)}
+            aria-label="Previous books"
+            onClick={() => shiftCarouselRef.current(-1)}
             className={`absolute right-3 top-1/2 z-30 -translate-y-1/2 inline-flex h-11 w-11 items-center justify-center rounded-full bg-[var(--bs-cream)]/90 text-[var(--bs-navy)] shadow-lg transition-all duration-300 hover:scale-105 hover:bg-[var(--bs-cream)] @min-[768px]:right-6 @min-[768px]:h-12 @min-[768px]:w-12 ${uiMode === 'hero' ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
               }`}
           >
@@ -1774,11 +1855,40 @@ export function BooksShowcase({
       <button
         ref={closeBtnRef}
         aria-label="Close detail view"
-        className={`absolute left-1/2 top-[30px] z-40 -translate-x-1/2 inline-flex h-[52px] w-[52px] items-center justify-center rounded-full border-[1.5px] border-[var(--bs-cream)]/40 bg-transparent text-[17px] leading-none text-[var(--bs-cream)] transition-[opacity,border-color] duration-300 delay-150 hover:border-[var(--bs-cream)]/90 @max-[760px]:left-auto @max-[760px]:right-[18px] @max-[760px]:top-[18px] @max-[760px]:translate-x-0 [-webkit-tap-highlight-color:transparent] ${uiMode === 'detail' ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
+        className={`absolute left-1/2 top-[30px] z-40 -translate-x-1/2 inline-flex h-[52px] w-[52px] items-center justify-center rounded-full border-[1.5px] border-[var(--bs-focus-fg)]/30 bg-transparent text-[17px] leading-none text-[var(--bs-focus-fg)] transition-[opacity,border-color,background-color] duration-300 delay-150 hover:border-[var(--bs-focus-fg)]/80 hover:bg-[var(--bs-focus-fg)]/5 @max-[760px]:left-auto @max-[760px]:right-[18px] @max-[760px]:top-[18px] @max-[760px]:translate-x-0 [-webkit-tap-highlight-color:transparent] ${uiMode === 'detail' ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
           }`}
       >
         &#10005;
       </button>
+
+      {canSwitchDetail && (
+        <div
+          className={`absolute left-[18px] top-[18px] z-40 flex items-center gap-[6px] transition-opacity duration-300 @min-[761px]:left-6 @min-[761px]:top-[30px] ${uiMode === 'detail' ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
+            }`}
+        >
+          <button
+            type="button"
+            aria-label="Previous CV"
+            tabIndex={uiMode === 'detail' ? 0 : -1}
+            onClick={() => switchDetailRef.current(-1)}
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full border-[1.5px] border-[var(--bs-focus-fg)]/30 bg-transparent text-[var(--bs-focus-fg)] transition-[border-color,background-color] duration-300 hover:border-[var(--bs-focus-fg)]/80 hover:bg-[var(--bs-focus-fg)]/5 @min-[761px]:h-[52px] @min-[761px]:w-[52px] [-webkit-tap-highlight-color:transparent]"
+          >
+            <ChevronLeft />
+          </button>
+          <span className="min-w-[48px] text-center font-[family-name:var(--font-display)] text-[11px] uppercase tracking-[0.16em] text-[var(--bs-focus-fg)]/60 tabular-nums">
+            {selectedIndex >= 0 ? selectedIndex + 1 : 1} / {books.length}
+          </span>
+          <button
+            type="button"
+            aria-label="Next CV"
+            tabIndex={uiMode === 'detail' ? 0 : -1}
+            onClick={() => switchDetailRef.current(1)}
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full border-[1.5px] border-[var(--bs-focus-fg)]/30 bg-transparent text-[var(--bs-focus-fg)] transition-[border-color,background-color] duration-300 hover:border-[var(--bs-focus-fg)]/80 hover:bg-[var(--bs-focus-fg)]/5 @min-[761px]:h-[52px] @min-[761px]:w-[52px] [-webkit-tap-highlight-color:transparent]"
+          >
+            <ChevronRight />
+          </button>
+        </div>
+      )}
 
       {showDetailPanel && (
         <div
@@ -1786,41 +1896,38 @@ export function BooksShowcase({
           aria-live="polite"
           className={`bs-detail-scroll absolute right-[7%] top-1/2 z-[15] w-[min(560px,42%)] max-h-[88%] -translate-y-1/2 overflow-x-hidden overflow-y-auto overscroll-contain scroll-py-[6cqw] px-[clamp(20px,1.8cqw,30px)] py-[clamp(18px,1.6cqw,26px)] pointer-events-auto @max-[760px]:right-auto @max-[760px]:left-1/2 @max-[760px]:top-auto @max-[760px]:bottom-[3.5%] @max-[760px]:max-h-[72%] @max-[760px]:w-[min(560px,92cqw)] @max-[760px]:-translate-x-1/2 @max-[760px]:translate-y-0 @max-[760px]:scroll-py-4 ${panelVisible ? 'visible' : 'invisible delay-[500ms]'
             }`}
-          // The panel sits on the dark detail background, where the hero's dark
-          // slate body colour would be unreadable - scope a light slate to it.
-          style={{ '--bs-lav': '#C6D6D5' }}
         >
-          <h1 className={`m-0 break-words text-balance text-[var(--bs-peri)] text-[clamp(52px,5.6cqw,92px)] font-extrabold leading-[0.98] tracking-[-0.015em] [text-shadow:0_2px_24px_rgba(6,32,31,0.55)] @max-[760px]:text-[clamp(36px,9.5cqw,54px)] ${dpChild(50)}`}>
+          <h1 className={`m-0 break-words text-balance text-[var(--bs-focus-fg)] text-[clamp(44px,4.7cqw,76px)] font-extrabold leading-[0.98] tracking-[-0.015em] @max-[760px]:text-[clamp(31px,8.5cqw,46px)] ${dpChild(50)}`}>
             {selectedCfg?.title}
           </h1>
           {eyebrow && (
-            <div className={`mt-[22px] flex items-center gap-4 @max-[760px]:mt-3 ${dpChild(90)}`}>
-              <span className="inline-flex items-center rounded-[4px] border border-[var(--bs-peri)]/45 bg-[rgba(111,231,255,0.1)] px-[12px] py-[7px] font-[family-name:var(--font-display)] text-[10.5px] uppercase tracking-[0.16em] text-[var(--bs-peri)]">
+            <div className={`mt-[20px] flex items-center gap-4 @max-[760px]:mt-3 ${dpChild(90)}`}>
+              <span className="inline-flex items-center rounded-[4px] border border-[var(--bs-focus-accent)]/40 bg-[var(--bs-focus-accent)]/10 px-[12px] py-[7px] font-[family-name:var(--font-display)] text-[10.5px] uppercase tracking-[0.16em] text-[var(--bs-focus-accent)]">
                 {eyebrow}
               </span>
-              <span className="h-px flex-1 bg-[var(--bs-peri)]/25" />
+              <span className="h-px flex-1 bg-[var(--bs-focus-fg)]/15" />
             </div>
           )}
-          <p className={`mt-[26px] max-w-[54ch] break-words text-[var(--bs-lav)] text-[clamp(16px,1.25cqw,19px)] leading-[1.65] @max-[760px]:mt-4 @max-[760px]:line-clamp-4 @max-[760px]:text-[15px] ${dpChild(130)}`}>
+          <p className={`mt-[26px] max-w-[54ch] break-words font-[family-name:var(--font-sans)] text-[var(--bs-focus-fg)]/75 text-[clamp(16px,1.25cqw,19px)] leading-[1.65] @max-[760px]:mt-4 @max-[760px]:line-clamp-4 @max-[760px]:text-[15px] ${dpChild(130)}`}>
             {selectedCfg?.desc}
           </p>
           {cvSections.length > 0 ? (
             <>
-              <div className={`mt-[34px] border-t border-[var(--bs-peri)]/20 @max-[760px]:mt-5 ${dpChild(200)}`} />
-              <div className={`mt-[26px] @max-[760px]:mt-4 ${dpChild(230)}`}>
-                <div className="font-[family-name:var(--font-display)] text-[10.5px] uppercase tracking-[0.2em] text-[var(--bs-lav)]/70">
+              <div className={`mt-[30px] border-t border-[var(--bs-focus-fg)]/15 @max-[760px]:mt-5 ${dpChild(200)}`} />
+              <div className={`mt-[24px] @max-[760px]:mt-4 ${dpChild(230)}`}>
+                <div className="font-[family-name:var(--font-display)] text-[10.5px] uppercase tracking-[0.2em] text-[var(--bs-focus-fg)]/60">
                   Sections in this CV
                 </div>
                 <ol className="mt-5 grid grid-cols-2 gap-x-10 gap-y-[14px] @max-[760px]:grid-cols-1 @max-[760px]:gap-y-2">
                   {cvSections.map((section, i) => (
                     <li
                       key={section}
-                      className="flex min-w-0 items-baseline gap-[12px] text-[clamp(15px,1.1cqw,17px)] text-[var(--bs-lav)]"
+                      className="flex min-w-0 items-baseline gap-[12px] font-[family-name:var(--font-sans)] text-[clamp(15px,1.1cqw,17px)] text-[var(--bs-focus-fg)]/85"
                     >
-                      <span className="shrink-0 font-mono text-[12px] tabular-nums text-[var(--bs-peri)]/85">
+                      <span className="shrink-0 font-mono text-[12px] tabular-nums text-[var(--bs-focus-accent)]">
                         {String(i + 1).padStart(2, '0')}
                       </span>
-                      <span className="min-w-0 break-words border-b border-transparent pb-[3px] leading-[1.35] transition-colors duration-300 hover:border-[var(--bs-peri)]/50">
+                      <span className="min-w-0 break-words border-b border-transparent pb-[3px] leading-[1.35] transition-colors duration-300 hover:border-[var(--bs-focus-accent)]/50">
                         {section}
                       </span>
                     </li>
@@ -1829,7 +1936,7 @@ export function BooksShowcase({
               </div>
             </>
           ) : (
-            <div className={`mt-[34px] flex items-center gap-[18px] @max-[760px]:mt-[18px] ${dpChild(210)}`}>
+            <div className={`mt-[30px] flex items-center gap-[18px] @max-[760px]:mt-[18px] ${dpChild(210)}`}>
               <div className="flex gap-[5px]">
                 {[0, 1, 2, 3, 4].map((i) => (
                   <svg
@@ -1841,16 +1948,16 @@ export function BooksShowcase({
                   </svg>
                 ))}
               </div>
-              <div className="h-6 w-px bg-[var(--bs-lav)]/[0.28]" />
-              <div className="text-[19px] italic text-[#98a4d6]">{selectedCfg?.metaLabel || 'Goodreads'}</div>
-              <div className="ml-auto text-[19px] italic text-[#98a4d6]">{selectedCfg?.year}</div>
+              <div className="h-6 w-px bg-[var(--bs-focus-fg)]/20" />
+              <div className="text-[18px] italic text-[var(--bs-focus-fg)]/60">{selectedCfg?.metaLabel || 'Goodreads'}</div>
+              <div className="ml-auto text-[18px] italic text-[var(--bs-focus-fg)]/60">{selectedCfg?.year}</div>
             </div>
           )}
           {cvSections.length > 0 && (
-            <div className={`mt-[30px] border-t border-[var(--bs-peri)]/20 @max-[760px]:mt-5 ${dpChild(280)}`} />
+            <div className={`mt-[26px] border-t border-[var(--bs-focus-fg)]/15 @max-[760px]:mt-5 ${dpChild(280)}`} />
           )}
           <div
-            className={`pointer-events-auto mt-7 inline-flex items-center gap-[10px] rounded-[22px] border border-[var(--bs-peri)]/22 bg-[#06201F]/70 p-[10px] shadow-[0_24px_60px_rgba(0,0,0,0.45)] backdrop-blur-[3px] @max-[760px]:mt-[18px] @max-[760px]:flex-wrap @max-[760px]:rounded-[18px] ${dpChild(330)}`}
+            className={`pointer-events-auto mt-6 flex flex-wrap items-center gap-[10px] @max-[760px]:mt-[18px] ${dpChild(330)}`}
           >
             <DetailActions actions={selectedCfg?.actions} />
           </div>

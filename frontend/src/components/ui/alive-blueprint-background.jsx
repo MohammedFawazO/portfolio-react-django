@@ -101,7 +101,7 @@ export const AliveBlueprintBackground = ({ children, className = '' }) => {
         <div className="absolute left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#00d2ff]/30 to-transparent animate-[scanY_12s_ease-in-out_infinite]" />
 
         {/* EXISTING: Orbiting Concentric Architecture Rings (Bottom Right) */}
-        <div className="absolute bottom-24 right-16 w-[520px] h-[520px] flex items-center justify-center animate-[pulse_8s_ease-in-out_infinite]">
+        <div className="absolute bottom-24 right-20 w-[520px] h-[520px] flex items-center justify-center animate-[pulse_8s_ease-in-out_infinite]">
           <div className="w-[390px] h-[390px] border-2 border-solid border-[#00d2ff]/80 rounded-full" />
           <div className="absolute w-[300px] h-[300px] border-2 border-dashed border-[#00d2ff]/90 rounded-full animate-[spin_60s_linear_infinite_reverse]" />
           <div className="absolute w-5 h-5 bg-[#00d2ff]/90 rounded-full" />
@@ -120,11 +120,13 @@ export const AliveBlueprintBackground = ({ children, className = '' }) => {
       {/* NEW LAYER E: SCHEMATIC HUD READOUTS (BORDER DETAILS) */}
       <div className="absolute inset-0 p-6 flex flex-col justify-between pointer-events-none text-[10px] text-[#00d2ff]/50 tracking-widest z-20">
 
+        {/* Extreme top-left corner readout */}
+        <span className="absolute top-3 left-3 text-[#00d2ff]/60">SYS_LOC // 0x44AA_F2</span>
+
         {/* Top Header Row Metadata */}
         <div className="w-full flex justify-between items-start border-b border-[#00d2ff]/10 pb-4">
           <div className="flex gap-6 items-center">
             <span className="font-black text-[#00d2ff] animate-pulse">● ENG_CORE_ACTIVE</span>
-            <span>SYS_LOC // 0x44AA_F2</span>
           </div>
           <div className="text-right hidden sm:flex items-center gap-4 justify-end">
             <span>DRAWING_NO: BLU-HERO-V4.26</span>
@@ -138,7 +140,7 @@ export const AliveBlueprintBackground = ({ children, className = '' }) => {
         </div>
 
         {/* Bottom Left Floating Coordinates */}
-        <div className="absolute left-[100px] bottom-8 flex flex-col gap-1 text-[9px] border-l border-[#00d2ff]/20 pl-2">
+        <div className="absolute left-3 bottom-3 flex flex-col gap-1 text-[9px] border-l border-[#00d2ff]/20 pl-2">
           <div>X_AXIS: <span className="text-[#00d2ff]">{mousePos.x.toString().padStart(4, '0')}</span></div>
           <div>Y_AXIS: <span className="text-[#00d2ff]">{mousePos.y.toString().padStart(4, '0')}</span></div>
           <div>SIG_REF: <span className="text-[#00d2ff]">{metrics.tick}HZ</span></div>
