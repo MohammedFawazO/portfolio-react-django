@@ -1693,7 +1693,7 @@ label="./view-projects"
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true }}
-              className="order-3 md:order-none md:col-start-1 md:row-start-1 max-w-prose mx-auto md:max-w-none md:mx-0"
+              className="order-3 md:order-0 md:col-start-1 md:row-start-1 max-w-prose mx-auto md:max-w-none md:mx-0"
             >
               <h3 className="about-body-title text-[20px] font-medium text-black mb-5 font-(family-name:--font-display)">A Little About Me</h3>
               <div className="about-body-copy space-y-4 text-[#323232] leading-[1.85] text-[16px]">
@@ -1718,7 +1718,7 @@ label="./view-projects"
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true }}
-              className="order-4 md:order-none md:col-start-1 md:row-start-2 max-w-prose mx-auto md:max-w-none md:mx-0"
+              className="order-4 md:order-0 md:col-start-1 md:row-start-2 max-w-prose mx-auto md:max-w-none md:mx-0"
             >
               <h3 className="about-body-title text-[20px] font-medium text-black mb-5 font-(family-name:--font-display)">Work Experience</h3>
               <div className="about-body-copy space-y-4 text-[#323232] leading-[1.85] text-[16px]">
@@ -1743,7 +1743,7 @@ label="./view-projects"
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true }}
-              className="order-1 md:order-none md:col-start-2 md:row-start-1"
+              className="order-1 md:order-0 md:col-start-2 md:row-start-1"
             >
               <h3 className="about-body-title text-[20px] font-medium text-black mb-5 font-(family-name:--font-display)">Quick Info</h3>
               <div className="space-y-4">
@@ -1762,7 +1762,7 @@ label="./view-projects"
               </div>
             </motion.div>
 
-            <div className="order-2 md:order-none md:col-start-2 md:row-start-2">
+            <div className="order-2 md:order-0 md:col-start-2 md:row-start-2">
               <SectionHeading tone="beige" className="about-section-heading mb-5!" subtitleClassName="mt-5" title="Skills" subtitle="Technologies I work with across the stack." alignment="left" />
               <StaggerChildren className="grid gap-4">
                 {Object.entries(skills).map(([category, items]) => (

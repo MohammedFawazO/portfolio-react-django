@@ -29,9 +29,9 @@ const CONSOLE_ACTION_CLASS =
 
 const CONSOLE_TONE_CLASS = {
   light:
-    'border-[var(--bs-focus-fg)]/25 bg-[var(--bs-focus-fg)]/5 text-[var(--bs-focus-fg)] hover:border-[var(--bs-focus-accent)]/60 hover:bg-[var(--bs-focus-accent)]/10 hover:text-[var(--bs-focus-accent)]',
+    'border-[var(--bs-focus-fg)]/30 bg-transparent text-[var(--bs-focus-fg)] hover:border-[var(--bs-focus-fg)]/70 hover:bg-[var(--bs-focus-fg)]/10',
   accent:
-    'border-[var(--bs-focus-accent)]/50 bg-[var(--bs-focus-accent)]/10 text-[var(--bs-focus-accent)] hover:border-[var(--bs-focus-accent)] hover:bg-[var(--bs-focus-accent)]/20',
+    'border-[var(--bs-focus-accent)] bg-[var(--bs-focus-accent)] text-[var(--bs-focus-bg)] shadow-[0_6px_18px_-8px_var(--bs-focus-accent)] hover:border-[var(--bs-focus-accent)] hover:brightness-110',
   muted:
     'border-dashed border-[var(--bs-focus-fg)]/20 bg-transparent text-[var(--bs-focus-fg)]/60 hover:border-[var(--bs-focus-fg)]/35 hover:text-[var(--bs-focus-fg)]/80',
 };

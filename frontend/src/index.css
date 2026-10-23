@@ -40,12 +40,44 @@ html {
   scrollbar-gutter: stable both-edges;
 }
 
+/* Pin the site to its own dark palette. Without an explicit `color-scheme`
+   the browser is free to restyle native controls (inputs, scrollbars, select
+   menus) and, on some platforms, force its own auto-dark/light filter based on
+   the OS preference. Declaring it here keeps every page identical regardless of
+   the browser or operating-system theme. */
+:root {
+  color-scheme: dark;
+  background-color: var(--bg-primary);
+}
+
 body {
   font-family: var(--font-sans);
   background-color: var(--bg-primary);
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Résumé section boxes use a 40/60 split. The divider is drawn on the grid
+   itself so it can be thicker than a border while stopping short of the card's
+   top and bottom edges instead of running the full height. */
+.resume-split-grid {
+  position: relative;
+}
+
+@media (min-width: 768px) {
+  .resume-split-grid::after {
+    content: '';
+    position: absolute;
+    top: 1.25rem;
+    bottom: 1.25rem;
+    left: 40%;
+    width: 2px;
+    transform: translateX(-50%);
+    border-radius: var(--radius-full, 9999px);
+    background: rgba(0, 0, 0, 0.2);
+    pointer-events: none;
+  }
 }
 
 ::selection {

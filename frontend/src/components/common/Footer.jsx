@@ -158,12 +158,14 @@ function Footer() {
 
         {/* Bottom bar */}
         <div className="mt-12 pt-5 border-t border-white/10 flex flex-col-reverse sm:flex-row items-start sm:items-center justify-between gap-4 footer-bottom">
-            <p className="flex items-center gap-2 text-sm text-white/50">
+            <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-white/50">
             <span className="relative flex h-2 w-2 shrink-0">
               <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400/50 animate-ping" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
             </span>
-            Looking for full-time, open to freelance
+            <span>Looking for full-time, open to freelance</span>
+            <span className="text-white/25">·</span>
+            <span>Based in Fujairah, UAE</span>
           </p>
             <p className="text-xs uppercase tracking-widest text-white/50">
             © 2026 Mohammed Fawaz O

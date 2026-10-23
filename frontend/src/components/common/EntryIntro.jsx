@@ -278,9 +278,9 @@ export default function EntryIntro() {
     transitionRef.current = startTransition
   })
 
-  // The white hint vanished into the bright floor of both clips, so it now
-  // wears the site's dark ink instead - black on a phone, #323232 on desktop,
-  // which is the colour the rest of the light furniture uses.
+  // The "again to enter" step sits over the black panels the reveal just
+  // raised, so that hint alone uses light ink. The earlier reveal/zoom hints
+  // stay on the site's dark ink because they sit over the bright clip.
   //
   // The hint names the gesture that actually works at each step. A click or a
   // tap only lifts the black panels over the screens - the zoom and the entry
@@ -439,7 +439,7 @@ export default function EntryIntro() {
           >
             <span
               className={`max-w-full text-center text-[13px] leading-relaxed uppercase tracking-[0.25em] font-medium sm:text-[14px] sm:tracking-[0.3em] ${
-                isMobile ? 'text-black' : 'text-[#323232]'
+                covered ? 'text-[#F5F7F7]' : isMobile ? 'text-black' : 'text-[#323232]'
               }`}
             >
               {hintLabel}

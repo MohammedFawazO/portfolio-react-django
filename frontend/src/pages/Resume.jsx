@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import { Monitor } from 'lucide-react'
 import { Helmet } from 'react-helmet-async'
 import SectionHeading from '../components/ui/SectionHeading'
 import Card from '../components/ui/Card'
@@ -7,37 +9,7 @@ import { StaggerChildren, StaggerItem } from '../components/animations/StaggerCh
 import { BooksShowcase } from '../components/ui/books-showcase'
 
 function Resume() {
-  const experience = [
-    {
-      title: 'Full Stack Developer',
-      company: 'UAE Startup',
-      period: '2023 - Present',
-      description: 'Developed production websites, built REST APIs, handled deployments, and worked directly with international clients.',
-      highlights: [
-        'Developed production websites for real clients',
-        'Built and maintained REST APIs',
-        'Deployed applications to production environments',
-        'Debugged and fixed issues in live applications',
-        'Gathered client requirements',
-      ],
-    },
-  ]
-
-  const education = [
-    {
-      degree: 'Bachelor of Computer Applications (BCA)',
-      institution: 'University',
-      period: '2018 - 2021',
-    },
-  ]
-
-  const skills = {
-    Backend: ['Python', 'Django', 'Django REST Framework', 'REST APIs'],
-    Frontend: ['React', 'JavaScript', 'HTML', 'CSS', 'Tailwind CSS', 'Bootstrap'],
-    Databases: ['PostgreSQL', 'MySQL', 'SQLite', 'Supabase'],
-    Tools: ['Git', 'GitHub', 'Postman', 'Vite'],
-    Deployment: ['Render', 'Railway', 'Cloudflare', 'WhiteNoise'],
-  }
+  const [selectedCv, setSelectedCv] = useState(null)
 
   // Each "binder" on the shelf is a version of my CV,
 // so the same 3D showcase, carousel and detail panel drive the section - only
@@ -268,9 +240,346 @@ function paintResumeSpine(ctx, w, h, cv) {
   ctx.fillRect(0, h - 74, w, 4)
 }
 
-const cvDocuments = [
+// Content pulled from each PDF in /public/media/cv. The page renders the
+// active document's sections below the shelf, so opening a CV in focus mode
+// swaps every section - not just the detail panel - to match that PDF.
+const CV_CONTENT = {
+  'data-entry': {
+    summaryTitle: 'Professional Summary',
+    summary:
+      'Detail-oriented and adaptable professional with hands-on experience organizing information, working with spreadsheets and databases, checking records for accuracy, and supporting digital business workflows. Intermediate Microsoft Excel skills, proficiency in Word, PowerPoint and Excel, and a typing speed of 30-40 WPM. Brings attention to detail, consistency, confidentiality, and a quick-learning mindset to administrative and data-handling tasks.',
+    skillsTitle: 'Core Skills',
+    skills: {
+      'Data Entry & Record Management': [
+        'Data entry and record updating',
+        'Spreadsheet organization',
+        'Customer, product, and inventory record maintenance',
+        'Database record fundamentals',
+      ],
+      'Office & Administrative Support': [
+        'Microsoft Excel (Intermediate)',
+        'Word and PowerPoint',
+        'Email support',
+        'Online research and information collection',
+        'General administrative assistance',
+      ],
+      'Database & Digital Tools': [
+        'PostgreSQL fundamentals',
+        'SQLite fundamentals',
+        'Digital systems',
+        'Structured records',
+      ],
+      'Professional Strengths': [
+        'Attention to detail',
+        'Confidentiality and responsible data handling',
+        'Task ownership',
+        'Quick learner',
+        'Team collaboration',
+      ],
+    },
+    experienceTitle: 'Relevant Experience',
+    experience: [
+      {
+        title: 'Freelance Python Full Stack Developer',
+        company: 'Self-employed - development work, not a formal data-entry position',
+        period: '2025 - Present',
+        highlights: [
+          'Develop and deploy database-driven web applications and websites for UAE clients.',
+          'Organize structured information and support reliable data storage and retrieval in digital workflows.',
+          'Coordinate client requirements, review functionality, and take ownership of delivery and updates.',
+        ],
+      },
+      {
+        title: 'Excel Community Training',
+        company: 'Resource Person - Grace Valley College',
+        period: '26 September 2024',
+        highlights: [
+          'Led a three-day hands-on Excel training for middle-aged learners.',
+          'Demonstrated formulas, charts, and practical productivity features through guided exercises.',
+        ],
+      },
+    ],
+    projectsTitle: 'Selected Projects',
+    projects: [
+      {
+        title: 'CarCure - Vehicle Management Platform',
+        meta: 'Python, Django, PostgreSQL',
+        description:
+          'Developed a vehicle information management platform using structured database records and data management workflows to organize and retrieve vehicle-related information accurately.',
+        highlights: ['Organized vehicle records for accurate storage and quick information retrieval.'],
+      },
+      {
+        title: 'AL Shamil Turning LLC - Business Website',
+        meta: 'Django, HTML, CSS, JavaScript',
+        description:
+          'Developed and deployed a responsive business website for a UAE-based client, structuring content and navigation to present services and business information clearly.',
+        highlights: ['Structured website content and navigation for clear, reliable presentation.'],
+      },
+    ],
+    education: [
+      {
+        degree: 'Bachelor of Computer Applications (BCA)',
+        institution: 'Grace Valley College of Arts and Science',
+        period: '2022 - 2025',
+      },
+    ],
+    languages: ['English', 'Malayalam', 'Tamil (conversational)', 'Hindi (conversational)'],
+  },
+  'it-support': {
+    summaryTitle: 'Professional Summary',
+    summary:
+      'IT graduate with hands-on experience developing, deploying, and maintaining database-driven applications and business websites using Python, Django, REST APIs, SQL, HTML, CSS, and JavaScript. Demonstrates strong problem-solving and documentation skills, learns new systems quickly, and seeks an IT-focused role to apply this technical foundation while expanding experience in technical support, applications, and IT operations.',
+    skillsTitle: 'Technical Skills',
+    skills: {
+      Programming: ['Python', 'JavaScript', 'HTML5', 'CSS3'],
+      'Frameworks & Platforms': ['Django', 'Django REST Framework', 'React', 'Next.js', 'Streamlit'],
+      'IT & Application': [
+        'Application Troubleshooting',
+        'User Authentication',
+        'Authorization & Permissions',
+        'CRUD Operations',
+        'Database Management',
+        'File Handling',
+        'Deployment',
+      ],
+      'Databases & Tools': ['Git', 'GitHub', 'VS Code', 'PostgreSQL', 'SQLite'],
+      Other: [
+        'Problem Solving',
+        'System Testing',
+        'Responsive Web Interfaces',
+        'Technical Documentation',
+      ],
+    },
+    experienceTitle: 'Professional Experience',
+    experience: [
+      {
+        title: 'Freelance IT / Web Developer',
+        company: 'Self-employed - UAE-based clients',
+        period: 'Aug 2025 - Present',
+        highlights: [
+          'Architected and deployed web applications and business websites for UAE-based clients using Django and modern web technologies.',
+          'Delivered CarCure: built a Django platform for spare parts ordering, maintenance booking, SOS roadside assistance, and role-based user and staff workflows.',
+          'Led AL Shamil Turning LLC: developed and deployed a responsive portfolio website for a marine machinery manufacturer, highlighting products, services, and company capabilities.',
+        ],
+      },
+    ],
+    projectsTitle: 'Projects',
+    projects: [
+      {
+        title: 'CarCure - Automotive Service & Management Platform',
+        meta: 'Python, Django, Django REST Framework, PostgreSQL, JavaScript, HTML, CSS',
+        description:
+          'Architected a Django-based service and product management system for garage operations, implementing spare parts ordering, maintenance booking, SOS request workflows, and role-based user and staff management.',
+      },
+      {
+        title: 'AL Shamil Turning LLC - Business Website',
+        meta: 'HTML, CSS, JavaScript, Django',
+        description:
+          'Developed and deployed a responsive corporate website with a structured, mobile-friendly interface, optimized navigation, and a clear user experience.',
+      },
+      {
+        title: 'Tour Package Management System',
+        meta: 'Python, Django, SQLite',
+        description:
+          'Built a package, booking, and user management system with an admin panel, authentication, and CRUD features.',
+      },
+      {
+        title: 'IoT-Based Smart Thermostat',
+        meta: 'Arduino, Python, Sensors',
+        description:
+          'Designed an Arduino and Python system that monitors ambient temperature and triggers email alerts, using real-time data and automation for live updates.',
+      },
+    ],
+    education: [
+      {
+        degree: 'Bachelor of Computer Applications (BCA)',
+        institution: 'Grace Valley College of Arts & Science, Malappuram, Kerala',
+        period: 'Nov 2022 - Apr 2025',
+      },
+    ],
+    certifications: [
+      { name: 'Python Full-Stack Internship', issuer: 'Marklance Infotech', date: 'Jan 2025' },
+      { name: 'Excel Community Training, Resource Person', issuer: 'Grace Valley College', date: 'Sep 2024' },
+      { name: 'IoT Internship', issuer: 'Grapesgenix Technical Solutions Pvt. Ltd.', date: 'Feb 2025' },
+    ],
+    languages: ['English (Fluent)', 'Malayalam (Native)', 'Hindi (Intermediate)', 'Tamil (Intermediate)'],
+  },
+  'python-fullstack-photo': {
+    summaryTitle: 'Profile',
+    summary:
+      'Python Full Stack Developer with hands-on experience building and deploying database-driven web applications using Django and modern web technologies. Developed business portfolio websites for UAE-based clients and a production-ready automotive service platform featuring spare parts ordering, maintenance booking, SOS roadside assistance, role-based authentication, and REST API functionality. Skilled in backend development, API integration, responsive web design, and production deployment. Looking to join a company and team where I can contribute to real-world projects, learn from experienced developers, and continue growing my technical skills.',
+    skillsTitle: 'Technical Skills',
+    skills: {
+      Languages: ['Python', 'HTML', 'CSS', 'JavaScript'],
+      Frameworks: ['Django', 'Django REST Framework', 'Streamlit', 'Next.js'],
+      Databases: ['PostgreSQL', 'SQLite'],
+      'Version Control': ['Git', 'GitHub'],
+      'Deployment & Tools': ['Render', 'Supabase', 'Domain Management', 'Production Deployment'],
+      'Soft Skills': ['Task Ownership', 'Quick Learner', 'Team Collaboration', 'Attention to Detail'],
+    },
+    experienceTitle: 'Professional Experience',
+    experience: [
+      {
+        title: 'Freelance Python Full Stack Developer',
+        company: 'Client Projects - UAE-based clients',
+        period: '2025 - Present',
+        highlights: [
+          'Developed and deployed web applications and business websites for UAE-based clients using Django and modern web technologies.',
+          'CarCure: built a Django platform for spare parts ordering, vehicle maintenance booking, SOS roadside assistance, and role-based user and staff workflows.',
+          'Implemented authentication, REST APIs, database-driven workflows, and responsive user interfaces.',
+          'AL Shamil Turning LLC: developed and deployed a responsive portfolio website for a marine machinery manufacturer using Django, HTML, CSS, and JavaScript.',
+          'Configured domain, DNS, hosting, and production deployment for a successful public launch.',
+        ],
+      },
+    ],
+    projectsTitle: 'Projects',
+    projects: [
+      {
+        title: 'CarCure - Automotive Service & Spare Parts Management Platform',
+        meta: 'UAE client project | Django | Django REST Framework | PostgreSQL',
+        description:
+          'Developed and deployed a Django-based platform for spare parts ordering, vehicle maintenance booking, and SOS roadside assistance.',
+        highlights: [
+          'Designed separate user and staff workflows with role-based authentication and permissions.',
+          'Managed production deployment, domain configuration, and ongoing application updates.',
+        ],
+      },
+      {
+        title: 'AL Shamil Turning LLC - Business Portfolio Website',
+        meta: 'UAE client project | Django | JavaScript | HTML/CSS',
+        description:
+          'Developed and deployed a responsive corporate website for a UAE-based marine machinery manufacturer.',
+        highlights: [
+          'Designed structured product, service, and company sections with mobile-responsive navigation.',
+          'Configured domain, DNS, hosting, and production deployment for the public launch.',
+        ],
+      },
+      {
+        title: 'Tour Package Management System',
+        meta: 'Python, Django, SQLite',
+        description:
+          'Built a system to manage packages, bookings, and users, with an admin panel, authentication, and CRUD features.',
+      },
+      {
+        title: 'IoT-Based Smart Thermostat',
+        meta: 'Arduino, Python',
+        description:
+          'Engineered an Arduino and Python system that monitored ambient temperature and automatically emailed alerts, improving awareness of real-time room conditions.',
+      },
+    ],
+    internshipsTitle: 'Internships & Additional Experience',
+    internships: [
+      {
+        title: 'Python Full-Stack Internship',
+        company: 'Marklance Infotech',
+        period: 'Dec 2024 - Feb 2025 (3 months)',
+        highlights: [
+          'Built dynamic web apps using Django, HTML, CSS, and JavaScript.',
+          'Applied SQLite, Git, and GitHub in real-world projects.',
+        ],
+      },
+      {
+        title: 'IoT Internship',
+        company: 'Grapesgenix Technical Solutions Pvt. Ltd.',
+        period: '3 months',
+        highlights: [
+          'Worked on IoT applications with real-time data and sensors.',
+          'Used real-time sensor data and Python-based automation for live updates to users.',
+        ],
+      },
+      {
+        title: 'Excel Community Training, Resource Person',
+        company: 'Grace Valley College',
+        period: '26 Sep 2024',
+        highlights: [
+          'Led a three-day hands-on Excel training for middle-aged learners.',
+          'Covered formulas, charts, and practical productivity features.',
+        ],
+      },
+    ],
+    education: [
+      {
+        degree: 'Bachelor of Computer Applications (BCA)',
+        institution: 'Grace Valley College of Arts and Science',
+        period: '2022 - 2025',
+      },
+    ],
+    languages: ['English', 'Malayalam', 'Tamil (Conversational)', 'Hindi (Conversational)'],
+  },
+  'python-fullstack-ats': {
+    summaryTitle: 'Professional Summary',
+    summary:
+      'Python Full Stack Developer with hands-on experience building and deploying database-driven web applications using Python and Django, REST APIs, SQL, HTML, CSS, and JavaScript. Experienced in business websites and automotive service platforms featuring user authentication, role-based workflows, API integration, database management, file handling, and responsive interfaces.',
+    skillsTitle: 'Technical Skills',
+    skills: {
+      'Programming Languages': ['Python', 'JavaScript', 'HTML5', 'CSS3'],
+      Frameworks: ['Django', 'Django REST Framework', 'React', 'Streamlit', 'Next.js'],
+      Databases: ['PostgreSQL', 'SQLite'],
+      Backend: ['CRUD Operations', 'REST APIs', 'Authentication & Authorization'],
+      Tools: ['VS Code', 'Git', 'GitHub'],
+    },
+    experienceTitle: 'Professional Experience',
+    experience: [
+      {
+        title: 'Freelance Web Developer',
+        company: 'Self-employed - UAE-based clients',
+        period: 'Aug 2025 - Present',
+        highlights: [
+          'Architected and deployed web applications and business websites for UAE-based clients using Django and modern web technologies.',
+          'Delivered CarCure: built a Django platform for spare parts ordering, maintenance booking, SOS roadside assistance, and role-based user and staff workflows.',
+          'Led AL Shamil Turning LLC: developed and deployed a responsive portfolio website for a marine machinery manufacturer, highlighting products, services, and company capabilities.',
+        ],
+      },
+    ],
+    projectsTitle: 'Projects',
+    projects: [
+      {
+        title: 'CarCure - Automotive Service & Spare Parts Management Platform',
+        meta: 'Django, Python, Next.js, REST Framework, CSS3, HTML5, JavaScript, PostgreSQL',
+        description:
+          'Architected a Django-based service and product management system for garage operations, implementing spare parts ordering, maintenance booking, SOS request workflows, and role-based user and staff management.',
+      },
+      {
+        title: 'AL Shamil Turning LLC - Business Portfolio Website',
+        meta: 'HTML, CSS, JavaScript, Django',
+        description:
+          'Developed and deployed a responsive corporate website with a structured, mobile-friendly interface, optimized navigation, and a clear user experience.',
+      },
+      {
+        title: 'Tour Package Management System',
+        meta: 'Python, Django, SQLite',
+        description:
+          'Built a package, booking, and user management system with an admin panel, authentication, and CRUD features.',
+      },
+      {
+        title: 'IoT-Based Smart Thermostat',
+        meta: 'Arduino, Python',
+        description:
+          'Designed an Arduino and Python system that monitors ambient temperature and triggers email alerts, using real-time data and automation for live updates.',
+      },
+    ],
+    education: [
+      {
+        degree: 'Bachelor of Computer Applications (BCA)',
+        institution: 'Grace Valley College of Arts & Science, Malappuram, Kerala',
+        period: 'Nov 2022 - Apr 2025',
+      },
+    ],
+    certifications: [
+      { name: 'Python Full-Stack Internship', issuer: 'Marklance Infotech', date: 'Jan 2025' },
+      { name: 'Excel Community Training, Resource Person', issuer: 'Grace Valley College', date: 'Sep 2024' },
+      { name: 'IoT Internship', issuer: 'Grapesgenix Technical Solutions Pvt. Ltd.', date: 'Feb 2025' },
+    ],
+    languages: ['English (Fluent)', 'Hindi (B2)', 'Tamil (B2)', 'Malayalam (Native)'],
+  },
+}
+
+const DEFAULT_CV_ID = 'python-fullstack-photo'
+
+const [cvDocuments] = useState(() => [
     {
       id: 'it-support',
+      content: CV_CONTENT['it-support'],
       title: 'IT Software Support Professional',
       author: 'CV',
       year: '2026',
@@ -278,8 +587,8 @@ const cvDocuments = [
       metaLabel: 'No photo, ATS-safe',
       badge: 'ATS-ready · text only',
       hasPhoto: false,
-      sections: ['Summary', 'Experience', 'Technical Skills', 'Education', 'Certifications', 'Languages'],
-      desc: 'My resume for IT Software Support Professional roles - hardware and software troubleshooting, user support, Windows and network administration, ticketing and the documentation side of it. Text only and laid out for applicant tracking systems, so it parses cleanly.',
+      sections: ['Professional Summary', 'Skills', 'Professional Experience', 'Projects', 'Education', 'Certifications', 'Languages'],
+      desc: 'An ATS-ready CV for IT Software Support Professional roles, covering hardware and software troubleshooting, end-user support, Windows and network administration, ticketing, and technical documentation. The single-column, text-only layout is built to parse cleanly in applicant tracking systems.',
       backBg: '#12333a',
       backInk: '214,240,242',
       spineBg: '#0A3332',
@@ -292,6 +601,7 @@ const cvDocuments = [
     },
     {
       id: 'python-fullstack-photo',
+      content: CV_CONTENT['python-fullstack-photo'],
       title: 'Python Full Stack Developer',
       coverTitle: 'Full Stack',
       author: 'Developer CV',
@@ -300,8 +610,8 @@ const cvDocuments = [
       metaLabel: 'Includes a photo',
       badge: 'Recruiter version · with photo',
       hasPhoto: true,
-      sections: ['Profile', 'Experience', 'Selected Projects', 'Stack', 'Education', 'Languages'],
-      desc: 'My full stack resume as a person reads it: Django and DRF backends, React frontends, PostgreSQL data models and the deployments behind them, laid out for a human with a photo on top. Send this when the CV reaches a recruiter directly - use the ATS version below when a portal filters it first.',
+      sections: ['Profile', 'Technical Skills', 'Professional Experience', 'Projects', 'Internships & Additional Experience', 'Education', 'Languages'],
+      desc: 'A recruiter-facing CV presenting hands-on experience with Django and Django REST Framework backends, React frontends, PostgreSQL data modelling, and production deployments. Designed for human review, with a photograph and a clear, scannable layout.',
       backBg: '#1a3a52',
       backInk: '220,235,250',
       spineBg: '#0f2535',
@@ -314,6 +624,7 @@ const cvDocuments = [
     },
     {
       id: 'python-fullstack-ats',
+      content: CV_CONTENT['python-fullstack-ats'],
       title: 'Python Full Stack Developer',
       author: 'ATS-friendly CV',
       year: '2026',
@@ -321,8 +632,8 @@ const cvDocuments = [
       metaLabel: 'No photo, ATS-safe',
       badge: 'ATS-friendly · single column',
       hasPhoto: false,
-      sections: ['Professional Summary', 'Professional Experience', 'Skills', 'Projects', 'Education', 'Additional Information'],
-      desc: 'The same full stack role, rebuilt to survive applicant tracking systems: no photo, no columns, no icons or tables, plain single-column text with standard headings like Experience, Skills and Education. Use this whenever the CV goes through a portal or an ATS filter first.',
+      sections: ['Professional Summary', 'Technical Skills', 'Professional Experience', 'Projects', 'Education', 'Certifications', 'Languages'],
+      desc: 'The same full stack profile, rebuilt for applicant tracking systems: no photograph, columns, icons, or tables, just clean single-column text with standard headings such as Experience, Skills, and Education. Recommended for applications submitted through a portal or ATS filter.',
       backBg: '#0f2535',
       backInk: '220,235,250',
       spineBg: '#0f2535',
@@ -335,15 +646,16 @@ const cvDocuments = [
     },
   {
       id: 'data-entry',
+      content: CV_CONTENT['data-entry'],
       title: 'Data Entry Specialist',
       author: 'Operations CV',
       year: '2026',
       stars: 4,
-      metaLabel: 'No photo, ATS-safe',
-      badge: 'Operations · fast and accurate',
-      hasPhoto: false,
-      sections: ['Profile', 'Experience', 'Key Skills', 'Education', 'Tools', 'Languages'],
-      desc: 'My resume aimed at data entry and administrative work: accurate record keeping, clean data handling, spreadsheet work and the kind of careful, repetitive attention that keeps a database trustworthy. Same single-column, text-only layout so it survives an ATS filter.',
+      metaLabel: 'Includes a photo',
+      badge: 'Recruiter version · with photo',
+      hasPhoto: true,
+      sections: ['Professional Summary', 'Core Skills', 'Relevant Experience', 'Selected Projects', 'Education', 'Languages'],
+      desc: 'A recruiter-facing CV for data entry and administrative roles, highlighting accurate record keeping, clean data handling, spreadsheet proficiency, and consistent attention to detail. Presented with a photograph in a clear, scannable layout for direct human review.',
       backBg: '#1f3a2e',
       backInk: '226,242,232',
       spineBg: '#12251c',
@@ -363,7 +675,13 @@ const cvDocuments = [
     front: (ctx, w, h) => paintResumeCover(ctx, w, h, cv),
     back: (ctx, w, h) => paintResumeBack(ctx, w, h, cv),
     spine: (ctx, w, h) => paintResumeSpine(ctx, w, h, cv),
-  }))
+  })))
+
+  const activeCv =
+    selectedCv ||
+    cvDocuments.find((cv) => cv.id === DEFAULT_CV_ID) ||
+    cvDocuments[0]
+  const content = activeCv?.content
 
   return (
     <>
@@ -373,22 +691,25 @@ const cvDocuments = [
       </Helmet>
 
       {/* beige / black / blue theme, shared with the contact page and the CV form */}
-      <div className="page-tail-fade min-h-screen bg-[#F5F5DC] py-[7rem] md:py-[9rem] pt-[7.5rem]">
-        {/* Container owns the site's even gutters (equal left and right) */}
-        <Container size="lg">
+      <div className="page-tail-fade min-h-screen bg-[#F5F5DC] pb-[4.5rem] pt-[7.5rem] md:pb-[7rem] md:pt-[9rem]">
+        {/* Container owns the site's even gutters (equal left and right). The
+            important overrides counteract styles/utilities.css, which redefines
+            .px-6 unlayered as 4rem and outranks Container's sm:/lg: variants,
+            leaving only 247px of content on a 375px phone. */}
+        <Container size="lg" className="px-4! sm:px-10! lg:px-14! 2xl:px-20!">
           {/* Hero : the CV shelf. Every version of my resume, pick one, read
               it, take the PDF. */}
-          <section className="mb-20">
-            <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-4 mb-8">
+          <section className="mb-10 md:mb-14">
+            <div className="mb-8 flex flex-col items-start gap-5 md:flex-row md:items-end md:justify-between md:gap-x-10">
               <div>
-                <p className="text-[11px] font-medium text-[#2d8cf0] uppercase tracking-[0.28em] font-[family-name:var(--font-mono)] mb-4">
+                <p className="mb-3 text-[10px] font-medium text-[#2d8cf0] uppercase tracking-[0.22em] font-[family-name:var(--font-mono)] sm:text-[11px] sm:tracking-[0.28em]">
                   Mohammed Fawaz O · Python Full Stack Developer
                 </p>
-                <h1 className="font-[family-name:var(--font-display)] text-[40px] md:text-[62px] leading-[1.02] font-semibold text-black tracking-tight">
+                <h1 className="font-[family-name:var(--font-display)] text-[36px] sm:text-[46px] md:text-[62px] leading-[1.02] font-semibold text-black tracking-tight break-words">
                   Resumes &amp; CVs
                 </h1>
               </div>
-              <p className="text-[16px] text-[#666] font-light leading-relaxed max-w-md">
+              <p className="max-w-xl text-[15px] text-[#666] font-light leading-relaxed sm:text-[16px] md:max-w-md">
                 I keep several versions of my resume, each shaped for a different kind of team. Open any one
                 to read what it covers, then take the PDF with you.
               </p>
@@ -401,6 +722,7 @@ const cvDocuments = [
                 showNav={true}
                 showDetailPanel={true}
                 showCarousel={true}
+                onBookSelect={setSelectedCv}
                 themeColors={{
                   navy: '#12333A',
                   pink: '#2d8cf0',
@@ -421,80 +743,207 @@ const cvDocuments = [
             </div>
           </section>
 
-          {/* Professional Summary */}
-          <Card variant="teal" className="ct-card p-7! mb-12">
-            <h3 className="text-[11px] font-medium text-black uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] mb-4">Professional Summary</h3>
-            <p className="text-[#323232] text-[16px] leading-[1.8]">
-              Python Full Stack Developer with experience building production-ready web applications using Django,
-              Django REST Framework, React, and PostgreSQL. Proven ability to deliver complete solutions from
-              concept to deployment. Strong backend development skills with focus on clean architecture, API design,
-              and database management. Experience working with international clients and delivering projects on time.
-            </p>
-          </Card>
+          {content && (
+            <div key={activeCv.id}>
+              {/* Professional Summary */}
+              <SectionHeading tone="beige" alignment="left" title={content.summaryTitle || 'Professional Summary'} className="mb-7! md:mb-10!" />
+              <Card variant="teal" className="ct-card mb-10 p-5! sm:p-6! md:mb-14 md:p-7!">
+                <p className="text-[#323232] text-[15px] leading-[1.75] md:text-[16px] md:leading-[1.8]">{content.summary}</p>
+              </Card>
 
-          {/* Experience */}
-          <div className="mb-14">
-            <SectionHeading tone="beige" alignment="left" eyebrow="Career" title="Experience" />
-            <StaggerChildren className="space-y-5">
-              {experience.map((exp, index) => (
-                <StaggerItem key={index}>
-                  <Card variant="light" className="ct-panel p-7!">
-                    <div className="flex flex-wrap justify-between items-start gap-2 mb-3">
-                      <h4 className="text-[20px] font-semibold text-black font-[family-name:var(--font-display)]">{exp.title}</h4>
-                      <span className="text-[12px] text-[#666] uppercase tracking-[0.14em] font-[family-name:var(--font-mono)]">{exp.period}</span>
-                    </div>
-                    <p className="text-[#666] mb-4 text-[14px] font-medium">{exp.company}</p>
-                    <p className="text-[#323232] mb-5 text-[15px] leading-[1.7]">{exp.description}</p>
-                    <ul className="space-y-2">
-                      {exp.highlights.map((highlight, i) => (
-                        <li key={i} className="flex items-start gap-2 text-[#323232] text-[14px]">
-                          <span className="text-[#2d8cf0] mt-0.5 font-semibold">&#10003;</span>
-                          {highlight}
-                        </li>
+              {/* Experience */}
+              {content.experience?.length > 0 && (
+                <div className="mb-10 md:mb-14">
+                  <SectionHeading tone="beige" alignment="left" title={content.experienceTitle || 'Experience'} className="mb-7! md:mb-10!" />
+                  <StaggerChildren className="space-y-4 md:space-y-5">
+                    {content.experience.map((exp, index) => (
+                      <StaggerItem key={`${activeCv.id}-exp-${index}`}>
+                        <Card variant="light" className="ct-panel p-0! overflow-hidden">
+                          <div className="resume-split-grid grid md:grid-cols-[2fr_3fr]">
+                            <div className="px-4! py-5! sm:px-5! md:px-7! md:py-6!">
+                              <h4 className="text-[18px] md:text-[20px] leading-snug break-words font-semibold text-black font-[family-name:var(--font-display)]">{exp.title}</h4>
+                              <p className="mt-3 break-words text-[14px] font-medium text-[#666]">{exp.company}</p>
+                              <span className="mt-3 inline-block break-words text-[12px] text-[#666] uppercase tracking-[0.14em] font-[family-name:var(--font-mono)]">{exp.period}</span>
+                            </div>
+                            <div className="border-t border-black/10 px-4! py-5! sm:px-5! md:border-t-0 md:px-7! md:py-6!">
+                              {exp.description && (
+                                <p className="mb-5 break-words text-[15px] leading-[1.7] text-[#323232]">{exp.description}</p>
+                              )}
+                              <ul className="space-y-2">
+                                {exp.highlights.map((highlight, i) => (
+                                  <li key={i} className="flex items-start gap-2 break-words text-[#323232] text-[14px]">
+                                    <Monitor size={14} strokeWidth={2} className="mt-[3px] shrink-0 text-[#2d8cf0]" />
+                                    {highlight}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+                        </Card>
+                      </StaggerItem>
+                    ))}
+                  </StaggerChildren>
+                </div>
+              )}
+
+              {/* Projects */}
+              {content.projects?.length > 0 && (
+                <div className="mb-10 md:mb-14">
+                  <SectionHeading tone="beige" alignment="left" title={content.projectsTitle || 'Projects'} className="mb-7! md:mb-10!" />
+                  <StaggerChildren className="space-y-4 md:space-y-5">
+                    {content.projects.map((project, index) => (
+                      <StaggerItem key={`${activeCv.id}-project-${index}`}>
+                        <Card variant="light" className="ct-panel p-0! overflow-hidden">
+                          <div className="resume-split-grid grid md:grid-cols-[2fr_3fr]">
+                            <div className="px-4! py-5! sm:px-5! md:px-7! md:py-6!">
+                              <h4 className="text-[18px] md:text-[20px] leading-snug break-words font-semibold text-black font-[family-name:var(--font-display)]">{project.title}</h4>
+                              {project.meta && (
+                                <p className="text-[12px] text-[#2d8cf0] uppercase tracking-[0.14em] font-[family-name:var(--font-mono)] mt-3">{project.meta}</p>
+                              )}
+                            </div>
+                            <div className="border-t border-black/10 px-4! py-5! sm:px-5! md:border-t-0 md:px-7! md:py-6!">
+                              <p className="break-words text-[15px] leading-[1.7] text-[#323232]">{project.description}</p>
+                              {project.highlights?.length > 0 && (
+                                <ul className="space-y-2 mt-4">
+                                  {project.highlights.map((highlight, i) => (
+                                    <li key={i} className="flex items-start gap-2 break-words text-[#323232] text-[14px]">
+                                      <Monitor size={14} strokeWidth={2} className="mt-[3px] shrink-0 text-[#2d8cf0]" />
+                                      {highlight}
+                                    </li>
+                                  ))}
+                                </ul>
+                              )}
+                            </div>
+                          </div>
+                        </Card>
+                      </StaggerItem>
+                    ))}
+                  </StaggerChildren>
+                </div>
+              )}
+
+              {/* Internships & Additional Experience */}
+              {content.internships?.length > 0 && (
+                <div className="mb-10 md:mb-14">
+                  <SectionHeading tone="beige" alignment="left" title={content.internshipsTitle || 'Internships & Additional Experience'} className="mb-7! md:mb-10!" />
+                  <StaggerChildren className="space-y-4 md:space-y-5">
+                    {content.internships.map((role, index) => (
+                      <StaggerItem key={`${activeCv.id}-internship-${index}`}>
+                        <Card variant="light" className="ct-panel p-0! overflow-hidden">
+                          <div className="resume-split-grid grid md:grid-cols-[2fr_3fr]">
+                            <div className="px-4! py-5! sm:px-5! md:px-7! md:py-6!">
+                              <h4 className="text-[18px] md:text-[20px] leading-snug break-words font-semibold text-black font-[family-name:var(--font-display)]">{role.title}</h4>
+                              <p className="mt-3 break-words text-[14px] font-medium text-[#666]">{role.company}</p>
+                              <span className="mt-3 inline-block break-words text-[12px] text-[#666] uppercase tracking-[0.14em] font-[family-name:var(--font-mono)]">{role.period}</span>
+                            </div>
+                            <div className="border-t border-black/10 px-4! py-5! sm:px-5! md:border-t-0 md:px-7! md:py-6!">
+                              <ul className="space-y-2">
+                                {role.highlights.map((highlight, i) => (
+                                  <li key={i} className="flex items-start gap-2 break-words text-[#323232] text-[14px]">
+                                    <Monitor size={14} strokeWidth={2} className="mt-[3px] shrink-0 text-[#2d8cf0]" />
+                                    {highlight}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+                        </Card>
+                      </StaggerItem>
+                    ))}
+                  </StaggerChildren>
+                </div>
+              )}
+
+              {/* Skills */}
+              {content.skills && Object.keys(content.skills).length > 0 && (
+                <div className="mb-10 md:mb-14">
+                  <SectionHeading tone="beige" alignment="left" title={content.skillsTitle || 'Technical Skills'} className="mb-7! md:mb-10!" />
+                  <Card variant="light" className="resume-split-grid ct-panel p-0! overflow-hidden">
+                    <StaggerChildren>
+                      {Object.entries(content.skills).map(([category, items]) => (
+                        <StaggerItem key={`${activeCv.id}-skill-${category}`}>
+                          <div className="grid md:grid-cols-[2fr_3fr]">
+                            <div className="px-4! py-4! md:px-7! md:py-6!">
+                              <h4 className="text-[11px] font-medium text-[#2d8cf0] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] md:pt-[5px]">{category}</h4>
+                            </div>
+                            <div className="px-4! py-4! md:px-7! md:py-6!">
+                              <div className="flex flex-wrap gap-2">
+                                {items.map((skill) => (
+                                  <Badge key={skill} variant="secondary" className="ct-tag">{skill}</Badge>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </StaggerItem>
                       ))}
-                    </ul>
+                    </StaggerChildren>
                   </Card>
-                </StaggerItem>
-              ))}
-            </StaggerChildren>
-          </div>
+                </div>
+              )}
 
-          {/* Education */}
-          <div className="mb-14">
-            <SectionHeading tone="beige" alignment="left" eyebrow="Background" title="Education" />
-            <StaggerChildren className="space-y-5">
-              {education.map((edu, index) => (
-                <StaggerItem key={index}>
-                  <Card variant="light" className="ct-panel p-7!">
-                    <div className="flex flex-wrap justify-between items-start gap-2 mb-2">
-                      <h4 className="text-[20px] font-semibold text-black font-[family-name:var(--font-display)]">{edu.degree}</h4>
-                      <span className="text-[12px] text-[#666] uppercase tracking-[0.14em] font-[family-name:var(--font-mono)]">{edu.period}</span>
-                    </div>
-                    <p className="text-[#666] text-[14px]">{edu.institution}</p>
-                  </Card>
-                </StaggerItem>
-              ))}
-            </StaggerChildren>
-          </div>
+              {/* Education */}
+              {content.education?.length > 0 && (
+                <div className="mb-10 md:mb-14">
+                  <SectionHeading tone="beige" alignment="left" title="Education" className="mb-7! md:mb-10!" />
+                  <StaggerChildren className="space-y-4 md:space-y-5">
+                    {content.education.map((edu, index) => (
+                      <StaggerItem key={`${activeCv.id}-edu-${index}`}>
+                        <Card variant="light" className="ct-panel p-0! overflow-hidden">
+                          <div className="resume-split-grid grid md:grid-cols-[2fr_3fr]">
+                            <div className="px-4! py-5! sm:px-5! md:px-7! md:py-6!">
+                              <h4 className="text-[18px] md:text-[20px] leading-snug break-words font-semibold text-black font-[family-name:var(--font-display)]">{edu.degree}</h4>
+                              <span className="mt-3 inline-block break-words text-[12px] text-[#666] uppercase tracking-[0.14em] font-[family-name:var(--font-mono)]">{edu.period}</span>
+                            </div>
+                            <div className="border-t border-black/10 px-4! py-5! sm:px-5! md:border-t-0 md:px-7! md:py-6!">
+                              <p className="break-words text-[14px] text-[#666]">{edu.institution}</p>
+                            </div>
+                          </div>
+                        </Card>
+                      </StaggerItem>
+                    ))}
+                  </StaggerChildren>
+                </div>
+              )}
 
-          {/* Skills */}
-          <div>
-            <SectionHeading tone="beige" alignment="left" eyebrow="Capabilities" title="Technical Skills" />
-            <StaggerChildren className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {Object.entries(skills).map(([category, items]) => (
-                <StaggerItem key={category}>
-                  <Card variant="light" className="ct-panel p-6! h-full">
-                    <h4 className="text-[11px] font-medium text-[#2d8cf0] mb-4 uppercase tracking-[0.18em] font-[family-name:var(--font-mono)]">{category}</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {items.map((skill) => (
-                        <Badge key={skill} variant="secondary" className="ct-tag">{skill}</Badge>
-                      ))}
+              {/* Certifications */}
+              {content.certifications?.length > 0 && (
+                <div className="mb-10 md:mb-14">
+                  <SectionHeading tone="beige" alignment="left" title="Certifications" className="mb-7! md:mb-10!" />
+                  <StaggerChildren className="grid gap-4! sm:grid-cols-2">
+                    {content.certifications.map((cert, index) => (
+                      <StaggerItem key={`${activeCv.id}-cert-${index}`}>
+                        <Card variant="light" className="ct-panel h-full p-5! sm:p-6!">
+                          <div className="mb-2! flex flex-wrap items-start justify-between gap-2">
+                            <h4 className="text-[16px] font-semibold text-black font-[family-name:var(--font-display)]">{cert.name}</h4>
+                            <span className="text-[12px] text-[#666] uppercase tracking-[0.14em] font-[family-name:var(--font-mono)]">{cert.date}</span>
+                          </div>
+                          <p className="break-words text-[14px] text-[#666]">{cert.issuer}</p>
+                        </Card>
+                      </StaggerItem>
+                    ))}
+                  </StaggerChildren>
+                </div>
+              )}
+
+              {/* Languages */}
+              {content.languages?.length > 0 && (
+                <Card variant="light" className="ct-panel p-0! overflow-hidden">
+                  <div className="resume-split-grid grid md:grid-cols-[2fr_3fr]">
+                    <div className="px-4! py-5! md:px-7! md:py-6!">
+                      <h3 className="text-[18px] md:text-[20px] leading-snug break-words font-semibold text-black font-[family-name:var(--font-display)]">Languages</h3>
                     </div>
-                  </Card>
-                </StaggerItem>
-              ))}
-            </StaggerChildren>
-          </div>
+                    <div className="border-t border-black/10 px-4! py-5! md:border-t-0 md:px-7! md:py-6!">
+                      <div className="flex flex-wrap gap-2">
+                        {content.languages.map((language) => (
+                          <Badge key={language} variant="secondary" className="ct-tag">{language}</Badge>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              )}
+            </div>
+          )}
         </Container>
       </div>
     </>
