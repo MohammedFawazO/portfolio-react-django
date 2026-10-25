@@ -101,14 +101,14 @@ export const AliveBlueprintBackground = ({ children, className = '' }) => {
         <div className="absolute left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#00d2ff]/30 to-transparent animate-[scanY_12s_ease-in-out_infinite]" />
 
         {/* EXISTING: Orbiting Concentric Architecture Rings (Bottom Right) */}
-        <div className="absolute bottom-24 right-20 w-[520px] h-[520px] flex items-center justify-center animate-[pulse_8s_ease-in-out_infinite]">
+        <div className="bp-ambient-rings absolute bottom-24 right-20 w-[520px] h-[520px] flex items-center justify-center animate-[pulse_8s_ease-in-out_infinite]">
           <div className="w-[390px] h-[390px] border-2 border-solid border-[#00d2ff]/80 rounded-full" />
           <div className="absolute w-[300px] h-[300px] border-2 border-dashed border-[#00d2ff]/90 rounded-full animate-[spin_60s_linear_infinite_reverse]" />
           <div className="absolute w-5 h-5 bg-[#00d2ff]/90 rounded-full" />
         </div>
 
         {/* EXISTING: Shifting Telemetry Readout (Side Banner) */}
-        <div className="absolute right-6 top-24 flex flex-col gap-1 text-[10px] text-[#00d2ff] tracking-widest">
+        <div className="bp-telemetry absolute right-6 top-24 flex flex-col gap-1 text-[10px] text-[#00d2ff] tracking-widest">
           <div>GRID_SCALE: 1:24_UNIT</div>
           <div>TOLERANCE_BOUNDS: ±0.002mm</div>
         </div>
@@ -140,7 +140,7 @@ export const AliveBlueprintBackground = ({ children, className = '' }) => {
         </div>
 
         {/* Bottom Left Floating Coordinates */}
-        <div className="absolute left-3 bottom-3 flex flex-col gap-1 text-[9px] border-l border-[#00d2ff]/20 pl-2">
+        <div className="bp-axis absolute left-3 bottom-3 flex flex-col gap-1 text-[9px] border-l border-[#00d2ff]/20 pl-2">
           <div>X_AXIS: <span className="text-[#00d2ff]">{mousePos.x.toString().padStart(4, '0')}</span></div>
           <div>Y_AXIS: <span className="text-[#00d2ff]">{mousePos.y.toString().padStart(4, '0')}</span></div>
           <div>SIG_REF: <span className="text-[#00d2ff]">{metrics.tick}HZ</span></div>

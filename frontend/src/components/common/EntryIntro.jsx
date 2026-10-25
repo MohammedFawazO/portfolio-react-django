@@ -4,14 +4,29 @@ import { useLocation } from 'react-router-dom'
 import { useEntryIntro } from '../../context/EntryIntroContext'
 
 const ZOOM_TRAVEL = 700
-const ZOOM_RATE = 0.22
-const ZOOM_SNAP = 0.0015
+// Exponential follow rate. The old 0.22 left the rendered scale roughly four
+// frames behind the scroll target, and its asymptotic tail kept crawling for
+// ~0.3s after the finger/wheel stopped - most noticeable at the end of the
+// zoom, where it read as a lag. A higher rate keeps the visual locked to the
+// input, and the larger snap threshold ends the invisible tail while the
+// black screen is already covering the frame.
+const ZOOM_RATE = 0.4
+const ZOOM_SNAP = 0.004
 const FRAME_MS = 1000 / 60
 const FALLBACK_SPAN = 8
 const TRANSITION_MS = 620
 const HERO_REVEAL_MS = 1000
 const TRANSITION_S = TRANSITION_MS / 1000
 const TRANSITION_EASE = [0.4, 0, 0.2, 1]
+// The overlay covers the viewport width well before it covers the height, so
+// the zoom used to keep scaling (up to ~14x on a phone, ~5.7x on a laptop) just
+// to reach the top and bottom. That last stretch is where the compositor has to
+// re-raster the scaled video layer at a huge size, which is the lag at the end
+// of the desktop zoom. Stop scaling at the horizontal fit and grow the
+// remaining black area vertically instead - cheap, sharp, and it lands on the
+// same full-black frame.
+const FILL_MS = 520
+const FILL_EASE = 'cubic-bezier(0.33, 1, 0.68, 1)'
 const WHEEL_COOLDOWN = 16
 const GESTURE_END_MS = 250
 const TOUCH_CLICK_GUARD_MS = 700
@@ -53,6 +68,10 @@ export default function EntryIntro() {
   const videoRef = useRef(null)
   const sceneRef = useRef(null)
   const rectRef = useRef(null)
+  const fillRef = useRef(null)
+  const fillStartedRef = useRef(false)
+  const fillTimeoutRef = useRef(0)
+  const widthProgressRef = useRef(1)
   const revealedRef = useRef(false)
   const targetRef = useRef(0)
   const shownRef = useRef(0)
@@ -125,10 +144,55 @@ export default function EntryIntro() {
     return () => {
       if (!finishedRef.current) unlockScroll()
       cancelAnimationFrame(rafRef.current)
+      clearTimeout(fillTimeoutRef.current)
       window.removeEventListener('wheel', onWheel)
       window.removeEventListener('touchmove', preventScroll)
     }
   }, [show])
+
+  // The zoom has just reached the point where the black screen overlay spans
+  // the full width. Freeze the scale there and let a plain black layer grow
+  // from the overlay's current on-screen box up and down to the viewport
+  // edges, so the transition finishes vertically without an extra zoom step.
+  const beginFill = () => {
+    if (fillStartedRef.current) return
+    fillStartedRef.current = true
+    targetRef.current = Math.min(targetRef.current, widthProgressRef.current)
+    const rect = rectRef.current
+    const flood = fillRef.current
+    if (!rect || !flood) {
+      coveredRef.current = true
+      setCovered(true)
+      return
+    }
+    const box = rect.getBoundingClientRect()
+    const vw = window.innerWidth
+    const vh = window.innerHeight
+    // Start as a full-width black sheet squashed to exactly the overlay's
+    // vertical span, then scale it up about the overlay's centre. Animating
+    // transform keeps the fill on the compositor; animating top/height forced
+    // a layout and repaint of a full-screen layer every frame, which is what
+    // read as jumpy.
+    const startScale = Math.max(0.001, box.height / vh)
+    flood.style.display = 'block'
+    flood.style.transition = 'none'
+    flood.style.left = '0px'
+    flood.style.top = '0px'
+    flood.style.width = `${vw}px`
+    flood.style.height = `${vh}px`
+    flood.style.transformOrigin = `50% ${box.top + box.height / 2}px`
+    flood.style.transform = `scaleY(${startScale})`
+    // Flush the starting box before arming the transition, otherwise the
+    // browser coalesces both style writes and the layer never animates.
+    void flood.offsetHeight
+    flood.style.transition = `transform ${FILL_MS}ms ${FILL_EASE}`
+    flood.style.transform = 'scaleY(1)'
+    fillTimeoutRef.current = setTimeout(() => {
+      if (coveredRef.current) return
+      coveredRef.current = true
+      setCovered(true)
+    }, FILL_MS)
+  }
 
   const applyScale = (p) => {
     const el = sceneRef.current
@@ -139,6 +203,11 @@ export default function EntryIntro() {
     // numbers off. Everything else still runs; only the scale is held at 1.
     if (isMobile && MOBILE_ZOOM_OFF) {
       el.style.transform = 'scale(1)'
+      return
+    }
+    if (widthProgressRef.current < 1 && p >= widthProgressRef.current) {
+      el.style.transform = `scale(${1 + widthProgressRef.current * spanRef.current})`
+      beginFill()
       return
     }
     el.style.transform = `scale(${1 + p * spanRef.current})`
@@ -166,14 +235,18 @@ export default function EntryIntro() {
     const cy = (r.top + r.height / 2 - s.top) / s.height
     const ox = cx * s.width
     const oy = cy * s.height
-    const needed = Math.max(
-      ox / hw,
-      (s.width - ox) / hw,
-      oy / hh,
-      (s.height - oy) / hh,
-    )
+    const neededX = Math.max(ox / hw, (s.width - ox) / hw)
+    const neededY = Math.max(oy / hh, (s.height - oy) / hh)
+    const needed = Math.max(neededX, neededY)
     originRef.current = `${cx * 100}% ${cy * 100}%`
     spanRef.current = Math.max(1, needed - 1)
+    // Fraction of the zoom travel at which the overlay first covers the
+    // viewport horizontally. On a phone that is usually only a fifth of the
+    // way, which is why the rest is handed over to the vertical fill.
+    widthProgressRef.current = Math.min(
+      1,
+      Math.max(0, (neededX - 1) / spanRef.current),
+    )
     applyScale(shownRef.current)
   }
 
@@ -234,13 +307,17 @@ export default function EntryIntro() {
 
   const advanceZoom = (deltaPx) => {
     if (finishedRef.current || exitingRef.current || coveredRef.current) return
+    if (fillStartedRef.current) return
     const before = targetRef.current
-    const next = Math.min(1, Math.max(0, before + deltaPx / ZOOM_TRAVEL))
-    if (before <= 0 && next > 0) {
+    // Measure before clamping the target: the cap is the horizontal-fit
+    // fraction, which is exactly the point where the expensive scaling ends.
+    if (before <= 0 && deltaPx > 0) {
       measureZoom()
       if (videoRef.current) videoRef.current.pause()
       setZoomStarted(true)
     }
+    const cap = Math.min(1, widthProgressRef.current)
+    const next = Math.min(cap, Math.max(0, before + deltaPx / ZOOM_TRAVEL))
     if (next === before) return
     targetRef.current = next
     pumpZoom()
@@ -426,8 +503,19 @@ export default function EntryIntro() {
             />
           </div>
 
+          {/* Grows the horizontal-fit overlay into a full-screen black frame
+              instead of zooming the clip past the point where the width fits.
+              It is driven imperatively from beginFill so the transition can be
+              measured from the overlay's real box. */}
           <div
-            className={`absolute inset-x-0 flex justify-center px-5 pointer-events-none ${
+            ref={fillRef}
+            aria-hidden="true"
+            className="absolute z-[2] bg-black pointer-events-none"
+            style={{ display: 'none' }}
+          />
+
+          <div
+            className={`absolute inset-x-0 z-[3] flex justify-center px-5 pointer-events-none ${
               isMobile
                 ? 'bottom-[calc(env(safe-area-inset-bottom)+1.75rem)]'
                 : 'bottom-5'

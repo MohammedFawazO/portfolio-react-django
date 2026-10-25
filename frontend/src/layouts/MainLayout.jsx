@@ -12,13 +12,35 @@ import { EntryIntroProvider } from '../context/EntryIntroContext'
 import { HeroScrollContext } from '../context/HeroScrollContext'
 import { DesignModeProvider, useDesignMode } from '../context/DesignModeContext'
 
+// Projects-only nav visibility. The hero hand-off fades the navbar out and
+// then brings it back once the projects grid is in place. That fade follows a
+// slow spring, so after a jump straight back to the top the value can still
+// read zero while the spring catches up. Watching scrollY directly guarantees
+// the navbar is fully visible whenever the page is actually at the top.
+function useProjectsNavFade() {
+  const heroProgress = useContext(HeroScrollContext)
+  const atTop = useMotionValue(1)
+  const navFade = useTransform(heroProgress, [0, 0.55, 0.85, 0.98], [1, 1, 0, 1])
+
+  useEffect(() => {
+    const update = () => atTop.set(window.scrollY <= 8 ? 1 : 0)
+    update()
+    window.addEventListener('scroll', update, { passive: true })
+    window.addEventListener('resize', update)
+    return () => {
+      window.removeEventListener('scroll', update)
+      window.removeEventListener('resize', update)
+    }
+  }, [atTop])
+
+  return useTransform([navFade, atTop], ([fade, top]) => (top ? 1 : fade))
+}
+
 function NavbarSlot() {
   const { designModeActive } = useDesignMode()
   const location = useLocation()
   const isProjects = location.pathname === '/projects'
-  const heroProgress = useContext(HeroScrollContext)
-  const navFade = useTransform(heroProgress, [0, 0.55, 0.85], [1, 1, 0])
-  const navSlide = useTransform(heroProgress, [0, 0.55, 0.85], [0, 0, 0])
+  const navFade = useProjectsNavFade()
 
   // The navbar sits above <main> (z-50 vs z-10) and its wrapper spans the full
   // width at the top of the page, so anything pinned to that strip (the hero's
@@ -52,7 +74,7 @@ function NavbarSlot() {
           transition={transition}
         >
           {isProjects ? (
-            <motion.div style={{ opacity: navFade, y: navSlide }} className="flex justify-center pointer-events-auto">
+            <motion.div style={{ opacity: navFade }} className="flex justify-center pointer-events-auto">
               <SpotlightNavbar animationKey="static" />
             </motion.div>
           ) : (
@@ -68,9 +90,9 @@ function ConnectSlot() {
   const { designModeActive } = useDesignMode()
   const location = useLocation()
   const isProjects = location.pathname === '/projects'
-  const heroProgress = useContext(HeroScrollContext)
-  const navFade = useTransform(heroProgress, [0, 0.55, 0.85], [1, 1, 0])
-  const navSlide = useTransform(heroProgress, [0, 0.55, 0.85], [0, 0, 0])
+  // Same curve as NavbarSlot: hides during the hero transition, returns once
+  // the grid settles, and is always visible at the very top of the page.
+  const navFade = useProjectsNavFade()
 
   // Watch the blueprint body class (toggled by About.jsx) so the connect CTA
   // can be pinned to the bottom of the page in blueprint mode only - every
@@ -127,7 +149,7 @@ function ConnectSlot() {
           transition={transition}
         >
           {isProjects ? (
-            <motion.div style={{ opacity: navFade, y: navSlide }}>
+            <motion.div style={{ opacity: navFade }}>
               <ConnectButton />
             </motion.div>
           ) : (

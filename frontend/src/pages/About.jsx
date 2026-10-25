@@ -743,6 +743,28 @@ function About() {
     letOrbitRun()
   }
 
+  // Touch has no hover, so mirror the pointer experience while a finger is on
+  // the photo: freeze the orbit and feed the touch point into the same ink
+  // trail. The group's `touch-action: none` (mobile CSS) keeps the page from
+  // scrolling under the drag, which is what makes the effect usable.
+  const handleTouchStart = (event) => {
+    const touch = event.touches[0]
+    if (!touch) return
+    holdOrbit()
+    handleMove(touch)
+  }
+
+  const handleTouchMove = (event) => {
+    const touch = event.touches[0]
+    if (!touch) return
+    handleMove(touch)
+  }
+
+  const handleTouchEnd = (event) => {
+    if (event.touches.length) return
+    handleLeave()
+  }
+
   // Kept in step with the Home hero's tech marquee
   // (components/ui/TechMarquee.jsx) so the two never contradict each other.
   // Three groups, not five: he builds whole applications end to end rather than
@@ -881,7 +903,7 @@ function About() {
         {showTest && <TestErrorPopups />}
         <Container size="lg" className="px-4! sm:px-6! lg:px-8!">
           <div className="grid gap-5 lg:grid-cols-2 lg:gap-16 items-center">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} className={"relative z-70 pt-20 md:pt-0 max-lg:text-center transition-[padding,margin] duration-700 ease-out" + (showMatrix || showBlueprint ? " lg:pl-12 max-lg:px-4" : "") + (showBlueprint ? " mt-8 lg:mt-16" : "")}>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} className={"relative z-70 pt-20 md:pt-0 max-lg:text-center transition-[padding,margin] duration-700 ease-out" + (showMatrix || showBlueprint ? " lg:pl-12 max-lg:px-4" : "") + (showBlueprint ? " bp-hero-copy mt-8 lg:mt-16" : "")}>
               {designModeActive && (
                 <div className="absolute left-1 top-0 -translate-y-full z-80 flex items-center pointer-events-none">
                   <TypingLoader />
@@ -1057,7 +1079,7 @@ function About() {
                   />
                 </div>
               ) : (
-                <h1 className={"font-(family-name:--font-display) leading-[1.02] font-semibold tracking-tight uppercase lg:whitespace-nowrap max-lg:text-balance transition-[color,font-size,letter-spacing,opacity] duration-700 ease-out " + (showMatrix ? "text-[27px] max-lg:sm:text-[36px] lg:text-[66px] text-white blueprint-hero-type hero-heading" : showBlueprint ? "text-[23px] max-lg:sm:text-[29px] lg:text-[48px] text-white blueprint-hero-type" : "text-[30px] max-lg:sm:text-[42px] lg:text-[42px] text-[#001428]")}>
+                <h1 className={"font-(family-name:--font-display) leading-[1.02]! font-semibold tracking-tight uppercase lg:whitespace-nowrap max-lg:text-balance transition-[color,font-size,letter-spacing,opacity] duration-700 ease-out " + (showMatrix ? "text-[27px] max-lg:sm:text-[36px] lg:text-[66px] text-white blueprint-hero-type hero-heading" : showBlueprint ? "text-[30px] max-lg:sm:text-[42px] lg:text-[42px] text-white blueprint-hero-type" : "text-[30px] max-lg:sm:text-[42px] lg:text-[42px] text-[#001428]")}>
                   Mohammed Fawaz O
                 </h1>
               )}
@@ -1116,7 +1138,7 @@ function About() {
                   , building production-ready web applications with Django, React, and clean architecture.
                 </NeonRGBTextEffect>
               ) : (
-              <p key={introReplayKey} className={"text-[16px] lg:text-[20px] font-light mt-2 max-w-xl leading-relaxed max-lg:mx-auto max-lg:mt-3 max-lg:text-pretty transition-[color,font-size,margin,letter-spacing,opacity] duration-700 ease-out " + (showMatrix ? "text-white/80 blueprint-hero-type hero-description" : showBlueprint ? "text-white/80 blueprint-hero-type" : "text-[#323232]")}>
+              <p key={introReplayKey} className={"text-[16px] lg:text-[20px] font-light mt-2 max-w-xl leading-relaxed max-lg:mx-auto max-lg:mt-3 max-lg:text-pretty transition-[color,font-size,margin,letter-spacing,opacity] duration-700 ease-out " + (showMatrix ? "text-white/80 blueprint-hero-type hero-description" : showBlueprint ? "bp-hero-desc text-white/80 blueprint-hero-type max-md:text-[15px]" : "text-[#323232]")}>
                 {showBlueprint ? (<span className="inline-block border border-dashed border-[#00d2ff] px-2 py-0.5 text-[#00d2ff]">Python</span>) : showMatrix ? (<span className="keyword">Python</span>) : 'Python'} Full Stack Developer from{' '}
                 <span className="relative inline-block whitespace-nowrap">
                   Kerala, India
@@ -1336,17 +1358,17 @@ label="./view-projects"
                           ) : showBlueprint ? (
                             <motion.div
                               key="bp"
-                              className="flex flex-wrap items-center -mt-4 gap-3 lg:gap-0 max-lg:justify-center"
+                              className="about-bp-actions flex flex-wrap items-center -mt-4 gap-3 lg:gap-0 max-lg:justify-center"
                               initial={{ opacity: 0, scale: 0.97, filter: 'blur(6px)' }}
                               animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
                               exit={{ opacity: 0, scale: 0.97, filter: 'blur(6px)' }}
                               transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
                             >
-                              <span style={{ transform: 'scale(0.85) translateY(-6px)', transformOrigin: 'center' }} className="inline-block">
+                              <span style={{ transform: 'scale(0.85) translateY(-6px)', transformOrigin: 'center' }} className="bp-action inline-block">
                                 <BlueprintPillButton label="VIEW_MY_WORK" onClick={(e) => { e.stopPropagation(); navigate('/projects'); }} />
                               </span>
                               <div className="w-0 lg:w-12" />
-                              <span className="lg:-ml-20 inline-block" style={{ transform: 'scale(0.85) translateY(-6px)', transformOrigin: 'center' }}>
+                              <span className="bp-action lg:-ml-20 inline-block" style={{ transform: 'scale(0.85) translateY(-6px)', transformOrigin: 'center' }}>
                                 <BlueprintPillButton label="RESUME" onClick={handleResumeDownload} heightOnRight hoverIcon={<Download />} />
                               </span>
                             </motion.div>
@@ -1403,6 +1425,10 @@ label="./view-projects"
                 onMouseMove={handleMove}
                 onMouseLeave={handleLeave}
                 onMouseEnter={holdOrbit}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                onTouchCancel={handleTouchEnd}
                 onFocus={holdOrbit}
                 onBlur={letOrbitRun}
               >
@@ -1656,8 +1682,8 @@ label="./view-projects"
             from firing when pressed. The design-mode CTA is a different
             component and lives in MainLayout. */}
         {showBlueprint && (
-          <div className="absolute right-6 top-2 z-90 max-md:hidden pointer-events-auto" onClick={(e) => e.stopPropagation()}>
-            <span className="inline-block" style={{ transform: 'scale(0.85)', transformOrigin: 'top right' }}>
+          <div className="absolute right-5 top-4 z-90 pointer-events-auto md:right-6 md:top-2" onClick={(e) => e.stopPropagation()}>
+            <span className="bp-hero-resume inline-block" style={{ transform: 'scale(0.85)', transformOrigin: 'top right' }}>
               <BlueprintPillButton
                 label="GET_RESUME"
                 heightOnRight={false}
@@ -1678,8 +1704,8 @@ label="./view-projects"
           Skills heading then land on the same line on desktop, in every mode
           and in the default, because the row follows the taller of the two
           blocks above it whatever the mode does to the type. Below md the grid
-          is a single column and the blocks stack in the order they read best:
-          the two reference blocks first. */}
+          is a single column and the blocks stack in this order: A Little About
+          Me, Quick Info, Work Experience, Skills. */}
       <section className="about-section about-section--main bg-[#F5F5DC] pt-16 pb-4 md:pt-20 md:pb-6">
         <Container size="lg" className="px-8!">
           <div className="grid md:grid-cols-2 items-start gap-x-12 gap-y-12 mb-20">
@@ -1693,7 +1719,7 @@ label="./view-projects"
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true }}
-              className="order-3 md:order-0 md:col-start-1 md:row-start-1 max-w-prose mx-auto md:max-w-none md:mx-0"
+              className="order-1 md:order-0 md:col-start-1 md:row-start-1 max-w-prose mx-auto md:max-w-none md:mx-0"
             >
               <h3 className="about-body-title text-[20px] font-medium text-black mb-5 font-(family-name:--font-display)">A Little About Me</h3>
               <div className="about-body-copy space-y-4 text-[#323232] leading-[1.85] text-[16px]">
@@ -1718,7 +1744,7 @@ label="./view-projects"
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true }}
-              className="order-4 md:order-0 md:col-start-1 md:row-start-2 max-w-prose mx-auto md:max-w-none md:mx-0"
+              className="order-3 md:order-0 md:col-start-1 md:row-start-2 max-w-prose mx-auto md:max-w-none md:mx-0"
             >
               <h3 className="about-body-title text-[20px] font-medium text-black mb-5 font-(family-name:--font-display)">Work Experience</h3>
               <div className="about-body-copy space-y-4 text-[#323232] leading-[1.85] text-[16px]">
@@ -1743,13 +1769,13 @@ label="./view-projects"
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true }}
-              className="order-1 md:order-0 md:col-start-2 md:row-start-1"
+              className="order-2 md:order-0 md:col-start-2 md:row-start-1"
             >
               <h3 className="about-body-title text-[20px] font-medium text-black mb-5 font-(family-name:--font-display)">Quick Info</h3>
               <div className="space-y-4">
                 {[
                   { label: 'Name', value: 'Mohammed Fawaz O' },
-                  { label: 'Location', value: 'Dubai, UAE' },
+                  { label: 'Location', value: 'Fujairah, UAE' },
                   { label: 'Education', value: 'Bachelor of Computer Applications (BCA)' },
                   { label: 'Experience', value: 'Freelance Web Developer, 1+ year' },
                   { label: 'Languages', value: 'English, Malayalam, Tamil, Hindi' },
@@ -1762,7 +1788,7 @@ label="./view-projects"
               </div>
             </motion.div>
 
-            <div className="order-2 md:order-0 md:col-start-2 md:row-start-2">
+            <div className="order-4 md:order-0 md:col-start-2 md:row-start-2">
               <SectionHeading tone="beige" className="about-section-heading mb-5!" subtitleClassName="mt-5" title="Skills" subtitle="Technologies I work with across the stack." alignment="left" />
               <StaggerChildren className="grid gap-4">
                 {Object.entries(skills).map(([category, items]) => (

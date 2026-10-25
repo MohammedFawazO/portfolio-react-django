@@ -105,13 +105,18 @@ body {
 /* The résumé detail panel is a fixed-height scroller: long CV blurbs scroll
    inside it instead of spilling out of the 3D stage. The global scrollbar
    track is opaque black, which looks wrong over the navy panel, so this one
-   gets its own transparent track. */
+   gets its own transparent track. The thumb stays hidden at rest and is only
+   revealed while the panel is scrolling (JS toggles `.is-scrolling`). */
 .bs-detail-scroll {
   scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--bs-pink, #236966) 55%, transparent) transparent;
+  scrollbar-color: transparent transparent;
   /* vertical scroll only - long words and the big heading must never produce
      a horizontal bar inside the panel */
   overflow-x: hidden;
+}
+
+.bs-detail-scroll.is-scrolling {
+  scrollbar-color: color-mix(in srgb, var(--bs-pink, #236966) 55%, transparent) transparent;
 }
 
 .bs-detail-scroll::-webkit-scrollbar {
@@ -123,11 +128,15 @@ body {
 }
 
 .bs-detail-scroll::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--bs-pink, #236966) 45%, transparent);
+  background: transparent;
   border-radius: var(--radius-full);
 }
 
-.bs-detail-scroll::-webkit-scrollbar-thumb:hover {
+.bs-detail-scroll.is-scrolling::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--bs-pink, #236966) 45%, transparent);
+}
+
+.bs-detail-scroll.is-scrolling::-webkit-scrollbar-thumb:hover {
   background: color-mix(in srgb, var(--bs-pink, #236966) 75%, transparent);
 }
 
@@ -907,14 +916,23 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
     position: relative;
     justify-content: center;
     text-align: center;
+    /* room for the monogram pinned to the top-left corner */
+    padding-left: 2.75rem;
   }
   .footer-responsive .footer-brand-row > div:first-child {
-    /* keep the monogram centred with the row - at left: -0.5rem it hung out
-       past the footer's padding and read as missing left padding */
+    /* Mobile only: the logo sits top-left instead of behind the wordmark.
+       Shrunk rather than clipped so the full name stays readable. */
     position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -90%);
+    left: 0;
+    right: auto;
+    top: 0;
+    transform: none;
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+  .footer-responsive .footer-brand-row > div:first-child svg {
+    width: 20px;
+    height: 22px;
   }
   .footer-responsive .footer-desc {
     margin-left: auto;
@@ -931,11 +949,29 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
     justify-content: center;
   }
   .footer-responsive .footer-bottom {
+    /* Mobile only: keep the two lines stacked (availability first, copyright
+       last) even between 640px and 767px, where Tailwind's sm:flex-row would
+       otherwise take over before the tablet layout starts. */
+    flex-direction: column;
     text-align: center;
     align-items: center;
   }
-  .footer-responsive .footer-top-btn {
-    top: 3rem;
+}
+
+/* Desktop: keep the bottom bar on one row with the copyright pinned right. */
+@media (min-width: 768px) {
+  .footer-responsive .footer-bottom {
+    flex-direction: row;
+    align-items: center;
+  }
+  .footer-responsive .footer-bottom > p:first-child {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .footer-responsive .footer-bottom > p:last-child {
+    margin-left: auto;
+    text-align: right;
   }
 }
 
@@ -3629,5 +3665,177 @@ html.route-projects .footer-shell {
   .milestone-cta-actions .console-btn {
     width: 100%;
     justify-content: center;
+  }
+}
+
+/* About hero blueprint buttons below lg. BlueprintPillButton ships a fixed
+   200x38 target plus "W"/"H" dimension brackets that stick out sideways, so the
+   two pills cannot sit side by side in the narrow hero column: flex-wrap stacks
+   them and pushes the photo below the fold. Shrink the real button (transform
+   scaling would not shrink its layout box) and pull the H brackets in so both
+   pills stay on one row with their height indicators visible. Desktop is
+   untouched. */
+@media (max-width: 1023px) {
+  .about-bp-actions {
+    margin-top: 0.25rem;
+    gap: 0.5rem;
+  }
+
+  .about-bp-actions .bp-action {
+    transform: none !important;
+  }
+
+  .about-bp-actions .bp-shell {
+    padding: 24px 0 0;
+  }
+
+  .about-bp-actions .bp-frame {
+    padding: 8px 4px;
+  }
+
+  .about-bp-actions .bp-target {
+    width: clamp(96px, 29vw, 122px);
+    height: 36px;
+  }
+
+  .about-bp-actions .bp-target > span {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+  }
+
+  .about-bp-actions .bp-h-dim--left {
+    left: -60px;
+  }
+
+  .about-bp-actions .bp-h-dim--right {
+    right: -60px;
+  }
+
+  .about-bp-actions .bp-h-dim span {
+    font-size: 9px;
+  }
+}
+
+/* Blueprint hero's GET_RESUME pill below md. It used to be hidden outright, so
+   the corner was empty. Give it the same compact treatment as the hero action
+   pills instead of the desktop 200px target (which, once scaled, would reach
+   under the mobile menu and past the left edge). The H bracket is dropped here
+   only to keep the corner clear; the W bracket still shows. */
+@media (max-width: 767px) {
+  .bp-hero-resume {
+    transform: none !important;
+  }
+
+  /* The hero copy uses mt-8, which this project's legacy utilities.css maps to
+     8rem (the intended Tailwind value is 2rem). On mobile that accidental
+     128px pushes the whole blueprint set - heading, copy, buttons and photo -
+     far down the section. Drop it entirely here so the blueprint hero starts
+     on the same line as the default one. The decorative telemetry readout that
+     would otherwise collide with the heading is hidden below. */
+  .bp-hero-copy {
+    margin-top: 0;
+    position: relative;
+    top: 0.75rem;
+  }
+
+  .bp-telemetry {
+    display: none;
+  }
+
+  /* Shift the large ambient ring further into the bottom-right corner on
+     mobile, so its dashed inner ring clears the portrait. Desktop keeps its
+     original position. */
+  .bp-ambient-rings {
+    right: 0;
+    bottom: 2rem;
+  }
+
+  /* Widen the blueprint paragraph back to the default measure (the blueprint
+     copy block adds an extra px-4) and tighten its leading, so its height drops
+     to the default four/five lines instead of six. */
+  .bp-hero-desc {
+    margin-inline: -1rem;
+    line-height: 1.5;
+  }
+
+  /* Compact the blueprint action row to the default button height: the W label
+     now sits in the gap above the row instead of reserving 24px of padding, and
+     the frame only needs 4px above/below the 36px target. */
+  .about-bp-actions .bp-shell {
+    padding-top: 0;
+  }
+
+  .about-bp-actions .bp-frame {
+    padding-top: 4px;
+    padding-bottom: 4px;
+  }
+
+  .about-bp-actions .bp-w-dim {
+    top: -20px;
+  }
+
+  /* Match the default photo card's inner inset. In the default mode the white
+     card's padding insets the 362px card to a 330x380 image (412px tall card);
+     blueprint mode drops that padding, so its image was 32px wider and the
+     whole set 32px shorter. Re-add the same 1rem inset here only. */
+  .about-photo-group.bp-on .about-photo-card {
+    padding: 1rem;
+  }
+
+  /* Touch has no hover. Keep the drag gesture on the photo instead of letting
+     the page scroll, so the ink/orbit interaction can be experienced on a
+     phone. Mode buttons still receive taps. */
+  .about-photo-group {
+    touch-action: none;
+  }
+
+  /* Blueprint's text block is a little taller than the default one, which
+     leaves the photo set slightly high in its own mode. Nudge just the
+     blueprint group down on mobile; other modes and desktop keep their
+     existing offsets. The extra hero padding keeps the shifted set clear of
+     the section's overflow clip. */
+  .about-photo-group.bp-on {
+    transform: translateY(34px);
+  }
+
+  html.about-blueprint-nav #about-hero-section {
+    padding-bottom: 4.25rem;
+  }
+
+  /* The photo now reaches the bottom of the hero. Turn the coordinate stack
+     into one compact row and keep it in the clear strip below the image, so
+     X/Y/SIG are never covered by the portrait. */
+  .bp-axis {
+    right: 0.75rem;
+    bottom: 0.75rem;
+    flex-direction: row;
+    gap: 0.5rem;
+    font-size: 8px;
+  }
+
+  .bp-axis > div {
+    white-space: nowrap;
+  }
+
+  .bp-hero-resume .bp-shell {
+    padding: 22px 0 0;
+  }
+
+  .bp-hero-resume .bp-frame {
+    padding: 6px 4px;
+  }
+
+  .bp-hero-resume .bp-target {
+    width: 132px;
+    height: 34px;
+  }
+
+  .bp-hero-resume .bp-target > span {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+  }
+
+  .bp-hero-resume .bp-h-dim {
+    display: none;
   }
 }

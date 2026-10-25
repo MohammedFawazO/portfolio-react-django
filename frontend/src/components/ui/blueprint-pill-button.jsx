@@ -84,15 +84,15 @@ export const BlueprintPillButton = ({
 
   return (
     <div
-      className={`relative inline-block select-none pointer-events-auto ${className}` + (hasChildren ? " p-2.5" : " p-4")}
+      className={`bp-shell relative inline-block select-none pointer-events-auto ${className}` + (hasChildren ? " p-2.5" : " p-4")}
       style={{ fontFamily: "'JetBrains Mono', ui-monospace, monospace" }}
     >
       {/* Outer Technical Bounding Box Blueprint Frame */}
-      <div className={"relative border border-dashed border-[#00d2ff]/30 rounded-none " + (hasChildren ? "px-1 py-[15px]" : "px-1 py-5")}>
+      <div className={"bp-frame relative border border-dashed border-[#00d2ff]/30 rounded-none " + (hasChildren ? "px-1 py-[15px]" : "px-1 py-5")}>
 
         {/* Width Dimension Indicator - follows the real target width */}
         <div
-          className="absolute -top-6 left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-none"
+          className="bp-w-dim absolute -top-6 left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-none"
           style={{ width: size.w ? `${size.w}px` : '200px' }}
         >
           <span className="text-[10px] text-[#00d2ff] mb-0.5 tracking-tight font-semibold">W: {size.w || 200}px</span>
@@ -106,7 +106,7 @@ export const BlueprintPillButton = ({
         {/* The Blueprint Button Target (or arbitrary children, e.g. nav links) */}
         <div className="relative">
           {/* Height Dimension Indicator - matches the real target height */}
-          <div className={`absolute -top-2 -bottom-2 flex items-center gap-1 ${heightOnRight ? '-right-16' : '-left-16'}`}>
+          <div className={`bp-h-dim ${heightOnRight ? 'bp-h-dim--right -right-16' : 'bp-h-dim--left -left-16'} absolute -top-2 -bottom-2 flex items-center gap-1`}>
             {!heightOnRight && <span className="text-[10px] text-[#00d2ff] whitespace-nowrap font-semibold">H: {size.h || 38}px</span>}
             <div className={`relative h-full ${heightOnRight ? 'ml-1' : 'mr-1'}`}>
               <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-[1px] bg-[#00d2ff] opacity-80" />
@@ -139,7 +139,7 @@ export const BlueprintPillButton = ({
             <button
               ref={btnRef}
               onClick={onClick}
-              className="relative z-10 w-[200px] h-[38px] rounded-full bg-transparent text-white border border-[#00d2ff] flex items-center justify-center transition-all duration-150 active:bg-[#001a2e] active:scale-[0.99] focus:outline-none overflow-hidden group shadow-[0_0_15px_rgba(0,210,255,0.15)] hover:shadow-[0_0_25px_rgba(0,210,255,0.35)]"
+              className="bp-target relative z-10 w-[200px] h-[38px] rounded-full bg-transparent text-white border border-[#00d2ff] flex items-center justify-center transition-all duration-150 active:bg-[#001a2e] active:scale-[0.99] focus:outline-none overflow-hidden group shadow-[0_0_15px_rgba(0,210,255,0.15)] hover:shadow-[0_0_25px_rgba(0,210,255,0.35)]"
               onMouseMove={handleMouseMove}
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}

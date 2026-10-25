@@ -700,7 +700,11 @@ const [cvDocuments] = useState(() => [
           {/* Hero : the CV shelf. Every version of my resume, pick one, read
               it, take the PDF. */}
           <section className="mb-10 md:mb-14">
-            <div className="mb-8 flex flex-col items-start gap-5 md:flex-row md:items-end md:justify-between md:gap-x-10">
+            {/* Two sections: heading on the left, intro text on the right.
+                Grid rather than flex because styles/utilities.css redefines
+                .flex-col unlayered, which outranks md:flex-row and would keep
+                this stacked even on desktop. */}
+            <div className="mb-8 grid items-end gap-5 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:gap-x-10">
               <div>
                 <p className="mb-3 text-[10px] font-medium text-[#2d8cf0] uppercase tracking-[0.22em] font-[family-name:var(--font-mono)] sm:text-[11px] sm:tracking-[0.28em]">
                   Mohammed Fawaz O · Python Full Stack Developer
@@ -909,9 +913,13 @@ const [cvDocuments] = useState(() => [
               {content.certifications?.length > 0 && (
                 <div className="mb-10 md:mb-14">
                   <SectionHeading tone="beige" alignment="left" title="Certifications" className="mb-7! md:mb-10!" />
-                  <StaggerChildren className="grid gap-4! sm:grid-cols-2">
+                  {/* Flex instead of a 2-column grid so an odd final card
+                      (e.g. 3 certifications) sits centred on the bottom row,
+                      forming an inverted triangle rather than hugging the
+                      bottom-left corner. 4+ cards still flow two per row. */}
+                  <StaggerChildren className="flex flex-wrap justify-center gap-4">
                     {content.certifications.map((cert, index) => (
-                      <StaggerItem key={`${activeCv.id}-cert-${index}`}>
+                      <StaggerItem key={`${activeCv.id}-cert-${index}`} className="w-full sm:w-[calc(50%-0.5rem)]">
                         <Card variant="light" className="ct-panel h-full p-5! sm:p-6!">
                           <div className="mb-2! flex flex-wrap items-start justify-between gap-2">
                             <h4 className="text-[16px] font-semibold text-black font-[family-name:var(--font-display)]">{cert.name}</h4>

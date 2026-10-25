@@ -9,7 +9,7 @@ import { profile, socials } from '../data/content'
 const CONTACT_FACTS = [
   { label: 'Availability', value: 'Looking for full-time, open to freelance' },
   { label: 'Response time', value: 'Within 24-48 hours' },
-  { label: 'Location', value: 'Dubai, UAE' },
+  { label: 'Location', value: 'Fujairah, UAE' },
 ]
 
 const ArrowOut = ({ className = '' }) => (

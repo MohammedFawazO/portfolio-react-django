@@ -8,7 +8,7 @@ export const profile = {
   bio: 'Passionate developer with 5+ years of experience building web applications.',
   email: 'fawz9479@gmail.com',
   phone: '',
-  location: 'Dubai, UAE',
+  location: 'Fujairah, UAE',
   image: '',
 }
 

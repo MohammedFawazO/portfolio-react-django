@@ -25,7 +25,7 @@ const ACTION_BASE_CLASS =
 // wide tracking, hairline border, square-ish corners and the cyan accent. The
 // pill buttons stay untouched for the book fallback.
 const CONSOLE_ACTION_CLASS =
-  'inline-flex items-center gap-[9px] rounded-[5px] border px-[18px] py-[11px] font-[family-name:var(--font-display)] text-[11px] font-normal uppercase tracking-[0.13em] transition-[background-color,border-color,color,transform] duration-200 ease-out hover:-translate-y-[1px] active:translate-y-0 @max-[760px]:px-4 @max-[760px]:text-[10.5px]';
+  'inline-flex items-center gap-[9px] rounded-[5px] border px-[18px] py-[11px] font-[family-name:var(--font-display)] text-[11px] font-normal uppercase tracking-[0.13em] transition-[background-color,border-color,color,transform] duration-200 ease-out hover:-translate-y-[1px] active:translate-y-0 @max-[760px]:gap-1 @max-[760px]:px-1.5 @max-[760px]:py-2 @max-[760px]:text-[9px] @max-[760px]:tracking-[0.05em]';
 
 const CONSOLE_TONE_CLASS = {
   light:
@@ -37,14 +37,14 @@ const CONSOLE_TONE_CLASS = {
 };
 
 const GlobeIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} className="h-5 w-5">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} className="h-5 w-5 @max-[760px]:h-4 @max-[760px]:w-4">
     <circle cx="12" cy="12" r="9" />
     <path d="M3 12h18M12 3c2.8 2.6 2.8 15.4 0 18M12 3c-2.8 2.6-2.8 15.4 0 18" />
   </svg>
 );
 
 const DownloadIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} className="h-5 w-5">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} className="h-5 w-5 @max-[760px]:h-4 @max-[760px]:w-4">
     <path d="M12 3v12" />
     <path d="M7 10l5 5 5-5" />
     <path d="M4 21h16" />
@@ -52,7 +52,7 @@ const DownloadIcon = () => (
 );
 
 const BookmarkIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} className="h-5 w-5">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} className="h-5 w-5 @max-[760px]:h-4 @max-[760px]:w-4">
     <path d="M7 3h10v18l-5-4-5 4z" />
   </svg>
 );
@@ -336,18 +336,51 @@ export function BooksShowcase({
       return t;
     }
 
+    // Canvas text is painted with whatever font is available at that instant.
+    // On slower devices the cover texture is built before Michroma/Poppins have
+    // swapped in, leaving the shelf in a fallback face. Repaint once the fonts
+    // the painters ask for have actually loaded so mobile matches desktop.
+    const fontsReady =
+      typeof document !== 'undefined' && document.fonts?.load
+        ? Promise.allSettled([
+            document.fonts.load('700 82px "Michroma"'),
+            document.fonts.load('500 40px "Michroma"'),
+            document.fonts.load('700 30px "Michroma"'),
+            document.fonts.load('700 62px "Michroma"'),
+            document.fonts.load('800 240px "Michroma"'),
+            document.fonts.load('700 42px "Michroma"'),
+            document.fonts.load('500 26px "Poppins"'),
+            document.fonts.load('700 24px "Poppins"'),
+            document.fonts.load('600 21px "Poppins"'),
+            document.fonts.load('500 34px "Poppins"'),
+          ]).then(() => document.fonts.ready)
+        : Promise.resolve();
+
     function loadOrPaint(material, imageURL, paintFallback) {
       material.map = tex(paintFallback());
       material.needsUpdate = true;
+
+      let imageLoaded = false;
+      fontsReady.then(() => {
+        if (cancelled || imageLoaded) return;
+        const prev = material.map;
+        material.map = tex(paintFallback());
+        material.needsUpdate = true;
+        prev?.dispose();
+      });
+
       if (!imageURL) return;
       new THREE.TextureLoader().setCrossOrigin('anonymous').load(
         imageURL,
         (t) => {
           if (cancelled) return;
+          imageLoaded = true;
           t.colorSpace = THREE.SRGBColorSpace;
           t.anisotropy = ANISO;
+          const prev = material.map;
           material.map = t;
           material.needsUpdate = true;
+          prev?.dispose();
         },
         undefined,
         () => console.warn('Cover image failed to load, kept fallback cover:', imageURL),
@@ -867,11 +900,21 @@ export function BooksShowcase({
       SLOTS.portrait = portrait;
 
       SLOTS.hero = SLOTS.portrait
-        ? [
-          { p: [-1.36, -0.58, -0.12], r: [-0.045, 0.4, 0.185], s: 1.25 },
-          { p: [0.2, -0.22, 0.6], r: [-0.05, -0.1, -0.035], s: 1.35 },
-          { p: [1.62, -0.62, -0.34], r: [-0.045, -0.42, -0.17], s: 1.25 },
-        ]
+        ? (() => {
+          // A phone is much narrower than the old fixed portrait slots assumed,
+          // so the two side books sat outside the camera frustum and only the
+          // centre CV was ever visible. Work out how much horizontal room the
+          // camera actually sees at the shelf depth and pull the side books in
+          // to fit, keeping all three on screen at any portrait width.
+          const halfView = Math.tan(THREE.MathUtils.degToRad(camera.fov * 0.5)) * 10.4 * a;
+          const sideHalf = ((W + OV) / 2) * fit * 1.25;
+          const spread = Math.max(0.62, halfView - sideHalf * 0.95);
+          return [
+            { p: [-spread, -0.58, -0.12], r: [-0.045, 0.4, 0.185], s: 1.25 },
+            { p: [0, -0.22, 0.6], r: [-0.05, -0.1, -0.035], s: 1.35 },
+            { p: [spread, -0.62, -0.34], r: [-0.045, -0.42, -0.17], s: 1.25 },
+          ]
+        })()
         : [
           { p: [-2.05, -0.58, -0.12], r: [-0.045, 0.4, 0.185], s: 1.22 },
           { p: [0.25, -0.36, 0.6], r: [-0.05, -0.1, -0.035], s: 1.32 },
@@ -892,12 +935,12 @@ export function BooksShowcase({
         const freeBot = Math.max(dims.h - panelH - gap, freeTop + 140);
         const midPx = (freeTop + freeBot) / 2;
         const T13 = 0.23087;
-        const camZp = 9.9;
+        const camZp = 10.4;
         const zw = 0.8 * fit;
         const rootY = -(1 - fit) * 0.28;
         const yw = 0.1 + (1 - (2 * midPx) / dims.h) * T13 * (camZp - zw);
-        const availW = (((freeBot - freeTop) * 0.92) / dims.h) * 2 * T13 * (camZp - zw);
-        const s = clamp(availW / fit / 2.65, 0.42, 0.92);
+        const availW = (((freeBot - freeTop) * 0.96) / dims.h) * 2 * T13 * (camZp - zw);
+        const s = clamp(availW / fit / 2.35, 0.5, 0.94);
         SLOTS.detail = { p: [0, (yw - rootY) / fit, 0.8], r: [-0.02, -0.4, 0.06], s };
       } else {
         SLOTS.detail = { p: [-1.68, 0.0, 0.85], r: [0.02, -0.44, 0.08], s: 1.06 };
@@ -1664,6 +1707,28 @@ export function BooksShowcase({
     const ro = new ResizeObserver(() => relayout());
     ro.observe(root);
 
+    // The detail panel grows when a CV's content renders (and when switching
+    // CVs). On portrait screens the open book is positioned in the strip above
+    // that panel, so recompute the slot whenever the panel's height changes -
+    // otherwise the book is placed against a stale shrink-to-fit height and
+    // ends up behind the content. Desktop slots are fixed, so this is a no-op
+    // there.
+    const detailPanel = dpRef.current;
+    const detailPanelRo = new ResizeObserver(() => relayout());
+    if (detailPanel) detailPanelRo.observe(detailPanel);
+
+    // Show the panel's scrollbar only while it is actually being scrolled.
+    // The thumb is transparent at rest (see .bs-detail-scroll in index.css)
+    // and fades in when this class is present.
+    let scrollIdleTimer = null;
+    const onPanelScroll = () => {
+      if (!detailPanel) return;
+      detailPanel.classList.add('is-scrolling');
+      if (scrollIdleTimer) clearTimeout(scrollIdleTimer);
+      scrollIdleTimer = setTimeout(() => detailPanel.classList.remove('is-scrolling'), 800);
+    };
+    if (detailPanel) detailPanel.addEventListener('scroll', onPanelScroll, { passive: true });
+
     // If a document was open when this scene was rebuilt, reopen it so the
     // detail view is sticky: the only way back to the shelf is close().
     const restoreOpenDoc = () => {
@@ -1684,6 +1749,9 @@ export function BooksShowcase({
       document.removeEventListener('visibilitychange', onVisibilityChange);
       timer.dispose();
       ro.disconnect();
+      detailPanelRo.disconnect();
+      if (scrollIdleTimer) clearTimeout(scrollIdleTimer);
+      if (detailPanel) detailPanel.removeEventListener('scroll', onPanelScroll);
       window.removeEventListener('resize', onWindowResize);
       window.removeEventListener('orientationchange', onOrientation);
       if (visualViewportHandler && window.visualViewport) {
@@ -1894,18 +1962,18 @@ export function BooksShowcase({
         <div
           ref={dpRef}
           aria-live="polite"
-          className={`bs-detail-scroll absolute right-[7%] top-1/2 z-[15] w-[min(560px,42%)] max-h-[88%] -translate-y-1/2 overflow-x-hidden overflow-y-auto overscroll-contain scroll-py-[6cqw] px-[clamp(20px,1.8cqw,30px)] py-[clamp(18px,1.6cqw,26px)] pointer-events-auto @max-[760px]:right-auto @max-[760px]:left-1/2 @max-[760px]:top-auto @max-[760px]:bottom-[3.5%] @max-[760px]:max-h-[72%] @max-[760px]:w-[min(560px,92cqw)] @max-[760px]:-translate-x-1/2 @max-[760px]:translate-y-0 @max-[760px]:scroll-py-4 ${panelVisible ? 'visible' : 'invisible delay-[500ms]'
+          className={`bs-detail-scroll absolute right-[7%] top-1/2 z-[15] w-[min(560px,42%)] max-h-[88%] -translate-y-1/2 overflow-x-hidden overflow-y-auto overscroll-contain scroll-py-[6cqw] px-[clamp(20px,1.8cqw,30px)] py-[clamp(18px,1.6cqw,26px)] pointer-events-auto @max-[760px]:right-auto @max-[760px]:left-1/2 @max-[760px]:top-auto @max-[760px]:bottom-[3.5%] @max-[760px]:max-h-[58%] @max-[760px]:w-[min(560px,92cqw)] @max-[760px]:-translate-x-1/2 @max-[760px]:translate-y-0 @max-[760px]:px-4! @max-[760px]:py-4 @max-[760px]:scroll-py-4 ${panelVisible ? 'visible' : 'invisible delay-[500ms]'
             }`}
         >
-          <h1 className={`m-0 break-words text-balance text-[var(--bs-focus-fg)] text-[clamp(44px,4.7cqw,76px)] font-extrabold leading-[0.98] tracking-[-0.015em] @max-[760px]:text-[clamp(31px,8.5cqw,46px)] ${dpChild(50)}`}>
+          <h1 className={`m-0 break-words text-balance text-[var(--bs-focus-fg)] text-[clamp(44px,4.7cqw,76px)] font-extrabold leading-[0.98] tracking-[-0.015em] @max-[760px]:text-center @max-[760px]:text-[clamp(26px,7cqw,38px)] @max-[760px]:leading-[1.02] ${dpChild(50)}`}>
             {selectedCfg?.title}
           </h1>
           {eyebrow && (
-            <div className={`mt-[20px] flex items-center gap-4 @max-[760px]:mt-3 ${dpChild(90)}`}>
-              <span className="inline-flex items-center rounded-[4px] border border-[var(--bs-focus-accent)]/40 bg-[var(--bs-focus-accent)]/10 px-[12px] py-[7px] font-[family-name:var(--font-display)] text-[10.5px] uppercase tracking-[0.16em] text-[var(--bs-focus-accent)]">
+            <div className={`mt-[20px] flex items-center gap-4 @max-[760px]:mt-3 @max-[760px]:justify-center ${dpChild(90)}`}>
+              <span className="inline-flex items-center rounded-[4px] border border-[var(--bs-focus-accent)]/40 bg-[var(--bs-focus-accent)]/10 px-[12px] py-[7px] font-[family-name:var(--font-display)] text-[10.5px] uppercase tracking-[0.16em] text-[var(--bs-focus-accent)] @max-[760px]:px-2 @max-[760px]:py-1 @max-[760px]:text-[9px] @max-[760px]:tracking-[0.1em]">
                 {eyebrow}
               </span>
-              <span className="h-px flex-1 bg-[var(--bs-focus-fg)]/15" />
+              <span className="h-px flex-1 bg-[var(--bs-focus-fg)]/15 @max-[760px]:hidden" />
             </div>
           )}
           <p className={`mt-[26px] max-w-[54ch] break-words font-[family-name:var(--font-sans)] text-[var(--bs-focus-fg)]/75 text-[clamp(16px,1.25cqw,19px)] leading-[1.65] @max-[760px]:mt-4 @max-[760px]:line-clamp-4 @max-[760px]:text-[15px] ${dpChild(130)}`}>
@@ -1957,7 +2025,7 @@ export function BooksShowcase({
             <div className={`mt-[26px] border-t border-[var(--bs-focus-fg)]/15 @max-[760px]:mt-5 ${dpChild(280)}`} />
           )}
           <div
-            className={`pointer-events-auto mt-6 flex flex-wrap items-center gap-[10px] @max-[760px]:mt-[18px] ${dpChild(330)}`}
+            className={`pointer-events-auto mt-6 flex flex-wrap items-center gap-[10px] @max-[760px]:mt-[18px] @max-[760px]:flex-nowrap @max-[760px]:justify-center @max-[760px]:gap-2 ${dpChild(330)}`}
           >
             <DetailActions actions={selectedCfg?.actions} />
           </div>

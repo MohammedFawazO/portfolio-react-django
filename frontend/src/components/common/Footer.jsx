@@ -74,12 +74,12 @@ function Footer() {
           type="button"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           aria-label="Back to top"
-          className="group !overflow-visible !absolute top-8 right-5 z-20 md:top-10 md:right-6 liquid-glass w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:scale-105 transition-all duration-300 footer-top-btn"
+          className="group !overflow-visible !absolute bottom-8 right-5 top-auto z-20 md:bottom-auto md:top-10 md:right-6 liquid-glass w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:scale-105 transition-all duration-300 footer-top-btn"
         >
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="pointer-events-none">
             <path d="m18 15-6-6-6 6" />
           </svg>
-          <span className="pointer-events-none absolute -bottom-9 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-md bg-black/80 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100 md:hidden">
+          <span className="pointer-events-none absolute -top-9 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-md bg-black/80 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100 md:top-auto md:-bottom-9 md:hidden">
             Back to top
           </span>
         </button>
@@ -87,11 +87,33 @@ function Footer() {
         {/* Top branding area */}
         <div className="mb-2">
           <div className="flex items-center gap-4 footer-brand-row">
-            <div className="liquid-glass w-12 h-12 rounded-xl flex items-center justify-center text-base font-semibold tracking-wide text-white">
-              MF
+            <div
+              aria-hidden="true"
+              className="liquid-glass w-12 h-12 shrink-0 rounded-xl flex items-center justify-center text-white"
+            >
+              {/* Hand-drawn MF monogram. The viewBox is cropped to the ink so
+                  the mark fills the badge instead of floating in empty space. */}
+              <svg
+                viewBox="260 295 430 470"
+                width="27"
+                height="29"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="44"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M300 565L322 365Q326 335 356 335L410 335Q438 335 435 365L413 565" />
+                <path d="M413 565L435 365Q439 335 468 335L520 335Q548 335 545 365L537 425" />
+                <path d="M467 720L489 520Q493 490 523 490L645 490" />
+                <path d="M510 585L615 585" />
+              </svg>
             </div>
-            <div>
-              <p className="text-3xl md:text-4xl font-medium leading-none text-white" style={{ fontFamily: 'Roxta', letterSpacing: '0.02em' }}>Mohammed Fawaz O</p>
+            <div className="min-w-0">
+              <p className="text-2xl sm:text-3xl md:text-4xl font-medium leading-none text-white" style={{ fontFamily: 'Roxta', letterSpacing: '0.02em' }}>
+                <span className="md:hidden">Mohammed Fawaz O</span>
+                <span className="hidden md:inline">Fawaz O</span>
+              </p>
               <p className="text-base text-white/50 mt-1.5">Python Full Stack Developer</p>
             </div>
           </div>
@@ -157,14 +179,16 @@ function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-12 pt-5 border-t border-white/10 flex flex-col-reverse sm:flex-row items-start sm:items-center justify-between gap-4 footer-bottom">
-            <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-white/50">
-            <span className="relative flex h-2 w-2 shrink-0">
-              <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400/50 animate-ping" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+        <div className="mt-12 pt-5 border-t border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 footer-bottom">
+            <p className="flex flex-col items-center gap-y-1 text-center text-sm text-white/50 md:flex-row md:flex-wrap md:items-center md:gap-x-2 md:text-left">
+            <span className="inline-flex items-center gap-2">
+              <span className="relative flex h-2 w-2 shrink-0">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400/50 animate-ping" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+              </span>
+              <span>Looking for full-time, open to freelance</span>
             </span>
-            <span>Looking for full-time, open to freelance</span>
-            <span className="text-white/25">·</span>
+            <span className="hidden text-white/25 md:inline">·</span>
             <span>Based in Fujairah, UAE</span>
           </p>
             <p className="text-xs uppercase tracking-widest text-white/50">
