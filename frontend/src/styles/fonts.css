@@ -34,14 +34,14 @@
 
 /* Test-mode scope: apply Pixel Digivolve to ALL headings & buttons (but not
    body copy). Pixel-rendering keeps the glyphs sharp. */
-html.about-test-nav h1,
-html.about-test-nav h2,
-html.about-test-nav h3,
-html.about-test-nav h4,
-html.about-test-nav h5,
-html.about-test-nav h6,
-html.about-test-nav button,
-html.about-test-nav [role="button"] {
+.about-test-nav .about-body h1,
+.about-test-nav .about-body h2,
+.about-test-nav .about-body h3,
+.about-test-nav .about-body h4,
+.about-test-nav .about-body h5,
+.about-test-nav .about-body h6,
+.about-test-nav .about-body button,
+.about-test-nav .about-body [role="button"] {
   font-family: 'Pixel Digivolve', 'Press Start 2P', var(--font-display), monospace !important;
   letter-spacing: 0.06em;
   image-rendering: pixelated;
@@ -49,8 +49,32 @@ html.about-test-nav [role="button"] {
   font-smooth: never;
 }
 
+/* Override: prevent test-mode pixel font from leaking into footer */
+.about-test-nav .footer-responsive,
+.about-test-nav .footer-responsive h1,
+.about-test-nav .footer-responsive h2,
+.about-test-nav .footer-responsive h3,
+.about-test-nav .footer-responsive h4,
+.about-test-nav .footer-responsive h5,
+.about-test-nav .footer-responsive h6,
+.about-test-nav .footer-responsive button,
+.about-test-nav .footer-responsive [role="button"],
+.about-test-nav .footer-heading,
+.about-test-nav .footer-nav,
+.about-test-nav .footer-connect,
+.about-test-nav .footer-brand-row,
+.about-test-nav .footer-desc,
+.about-test-nav .footer-top-btn,
+.about-test-nav .footer-bottom {
+  font-family: inherit !important;
+  letter-spacing: inherit !important;
+  image-rendering: auto !important;
+  -webkit-font-smoothing: auto !important;
+  font-smooth: auto !important;
+}
+
 /* ByteBounce - applied to the description paragraph in test mode */
-html.about-test-nav .desc-bytebounce {
+.about-test-nav .about-body .desc-bytebounce {
   font-family: 'ByteBounce', 'Pixel Digivolve', monospace !important;
   letter-spacing: 0.04em;
 }

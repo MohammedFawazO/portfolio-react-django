@@ -172,10 +172,14 @@ function WhatsAppButton() {
 
   // About sits lower on desktop only: that page's hero and section spacing
   // leave less clear room at the bottom edge, so the default desktop resting
-  // offset collides with its content. Overriding --fab-bottom (rather than
-  // `bottom`) means the scroll handler picks the new resting value up through
-  // getComputedStyle, so the footer-riding maths follows automatically.
-  const aboutRestingOffset = pathname === '/about' && isDesktop ? '24px' : null
+  // offset collides with its content. On mobile, About sits a little lower too
+  // (all hero modes share the same FAB): pull the default 120px resting offset
+  // down to 30px. Overriding --fab-bottom (rather than `bottom`) means the
+  // scroll handler picks the new resting value up through getComputedStyle, so
+  // the footer-riding maths follows automatically.
+  const aboutRestingOffset = pathname === '/about'
+    ? (isDesktop ? '24px' : '30px')
+    : null
 
   // Which About hero mode is active, so the CTA can wear that mode's theme.
   //
@@ -339,7 +343,7 @@ function WhatsAppButton() {
       // again on resize. A custom property is untouched by an inline bottom.
       // Must be a px value: custom properties are not resolved to px the way a
       // computed `bottom` is, so parseFloat would read '10rem' as 10.
-      const base = parseFloat(getComputedStyle(el).getPropertyValue('--fab-bottom')) || 160
+      const base = pathname === '/about' ? (isDesktop ? 24 : 30) : (isDesktop ? 52 : 120)
 
       // Not an early return: the boundary is enforced continuously while the section
       // border approaches. `max(base, gap)` holds the resting offset while that
@@ -354,8 +358,9 @@ function WhatsAppButton() {
 // + BORDER_CLEARANCE parks the CTA BORDER_CLEARANCE px above the border
         // rather than flush against it. Touching the line exactly made the
         // button look welded to the section edge; a small gap reads as spacing.
-        const nextBottom = Math.max(base, gap + BORDER_CLEARANCE)
-        setRestBottom(`${Math.round(nextBottom)}px`)
+        const nextBottom = gap > BORDER_CLEARANCE ? Math.max(base, gap + BORDER_CLEARANCE) : base
+        const rounded = `${Math.round(nextBottom)}px`
+        if (restBottom !== rounded) setRestBottom(rounded)
     }
     compute()
     // Scroll fires far more often than the screen refreshes, and every call
@@ -388,6 +393,9 @@ function WhatsAppButton() {
       ro.disconnect()
     }
   }, [])
+
+  const baseBottom = pathname === '/about' ? (isDesktop ? '24px' : 'calc(30px + env(safe-area-inset-bottom, 0px))') : (isDesktop ? '52px' : 'calc(120px + env(safe-area-inset-bottom, 0px))')
+  const maxBottom = typeof window !== 'undefined' ? Math.max(window.innerHeight - 70, parseFloat(baseBottom) || 30) : (parseFloat(baseBottom) || 30)
 
   if (!whatsapp) return null
 
@@ -425,7 +433,7 @@ function WhatsAppButton() {
         // it back after this element's inline `bottom` has taken over; the
         // sm: variant keeps the responsive split intact on resize.
         style={{
-          ...(restBottom ? { bottom: restBottom } : {}),
+          bottom: restBottom ? Math.min(Math.max(parseInt(restBottom, 10) || parseFloat(baseBottom) || 30, parseFloat(baseBottom) || 30), maxBottom) + 'px' : baseBottom,
           ...(aboutRestingOffset ? { '--fab-bottom': aboutRestingOffset } : {}),
         }}
         className={[

@@ -68,7 +68,7 @@ function Footer() {
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1, delay: 0.4, ease: 'easeOut' }}
-        className="liquid-glass relative z-10 w-full rounded-3xl px-5 py-10 md:px-8 md:py-12 text-white/70 flex flex-col !overflow-visible footer-responsive"
+        className="liquid-glass relative z-10 w-full rounded-3xl px-5 py-10 md:px-8 md:py-12 text-white/70 flex flex-col !overflow-visible footer-responsive max-md:[isolation:isolate]"
       >
         <button
           type="button"
@@ -110,9 +110,9 @@ function Footer() {
               </svg>
             </div>
             <div className="min-w-0">
-              <p className="text-2xl sm:text-3xl md:text-4xl font-medium leading-none text-white" style={{ fontFamily: 'Roxta', letterSpacing: '0.02em' }}>
+              <p className="text-2xl sm:text-3xl md:text-4xl font-normal leading-none text-white" style={{ fontFamily: 'Roxta, sans-serif', letterSpacing: '0.02em' }}>
                 <span className="md:hidden">Mohammed Fawaz O</span>
-                <span className="hidden md:inline">Fawaz O</span>
+                <span className="hidden md:inline">Mohammed Fawaz O</span>
               </p>
               <p className="text-base text-white/50 mt-1.5">Python Full Stack Developer</p>
             </div>

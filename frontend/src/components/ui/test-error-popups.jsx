@@ -35,9 +35,9 @@ const LEVEL_COLORS = {
   INFO: '#9adcff',
 }
 
-const POPUP_W = 340
-const POPUP_W_MIN = 220
-const POP_GAP = 24
+const POPUP_W = 300
+const POPUP_W_MIN = 180
+const POP_GAP = 16
 
 // The popups are positioned against the hero, but their width was a hard 340px,
 // so on a phone any x put the card past the right edge and the section's
@@ -138,8 +138,10 @@ function ErrorPopup({ title, lines, status, accent = '#D2042D', delay = 0, reope
     if (!draggingRef.current) return
     const r = heroRect()
     const hero = typeof document !== 'undefined' ? document.getElementById('about-hero-section') : null
-    const limitX = maxX()
-    const maxY = hero ? Math.max(0, hero.clientHeight - fitWidth(POPUP_W)) : 400
+    const isMobile = window.innerWidth < 768
+    // Mobile: allow free drag within viewport with generous padding
+    const limitX = isMobile ? Math.max(20, window.innerWidth - fitWidth(minimized ? POPUP_W_MIN : POPUP_W) - 20) : maxX()
+    const maxY = isMobile ? Math.max(60, window.innerHeight - 320) : (hero ? Math.max(60, hero.clientHeight - fitWidth(POPUP_W)) : 400)
     setPos({
       x: Math.min(Math.max(0, e.clientX - r.left - offsetRef.current.x), limitX),
       y: Math.min(Math.max(0, e.clientY - r.top - offsetRef.current.y), maxY),

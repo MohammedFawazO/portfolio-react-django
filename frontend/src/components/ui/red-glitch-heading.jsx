@@ -103,8 +103,7 @@ export function RedGlitchHeading({
   variants = [
     'मोहम्मद फ़वाज़ ओ',
     'മുഹമ്മദ് ഫവാസ് ഒ',
-    'محمد فواز أو',
-    'モハメド・ファワズ・オ',
+    'முகம்மது ஃபவாஸ் ஓ',
   ],
   className = '',
   interval = 3200,
@@ -242,8 +241,8 @@ export function RedGlitchHeading({
   }, [text, interval, pool.length])
 
   const TEXT =
-    'leading-[1.05] font-semibold tracking-tight uppercase lg:whitespace-nowrap ' +
-    'text-[22px] sm:text-[30px] lg:text-[60px] ' +
+    'leading-[1.05] font-semibold tracking-tight uppercase lg:whitespace-nowrap text-center ' +
+    'text-[30px] sm:text-[30px] lg:text-[60px] ' +
     className
 
   const fontStyle = {
@@ -259,7 +258,7 @@ export function RedGlitchHeading({
     if (/[\u0600-\u06FF]/.test(str)) {
       return {
         transform: 'scale(2)',
-        transformOrigin: 'left center',
+        transformOrigin: 'center center',
         display: 'inline-block',
       }
     }
@@ -268,16 +267,25 @@ export function RedGlitchHeading({
       return {
         transform: 'scale(1.18)',
         letterSpacing: '0.03em',
-        transformOrigin: 'left center',
+        transformOrigin: 'center center',
         display: 'inline-block',
       }
     }
     // Malayalam script
     if (/[\u0D00-\u0D7F]/.test(str)) {
       return {
-        transform: 'scale(0.78)',
-        letterSpacing: '0.02em',
-        transformOrigin: 'left center',
+        transform: 'scale(0.85) translateX(-2%)',
+        letterSpacing: '0.01em',
+        transformOrigin: 'center center',
+        display: 'inline-block',
+      }
+    }
+    // Tamil script
+    if (/[\u0B80-\u0BFF]/.test(str)) {
+      return {
+        transform: 'scale(0.85)',
+        letterSpacing: '0.03em',
+        transformOrigin: 'center center',
         display: 'inline-block',
       }
     }
@@ -286,14 +294,14 @@ export function RedGlitchHeading({
       return {
         transform: 'scale(0.8)',
         letterSpacing: '0.05em',
-        transformOrigin: 'left center',
+        transformOrigin: 'center center',
         display: 'inline-block',
       }
     }
     return {
       transform: 'scale(1)',
       letterSpacing: '0.02em',
-      transformOrigin: 'left center',
+      transformOrigin: 'center center',
       display: 'inline-block',
     }
   }
@@ -310,7 +318,7 @@ export function RedGlitchHeading({
       <span className="relative grid items-center">
         {/* Invisible placeholder matching default text */}
         <span aria-hidden="true" className="invisible col-start-1 row-start-1 pointer-events-none">
-          <span data-rg-text style={{ display: 'inline-block', letterSpacing: '0.02em' }}>{text}</span>
+          <span data-rg-text style={{ display: 'inline-block', letterSpacing: '0.02em' }}>{displayText}</span>
         </span>
 
         {/* Base text */}

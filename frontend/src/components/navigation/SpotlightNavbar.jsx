@@ -24,6 +24,19 @@ function useBlueprintActive() {
 }
 
 // Detect test mode by watching the html class toggled by About.jsx.
+function useMatrixActive() {
+  const [active, setActive] = useState(false)
+  useEffect(() => {
+    const root = document.documentElement
+    const update = () => setActive(root.classList.contains('about-matrix-nav'))
+    update()
+    const mo = new MutationObserver(update)
+    mo.observe(root, { attributes: true, attributeFilter: ['class'] })
+    return () => mo.disconnect()
+  }, [])
+  return active
+}
+
 function useTestModeActive() {
   const [active, setActive] = useState(false)
   useEffect(() => {
@@ -80,6 +93,8 @@ const entranceAnimations = {
 export function MobileMenu({ items, activeIndex, onItemClick, variant = 'default' }) {
   const [open, setOpen] = useState(false)
   const isTest = variant === 'test'
+  const blueprint = useBlueprintActive()
+  const matrix = useMatrixActive()
   const panelRef = useRef(null)
 
   // Escape closes it, and so does a tap anywhere outside the panel.
@@ -119,10 +134,16 @@ export function MobileMenu({ items, activeIndex, onItemClick, variant = 'default
         className={cn(
           'hamburger liquid-glass !fixed top-10 left-5 z-[70] md:hidden w-11 h-11 rounded-full flex items-center justify-center cursor-pointer p-0',
           open && 'is-open',
+          blueprint && '!bg-[#001428] !border !border-[#00d2ff]/70',
+          matrix && '!bg-black !border !border-[#03A062]/60',
           isTest && '!bg-[#070204] !border !border-[#D2042D]'
         )}
       >
-        <svg viewBox="0 0 32 32" className={isTest ? '[&_*]:!stroke-[#D2042D]' : ''}>
+        <svg viewBox="0 0 32 32" className={cn(
+          isTest && '[&_*]:!stroke-[#D2042D]',
+          blueprint && '[&_*]:!stroke-[#00d2ff]',
+          matrix && '[&_*]:!stroke-[#03A062]'
+        )}>
           <path className="line line-top-bottom" d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22" />
           <path className="line" d="M7 16 27 16" />
         </svg>
@@ -140,9 +161,10 @@ export function MobileMenu({ items, activeIndex, onItemClick, variant = 'default
             style={{ transformOrigin: 'top left' }}
             className={cn(
               'md:hidden !fixed top-[5.5rem] left-5 z-[70] w-56 rounded-2xl border backdrop-blur-xl p-2 shadow-2xl',
-              isTest
-                ? 'border-[#D2042D]/40 bg-[rgba(7,2,4,0.95)]'
-                : 'border-white/10 bg-[rgba(10,12,15,0.92)]'
+              blueprint ? 'border-[#00d2ff]/40 bg-[rgba(0,20,40,0.95)]' :
+                matrix ? 'border-[#03A062]/40 bg-[rgba(0,10,5,0.95)]' :
+                  isTest ? 'border-[#D2042D]/40 bg-[rgba(7,2,4,0.95)]' :
+                    'border-white/10 bg-[rgba(10,12,15,0.92)]'
             )}
           >
             <ul className="flex flex-col">
@@ -157,8 +179,8 @@ export function MobileMenu({ items, activeIndex, onItemClick, variant = 'default
                     className={cn(
                       'block px-4 py-3 rounded-xl text-sm font-medium transition-colors duration-200',
                       activeIndex === idx
-                        ? isTest ? 'bg-[#D2042D]/20 text-[#FF3B47]' : 'bg-white/10 text-white'
-                        : isTest ? 'text-[#D2042D]/70 hover:bg-[#D2042D]/10 hover:text-[#FF3B47]' : 'text-white/70 hover:bg-white/5 hover:text-white'
+                        ? (blueprint ? 'bg-[#00d2ff]/20 text-[#00d2ff]' : matrix ? 'bg-[#03A062]/20 text-[#03A062]' : isTest ? 'bg-[#D2042D]/20 text-[#FF3B47]' : 'bg-white/10 text-white')
+                        : (blueprint ? 'text-[#00d2ff]/70 hover:bg-[#00d2ff]/10 hover:text-[#00d2ff]' : matrix ? 'text-[#03A062]/70 hover:bg-[#03A062]/10 hover:text-[#03A062]' : isTest ? 'text-[#D2042D]/70 hover:bg-[#D2042D]/10 hover:text-[#FF3B47]' : 'text-white/70 hover:bg-white/5 hover:text-white')
                     )}
                   >
                     {item.label}
@@ -205,6 +227,7 @@ function SpotlightNavbar({ items = defaultItems, className, onItemClick, animati
   const spotlightAnim = useRef(null)
 
   const blueprint = useBlueprintActive()
+  const matrix = useMatrixActive()
   const testMode = useTestModeActive()
   const isMobile = useIsMobile()
   const [hoveredIdx, setHoveredIdx] = useState(null)

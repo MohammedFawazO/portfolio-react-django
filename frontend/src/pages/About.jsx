@@ -39,6 +39,15 @@ const ARROW_C = { main: 'M15 7C11 11 21 12 17 18C14 23 23 22 19 28', head: 'M15 
 // reticle sits exactly on the cursor tip. Fades out over anything the buttons,
 // pills and hero image would react to.
 function BlueprintCursorCrosshair() {
+  const [isDesktopViewport, setIsDesktopViewport] = useState(typeof window !== 'undefined' ? window.innerWidth >= 1024 : false)
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)')
+    const onChange = () => setIsDesktopViewport(mq.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
+  if (!isDesktopViewport) return null
+
   const wrapRef = useRef(null)
   const hLineRef = useRef(null)
   const vLineRef = useRef(null)
@@ -414,6 +423,7 @@ function About() {
     }[id]
     const next = !on
     stopInk()
+    // Exclusive: only one mode active at a time
     setShowBlueprint(next && id === 'blueprint')
     setShowMatrix(next && id === 'matrix')
     setShowDesign(next && id === 'design')
@@ -1067,19 +1077,18 @@ function About() {
 
                 </svg>
               ) : showTest ? (
-                <div className="p-0 min-h-0">
+                <div className="p-0 min-h-0 text-center">
                   <RedGlitchHeading
                     text="MOHAMMED FAWAZ O"
                     variants={[
                       'मोहम्मद फ़वाज़ ओ',
                       'മുഹമ്മദ് ഫവാസ് ഒ',
-                      'محمد فواز أو',
-                      'モハメド・ファワズ・オ',
+                      'முகம்மது ஃபவாஸ் ஓ',
                     ]}
                   />
                 </div>
               ) : (
-                <h1 className={"font-(family-name:--font-display) leading-[1.02]! font-semibold tracking-tight uppercase lg:whitespace-nowrap max-lg:text-balance transition-[color,font-size,letter-spacing,opacity] duration-700 ease-out " + (showMatrix ? "text-[27px] max-lg:sm:text-[36px] lg:text-[66px] text-white blueprint-hero-type hero-heading" : showBlueprint ? "text-[30px] max-lg:sm:text-[42px] lg:text-[42px] text-white blueprint-hero-type" : "text-[30px] max-lg:sm:text-[42px] lg:text-[42px] text-[#001428]")}>
+                  <h1 className={"font-(family-name:--font-display) leading-[1.02]! font-semibold tracking-tight uppercase lg:whitespace-nowrap max-lg:text-balance text-center transition-[color,font-size,letter-spacing,opacity] duration-700 ease-out " + (showMatrix ? "text-[30px] max-lg:sm:text-[42px] lg:text-[66px] text-white blueprint-hero-type hero-heading" : showBlueprint ? "text-[30px] max-lg:sm:text-[42px] lg:text-[42px] text-white blueprint-hero-type" : "text-[30px] max-lg:sm:text-[42px] lg:text-[42px] text-[#001428]")}>
                   Mohammed Fawaz O
                 </h1>
               )}
@@ -1138,7 +1147,7 @@ function About() {
                   , building production-ready web applications with Django, React, and clean architecture.
                 </NeonRGBTextEffect>
               ) : (
-              <p key={introReplayKey} className={"text-[16px] lg:text-[20px] font-light mt-2 max-w-xl leading-relaxed max-lg:mx-auto max-lg:mt-3 max-lg:text-pretty transition-[color,font-size,margin,letter-spacing,opacity] duration-700 ease-out " + (showMatrix ? "text-white/80 blueprint-hero-type hero-description" : showBlueprint ? "bp-hero-desc text-white/80 blueprint-hero-type max-md:text-[15px]" : "text-[#323232]")}>
+              <p key={introReplayKey} className={"text-[14px] md:text-[16px] lg:text-[20px] font-light mt-2 max-w-xl leading-relaxed max-lg:mx-auto max-lg:mt-3 max-lg:text-pretty transition-[color,font-size,margin,letter-spacing,opacity] duration-700 ease-out " + (showMatrix ? "text-white/80 blueprint-hero-type hero-description" : showBlueprint ? "bp-hero-desc text-white/80 blueprint-hero-type max-md:text-[15px]" : "text-[#323232]")}>
                 {showBlueprint ? (<span className="inline-block border border-dashed border-[#00d2ff] px-2 py-0.5 text-[#00d2ff]">Python</span>) : showMatrix ? (<span className="keyword">Python</span>) : 'Python'} Full Stack Developer from{' '}
                 <span className="relative inline-block whitespace-nowrap">
                   Kerala, India
@@ -1334,31 +1343,33 @@ key="default"
                           {showTest ? (
                             <motion.div
                               key="test"
-                              className="flex flex-wrap items-center gap-3 lg:gap-6 max-lg:justify-center"
+                               className="flex flex-nowrap items-center gap-2 lg:gap-6 max-lg:justify-center max-lg:scale-[0.92] max-lg:origin-center"
                               initial={{ opacity: 0, scale: 0.97, filter: 'blur(6px)' }}
                               animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
                               exit={{ opacity: 0, scale: 0.97, filter: 'blur(6px)' }}
                               transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
                             >
-<GlitchScanGridButton
-label="./view-projects"
-                                badge="RUN // 01"
-                                index={1}
-                                icon={<ArrowRight size={17} strokeWidth={2.4} />}
-                                onClick={(e) => { e.stopPropagation(); navigate('/projects'); }}
-                              />
-                              <GlitchScanGridButton
-                                label="RESUME.EXE"
-                                badge="GET//PDF"
-                                index={2}
-                                icon={<Download size={17} strokeWidth={2.4} />}
-                                onClick={(e) => { e.stopPropagation(); handleResumeDownload(e); }}
-                              />
+                               <GlitchScanGridButton
+                                 label="./view-projects"
+                                 badge="RUN // 01"
+                                 index={1}
+                                 icon={<ArrowRight size={17} strokeWidth={2.4} />}
+                                  className="max-lg:text-[13px] max-lg:px-5 max-lg:py-3 max-lg:whitespace-nowrap"
+                                 onClick={(e) => { e.stopPropagation(); navigate('/projects'); }}
+                               />
+                               <GlitchScanGridButton
+                                 label="RESUME.EXE"
+                                 badge="GET//PDF"
+                                 index={2}
+                                 icon={<Download size={17} strokeWidth={2.4} />}
+                                  className="max-lg:text-[13px] max-lg:px-5 max-lg:py-3 max-lg:whitespace-nowrap"
+                                 onClick={(e) => { e.stopPropagation(); handleResumeDownload(e); }}
+                               />
                             </motion.div>
                           ) : showBlueprint ? (
                             <motion.div
                               key="bp"
-                              className="about-bp-actions flex flex-wrap items-center -mt-4 gap-3 lg:gap-0 max-lg:justify-center"
+                              className="about-bp-actions flex flex-nowrap items-center -mt-4 gap-3 lg:gap-0 max-lg:justify-center"
                               initial={{ opacity: 0, scale: 0.97, filter: 'blur(6px)' }}
                               animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
                               exit={{ opacity: 0, scale: 0.97, filter: 'blur(6px)' }}
@@ -1375,7 +1386,7 @@ label="./view-projects"
                           ) : (
                             <motion.div
                               key="def"
-                              className={"flex items-center justify-end gap-4 max-lg:flex-wrap max-lg:justify-center" + (showMatrix ? " ml-12 max-lg:mx-12 max-lg:ml-0" : "")}
+                              className={"flex flex-nowrap items-center justify-end gap-4 max-lg:w-full max-lg:justify-center" + (showMatrix ? " lg:ml-12" : "")}
                               initial={{ opacity: 0, scale: 0.97, filter: 'blur(6px)' }}
                               animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
                               exit={{ opacity: 0, scale: 0.97, filter: 'blur(6px)' }}
@@ -1417,7 +1428,7 @@ label="./view-projects"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-              className="relative z-60 flex justify-end mt-0 max-lg:-mx-4 lg:mt-[7mm]"
+              className="relative z-60 flex justify-end mt-0 max-lg:-mx-4 max-lg:-mt-6 lg:mt-[7mm]"
             >
               <div
                 ref={groupRef}
@@ -1650,7 +1661,7 @@ label="./view-projects"
               animate={{ opacity: 1, scaleX: 1, filter: 'blur(0px)' }}
               transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
               style={{ transformOrigin: 'left center' }}
-              className="absolute bottom-18 left-17 w-60 h-5 overflow-hidden z-75 pointer-events-none"
+              className="absolute bottom-18 left-17 w-60 h-5 overflow-hidden z-75 pointer-events-none max-lg:hidden lg:block"
             >
               <div className="moving-stripes w-full h-full" />
               <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(to right, rgba(0,0,0,1) 0%, transparent 20%, transparent 80%, rgba(0,0,0,1) 100%)' }} />
@@ -1659,7 +1670,7 @@ label="./view-projects"
               initial={{ opacity: 0, y: 8, filter: 'blur(4px)' }}
               animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
               transition={{ duration: 0.45, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              className="absolute bottom-13 left-17 text-[10px] font-mono tracking-widest text-[#D2042D] uppercase z-75 pointer-events-none"
+              className="absolute bottom-13 left-17 text-[10px] font-mono tracking-widest text-[#D2042D] uppercase z-75 pointer-events-none max-lg:hidden lg:block"
             >//DEBUG_CONSOLE</motion.span>
             <style>{`
               .moving-stripes {
@@ -1721,7 +1732,7 @@ label="./view-projects"
               viewport={{ once: true }}
               className="order-1 md:order-0 md:col-start-1 md:row-start-1 max-w-prose mx-auto md:max-w-none md:mx-0"
             >
-              <h3 className="about-body-title text-[20px] font-medium text-black mb-5 font-(family-name:--font-display)">A Little About Me</h3>
+              <h3 className="about-body-title text-[20px] font-medium text-black mb-5 font-(family-name:--font-display) text-center">A Little About Me</h3>
               <div className="about-body-copy space-y-4 text-[#323232] leading-[1.85] text-[16px]">
                 <p>
                   I'm someone who enjoys figuring things out, asking questions, and understanding how things work. I like the feeling of turning a confusing problem into something simple and useful, and I'm usually more interested in understanding <em>why</em> something works than just knowing that it does.
@@ -1746,7 +1757,7 @@ label="./view-projects"
               viewport={{ once: true }}
               className="order-3 md:order-0 md:col-start-1 md:row-start-2 max-w-prose mx-auto md:max-w-none md:mx-0"
             >
-              <h3 className="about-body-title text-[20px] font-medium text-black mb-5 font-(family-name:--font-display)">Work Experience</h3>
+              <h3 className="about-body-title text-[20px] font-medium text-black mb-5 font-(family-name:--font-display) text-center">Work Experience</h3>
               <div className="about-body-copy space-y-4 text-[#323232] leading-[1.85] text-[16px]">
                 <p>
                   Over the past year I've worked as a freelance web developer, building web applications for people who needed them built. It's the kind of work I've learned the most from, because every project arrives with its own problem, its own users, and its own definition of what finished actually means.
@@ -1771,7 +1782,7 @@ label="./view-projects"
               viewport={{ once: true }}
               className="order-2 md:order-0 md:col-start-2 md:row-start-1"
             >
-              <h3 className="about-body-title text-[20px] font-medium text-black mb-5 font-(family-name:--font-display)">Quick Info</h3>
+              <h3 className="about-body-title text-[20px] font-medium text-black mb-5 font-(family-name:--font-display) text-center">Quick Info</h3>
               <div className="space-y-4">
                 {[
                   { label: 'Name', value: 'Mohammed Fawaz O' },
@@ -1837,7 +1848,7 @@ label="./view-projects"
       <section className="about-section about-section--mission page-tail-fade bg-[#ADD8E6] rounded-t-none rounded-b-3xl pt-10 pb-10 md:pt-14 md:pb-14">
         <Container size="lg" className="px-8!">
           <div className="text-center max-w-3xl mx-auto">
-            <h3 className="about-mission-title font-(family-name:--font-display) text-[34px] md:text-[44px] leading-[1.1] font-semibold text-black mb-5">
+            <h3 className="about-mission-title font-(family-name:--font-display) text-[34px] md:text-[44px] leading-[1.1] font-semibold text-black mb-5 text-center">
               Software that actually works.
             </h3>
             <p className="about-mission-copy text-[#323232] text-[18px] font-light leading-[1.7]">

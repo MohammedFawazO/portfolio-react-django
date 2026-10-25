@@ -356,6 +356,7 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   width: 2.75rem;
   height: 2.75rem;
   margin: 0;
+  overflow: hidden;
   translate: -50% -50%;
   opacity: 1;
   pointer-events: auto;
@@ -563,6 +564,9 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   filter: none;
 }
 :is(.about-mode-blueprint, .about-mode-matrix, .about-mode-test) .skill-swap-icon[data-icon='GitHub'] {
+  filter: invert(1);
+}
+:is(.about-mode-blueprint, .about-mode-matrix, .about-mode-test) .skill-swap-icon[data-icon='Django'] {
   filter: invert(1);
 }
 
@@ -873,6 +877,11 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   border: 1px solid rgba(210, 4, 45, 0.5);
   border-radius: 2px;
 }
+/* Prevent test-mode font from leaking into footer */
+.about-mode-test .footer-responsive,
+.about-mode-test .footer-responsive * {
+  font-family: inherit !important;
+}
 
 @media (prefers-reduced-motion: reduce) {
   .about-body,
@@ -940,6 +949,7 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   }
   .footer-responsive .footer-heading {
     text-align: center;
+    font-family: 'Michroma', sans-serif;
   }
   .footer-responsive .footer-nav {
     justify-items: center;
@@ -3733,9 +3743,9 @@ html.route-projects .footer-shell {
      on the same line as the default one. The decorative telemetry readout that
      would otherwise collide with the heading is hidden below. */
   .bp-hero-copy {
-    margin-top: 0;
+    margin-top: 2rem;
     position: relative;
-    top: 0.75rem;
+    top: 1.5rem;
   }
 
   .bp-telemetry {
@@ -3746,8 +3756,8 @@ html.route-projects .footer-shell {
      mobile, so its dashed inner ring clears the portrait. Desktop keeps its
      original position. */
   .bp-ambient-rings {
-    right: 0;
-    bottom: 2rem;
+    right: -1rem;
+    bottom: 3rem;
   }
 
   /* Widen the blueprint paragraph back to the default measure (the blueprint
@@ -3756,6 +3766,8 @@ html.route-projects .footer-shell {
   .bp-hero-desc {
     margin-inline: -1rem;
     line-height: 1.5;
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
   }
 
   /* Compact the blueprint action row to the default button height: the W label
