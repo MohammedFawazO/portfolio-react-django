@@ -395,7 +395,6 @@ function WhatsAppButton() {
   }, [])
 
   const baseBottom = pathname === '/about' ? (isDesktop ? '24px' : 'calc(30px + env(safe-area-inset-bottom, 0px))') : (isDesktop ? '52px' : 'calc(120px + env(safe-area-inset-bottom, 0px))')
-  const maxBottom = typeof window !== 'undefined' ? Math.max(window.innerHeight - 70, parseFloat(baseBottom) || 30) : (parseFloat(baseBottom) || 30)
 
   if (!whatsapp) return null
 
@@ -433,7 +432,11 @@ function WhatsAppButton() {
         // it back after this element's inline `bottom` has taken over; the
         // sm: variant keeps the responsive split intact on resize.
         style={{
-          bottom: restBottom ? Math.min(Math.max(parseInt(restBottom, 10) || parseFloat(baseBottom) || 30, parseFloat(baseBottom) || 30), maxBottom) + 'px' : baseBottom,
+          // Never clamp the ridden offset: capping it parked the CTA over the
+          // footer once the section border scrolled above the cap. Letting
+          // `bottom` track the border all the way means it rides up and off the
+          // top instead of ever entering the footer area.
+          bottom: restBottom || baseBottom,
           ...(aboutRestingOffset ? { '--fab-bottom': aboutRestingOffset } : {}),
         }}
         className={[

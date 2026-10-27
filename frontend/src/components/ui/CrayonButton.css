@@ -155,6 +155,10 @@
   }
 }
 
+/* Below lg the hero is a single stacked column. The sketched note + arrow still
+   render (same as desktop); the CTA row reserves bottom padding so they sit in
+   the gap instead of colliding with the photo column. */
+
 /* Hand-drawn download doodle, revealed on hover (resume button) */
 .crayon-hover-download {
   position: absolute;

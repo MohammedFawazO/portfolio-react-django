@@ -16,6 +16,7 @@ function Badge({
   variant = 'default',
   size = 'md',
   className,
+  onClick,
 }) {
   const sizes = {
     sm: 'px-2 py-0.5 text-xs',
@@ -31,6 +32,7 @@ function Badge({
         sizes[size],
         className
       )}
+      onClick={onClick}
     >
       {children}
     </span>

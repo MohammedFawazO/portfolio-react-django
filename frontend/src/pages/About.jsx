@@ -105,11 +105,11 @@ function TypingLoader({ text = 'icons/illustrations loading...', className = '' 
   )
 }
 
-function HoverColorAnnot({ label = 'hover color?', color = '#246bff', style, arrow, arrowStyle }) {
+function HoverColorAnnot({ label = 'hover color?', color = '#246bff', style, arrow, arrowStyle, className = '' }) {
   const { main = ARROW_A.main, head = ARROW_A.head, w = ARROW_A.w, h = ARROW_A.h } = arrow || {}
   return (
     <div
-      className="pointer-events-none select-none z-80"
+      className={`pointer-events-none select-none z-80 ${className}`}
       style={style}
       aria-hidden="true"
     >
@@ -136,6 +136,62 @@ function HoverColorAnnot({ label = 'hover color?', color = '#246bff', style, arr
   )
 }
 
+function BackgroundIdeaNote({ className = '', arrowShift = '-60%' }) {
+  return (
+    <div className={className} aria-hidden="true">
+      <div className="relative inline-flex flex-col items-center">
+        <motion.span
+          initial={{ opacity: 0, scale: 0.75, y: -4 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.35, delay: 0.15 }}
+          style={{
+            color: '#e6019a',
+            fontFamily: "'Comic Sans MS', 'Segoe Print', 'Bradley Hand', cursive",
+            fontSize: '16px',
+            transform: 'rotate(-4deg)',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          background idea?
+        </motion.span>
+        <svg
+          viewBox="0 0 36 32"
+          fill="none"
+          style={{
+            width: '32px',
+            height: '29px',
+            color: '#e6019a',
+            overflow: 'visible',
+            transform: `translateX(${arrowShift}) rotate(-4deg)`,
+            display: 'block',
+            margin: '0 auto',
+          }}
+        >
+          <motion.path
+            d="M14 3C11 9 21 12 16 18C13 21 19 23 23 26"
+            stroke="currentColor"
+            strokeWidth="1.2"
+            strokeLinecap="square"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1], delay: 0.25 }}
+          />
+          <motion.path
+            d="M18 19L23 26L16 25"
+            stroke="currentColor"
+            strokeWidth="1.2"
+            strokeLinecap="square"
+            strokeLinejoin="round"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 0.35, ease: "easeOut", delay: 0.75 }}
+          />
+        </svg>
+      </div>
+    </div>
+  )
+}
+
 // Skill chips reuse the Home hero's marquee so a skill and its icon can never
 // drift apart. The marquee labels a few of them differently than the badge
 // does, hence the alias map rather than a straight name lookup.
@@ -156,11 +212,11 @@ const techByName = new Map(technologies.map((tech) => [tech.name, tech]))
 function SkillChip({ name }) {
   const tech = techByName.get(SKILL_ICON_ALIAS[name] || name)
   if (!tech) {
-    return <Badge variant="light" className="about-badge ct-tag">{name}</Badge>
+    return <Badge variant="light" className="about-badge ct-tag" onClick={(e) => e.stopPropagation()}>{name}</Badge>
   }
   const flip = WHITE_GLYPH_SKILLS.has(name) ? ' skill-swap-icon--flip' : ''
   return (
-    <Badge variant="light" className="about-badge ct-tag skill-swap" title={name}>
+    <Badge variant="light" className="about-badge ct-tag skill-swap" title={name} onClick={(e) => e.stopPropagation()}>
       <span className="skill-swap-label">{name}</span>
       {tech.svg ? (
         <span className={`skill-swap-icon skill-swap-icon--inline${flip}`} data-icon={name} aria-hidden="true">{tech.svg}</span>
@@ -846,7 +902,7 @@ function About() {
         `}</style>
         {designModeActive && (
           <div
-            className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 z-80 pointer-events-none select-none opacity-60"
+            className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 z-80 pointer-events-none select-none opacity-60 max-lg:hidden"
             aria-hidden="true"
           >
             <div className="design-select-frame relative w-9 h-9">
@@ -875,7 +931,7 @@ function About() {
           </div>
         )}
         {designModeActive && (
-          <HoverColorAnnot label="try logo here?" arrow={ARROW_A} style={{ position: 'absolute', left: '2rem', top: '3.5rem' }} />
+          <HoverColorAnnot className="max-lg:hidden" label="try logo here?" arrow={ARROW_A} style={{ position: 'absolute', left: '2rem', top: '3.5rem' }} />
         )}
         <div
           className="absolute pointer-events-none"
@@ -913,9 +969,9 @@ function About() {
         {showTest && <TestErrorPopups />}
         <Container size="lg" className="px-4! sm:px-6! lg:px-8!">
           <div className="grid gap-5 lg:grid-cols-2 lg:gap-16 items-center">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} className={"relative z-70 pt-20 md:pt-0 max-lg:text-center transition-[padding,margin] duration-700 ease-out" + (showMatrix || showBlueprint ? " lg:pl-12 max-lg:px-4" : "") + (showBlueprint ? " bp-hero-copy mt-8 lg:mt-16" : "")}>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} className={"relative z-70 pt-20 md:pt-0 max-lg:text-center transition-[padding,margin] duration-700 ease-out" + (showMatrix || showBlueprint ? " lg:pl-12 max-lg:px-4" : "") + (showBlueprint ? " bp-hero-copy mt-8 lg:mt-16" : "") + (designModeActive ? " max-lg:pt-32!" : "")}>
               {designModeActive && (
-                <div className="absolute left-1 top-0 -translate-y-full z-80 flex items-center pointer-events-none">
+                <div className="z-80 flex items-center justify-start pointer-events-none max-lg:mb-2 lg:absolute lg:left-1 lg:top-0 lg:-translate-y-full">
                   <TypingLoader />
                 </div>
               )}
@@ -1307,7 +1363,7 @@ function About() {
                   {showDesign ? (
                     <motion.div
                       key="design"
-                      className="flex flex-wrap items-center gap-3 lg:gap-4 mt-4 lg:mt-6 max-lg:justify-center"
+                      className="flex flex-wrap items-center gap-3 lg:gap-4 mt-4 lg:mt-6 max-lg:justify-center max-lg:pb-16"
                       initial={{ opacity: 0, scale: 1.45, filter: 'blur(8px)', x: -24 }}
                       animate={{ opacity: 1, scale: 1, filter: 'blur(0px)', x: 0 }}
                       exit={{ opacity: 0, scale: 0.65, filter: 'blur(10px)', x: 24 }}
@@ -1443,6 +1499,9 @@ key="default"
                 onFocus={holdOrbit}
                 onBlur={letOrbitRun}
               >
+                {designModeActive && (
+                  <BackgroundIdeaNote className="absolute left-3.5 top-1/2 mt-9 -translate-y-1/2 z-80 max-w-[calc(100%-3.5rem)] pointer-events-none select-none lg:hidden" arrowShift="0%" />
+                )}
                 <div
                   className={"about-photo-card relative min-h-95 sm:min-h-105 lg:min-h-100 " + (!showBlueprint && !showMatrix && !showDesign && !showTest ? 'rounded-2xl p-2 bg-white shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5),0_18px_36px_-18px_rgba(0,0,0,0.4)]' : '')}
                   style={{
@@ -1600,58 +1659,7 @@ key="default"
           </div>
         </Container>
         {designModeActive && (
-          <div className="absolute bottom-28 left-[60%] -translate-x-1/2 z-80 pointer-events-none select-none">
-            <div className="relative inline-flex flex-col items-center">
-              <motion.span
-                initial={{ opacity: 0, scale: 0.75, y: -4 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ duration: 0.35, delay: 0.15 }}
-                style={{
-                  color: '#e6019a',
-                  fontFamily: "'Comic Sans MS', 'Segoe Print', 'Bradley Hand', cursive",
-                  fontSize: '16px',
-                  transform: 'rotate(-4deg)',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                background idea?
-              </motion.span>
-              <svg
-                viewBox="0 0 36 32"
-                fill="none"
-                aria-hidden="true"
-                style={{
-                  width: '32px',
-                  height: '29px',
-                  color: '#e6019a',
-                  overflow: 'visible',
-                  transform: 'translateX(-60%) rotate(-4deg)',
-                  display: 'block',
-                  margin: '0 auto',
-                }}
-              >
-                <motion.path
-                  d="M14 3C11 9 21 12 16 18C13 21 19 23 23 26"
-                  stroke="currentColor"
-                  strokeWidth="1.2"
-                  strokeLinecap="square"
-                  initial={{ pathLength: 0 }}
-                  animate={{ pathLength: 1 }}
-                  transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1], delay: 0.25 }}
-                />
-                <motion.path
-                  d="M18 19L23 26L16 25"
-                  stroke="currentColor"
-                  strokeWidth="1.2"
-                  strokeLinecap="square"
-                  strokeLinejoin="round"
-                  initial={{ pathLength: 0 }}
-                  animate={{ pathLength: 1 }}
-                  transition={{ duration: 0.35, ease: "easeOut", delay: 0.75 }}
-                />
-              </svg>
-            </div>
-          </div>
+          <BackgroundIdeaNote className="absolute bottom-28 left-[60%] -translate-x-1/2 z-80 pointer-events-none select-none max-lg:hidden" />
         )}
         {showTest && (
           <>
@@ -1864,3 +1872,4 @@ key="default"
 }
 
 export default About
+

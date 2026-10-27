@@ -110,9 +110,8 @@ function Footer() {
               </svg>
             </div>
             <div className="min-w-0">
-              <p className="text-2xl sm:text-3xl md:text-4xl font-normal leading-none text-white" style={{ fontFamily: 'Roxta, sans-serif', letterSpacing: '0.02em' }}>
-                <span className="md:hidden">Mohammed Fawaz O</span>
-                <span className="hidden md:inline">Mohammed Fawaz O</span>
+              <p className="text-2xl sm:text-3xl md:text-4xl font-medium leading-none text-white whitespace-nowrap" style={{ fontFamily: '"Roxta", sans-serif', letterSpacing: '0.02em' }}>
+                <span>Mohammed Fawaz O</span>
               </p>
               <p className="text-base text-white/50 mt-1.5">Python Full Stack Developer</p>
             </div>

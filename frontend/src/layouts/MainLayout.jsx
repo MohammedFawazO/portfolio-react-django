@@ -1,6 +1,8 @@
 import { useEffect, useRef, useContext, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion'
+import Lenis from 'lenis'
+import 'lenis/dist/lenis.css'
 import Footer from '../components/common/Footer'
 import WhatsAppButton from '../components/common/WhatsAppButton'
 import ConnectButton from '../components/common/ConnectButton'
@@ -125,7 +127,7 @@ function ConnectSlot() {
       {designModeActive ? (
         <motion.div
           key="design"
-          className="absolute right-9 top-14 z-50 pointer-events-none max-md:hidden"
+          className="absolute right-6 top-10 z-50 pointer-events-none md:right-9 md:top-14"
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 8 }}
@@ -167,11 +169,40 @@ function MainLayout() {
   const isAbout = location.pathname === '/about'
   const footerVideoRef = useRef(null)
   const heroProgress = useMotionValue(0)
+  const lenisRef = useRef(null)
+
+  // Smooth scrolling for every page. Lenis eases wheel and trackpad input while
+  // still using the real document scroll position, so anything reading
+  // window.scrollY (navbar fade, hero progress, the projects hand-off) keeps
+  // working untouched, and the native scrollbar stays. autoRaf lets Lenis run
+  // its own frame loop. Reduced-motion visitors keep the browser's default.
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const lenis = new Lenis({
+      // Longer, softer glide: 1.6s catch-up on a gentle ease-out rather than
+      // Lenis' default snappy exponential, and a slightly reduced wheel
+      // multiplier so each notch travels less distance before easing out.
+      duration: 1.6,
+      easing: (t) => 1 - Math.pow(1 - t, 4),
+      wheelMultiplier: 0.85,
+      smoothWheel: true,
+      anchors: true,
+      autoRaf: true,
+    })
+    lenisRef.current = lenis
+    return () => {
+      lenis.destroy()
+      lenisRef.current = null
+    }
+  }, [])
 
   useEffect(() => {
     // A hash means "go to that anchor", so don't reset to the top - let the
     // scroll-to-target effect below handle the landing instead.
     if (location.hash) return
+    // Route changes land instantly: hand it to Lenis so it drops any animation
+    // in flight rather than snapping back a frame later.
+    lenisRef.current?.scrollTo(0, { immediate: true, force: true })
     window.scrollTo(0, 0)
   }, [location.pathname, location.hash])
 
@@ -185,7 +216,16 @@ function MainLayout() {
       const target = document.querySelector(location.hash)
       // One frame of delay: the home page animates its sections in, so on the
       // first paint after navigation the target may not be laid out yet.
-      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      if (!target) return
+      const lenis = lenisRef.current
+      if (lenis) {
+        // Same landing spot as block: 'center' below - the target's midpoint
+        // sits in the middle of the viewport, whatever its height.
+        const offset = -(window.innerHeight - target.offsetHeight) / 2
+        lenis.scrollTo(target, { offset, duration: 1.6, force: true })
+      } else {
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
     })
     return () => cancelAnimationFrame(id)
   }, [location.pathname, location.hash])

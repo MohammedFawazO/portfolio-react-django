@@ -925,8 +925,9 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
     position: relative;
     justify-content: center;
     text-align: center;
-    /* room for the monogram pinned to the top-left corner */
+    /* Balance padding so the wordmark stays centered despite absolute logo */
     padding-left: 2.75rem;
+    padding-right: 2.75rem;
   }
   .footer-responsive .footer-brand-row > div:first-child {
     /* Mobile only: the logo sits top-left instead of behind the wordmark.
@@ -1021,6 +1022,45 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
 .hamburger.is-open .line-top-bottom {
   stroke-dasharray: 20 300;
   stroke-dashoffset: -32.42;
+}
+
+/* Design mode: the mobile hamburger wears the same crayon skin as the design
+   accents - paper fill, waxy blue stripes, a 3px dashed ink border and #333
+   line ink. Overrides liquid-glass (bg/border/shadow + its rim) and the
+   default mix-blend difference so the paper stays paper. */
+.hamburger.hamburger--design {
+  color: #333;
+  mix-blend-mode: normal;
+  background-color: #fdfbf7;
+  background-blend-mode: normal;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    #246bff 0px,
+    #246bff 3px,
+    rgba(36, 107, 255, 0.85) 4px,
+    #246bff 5px,
+    #246bff 8px
+  );
+  border: 3px dashed #444;
+  border-radius: 50%;
+  box-shadow: none;
+  transition: transform 0.1s ease;
+}
+
+.hamburger.hamburger--design::before {
+  display: none;
+}
+
+.hamburger.hamburger--design:active {
+  transform: scale(0.96);
+  background-image: repeating-linear-gradient(
+    -45deg,
+    #1e56d6 0px,
+    #1e56d6 3px,
+    rgba(30, 86, 214, 0.85) 4px,
+    #1e56d6 5px,
+    #1e56d6 8px
+  );
 }
 
 /* Liquid Glass Footer */

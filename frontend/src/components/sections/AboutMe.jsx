@@ -1,161 +1,124 @@
 import { motion } from 'framer-motion'
+import { Link } from 'react-router-dom'
+import { ArrowRight, FileText } from 'lucide-react'
 import Container from '../ui/Container'
-import { KineticTextReveal } from '../ui/KineticTextReveal'
-import Button from '../ui/Button'
 
+/* Numbers mirror the stats band on the Projects page (Projects.jsx) and the
+   Quick Info on the About page, so the two views never contradict each other. */
 const stats = [
-  { label: 'Projects Completed', value: 10, suffix: '+' },
-  { label: 'Technologies', value: 15, suffix: '+' },
-  { label: 'Years Learning', value: 3, suffix: '+' },
-  { label: 'Real Client Projects', value: 5, suffix: '' },
+  { label: 'Projects Completed', value: '4', suffix: '' },
+  { label: 'Technologies Mastered', value: '16', suffix: '+' },
+  { label: 'Years Freelance', value: '1', suffix: '+' },
+  { label: 'Client Builds Live', value: '2', suffix: '' },
 ]
 
 const fadeUp = {
-  hidden: { y: 40, opacity: 0 },
-  visible: (delay) => ({
+  hidden: { y: 30, opacity: 0 },
+  visible: (delay = 0) => ({
     y: 0,
     opacity: 1,
-    transition: { duration: 0.8, delay, ease: [0.16, 1, 0.3, 1] },
+    transition: { duration: 0.7, delay, ease: [0.16, 1, 0.3, 1] },
   }),
 }
 
 function AboutMe() {
   return (
-    <section className="relative py-[7rem] md:py-[9rem] bg-white overflow-hidden">
-      {/* Soft teal ambient wash */}
+    <section id="professional-snapshot" className="relative pt-20 pb-20 md:pt-28 md:pb-28 bg-white overflow-hidden border-b-2 border-black">
+      {/* Soft ambient lighting */}
       <div
         className="absolute pointer-events-none"
         style={{
           top: '-10%',
           right: '-5%',
-          width: '700px',
-          height: '700px',
+          width: '600px',
+          height: '600px',
           borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(35,105,102,0.10) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(45,140,240,0.08) 0%, transparent 70%)',
         }}
       />
       <div
         className="absolute pointer-events-none"
         style={{
           bottom: '-15%',
-          left: '-10%',
-          width: '600px',
-          height: '600px',
+          left: '-5%',
+          width: '500px',
+          height: '500px',
           borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(111,231,255,0.08) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(173,216,230,0.12) 0%, transparent 70%)',
         }}
       />
 
       <Container size="lg">
-        {/* Section Header */}
-        <motion.div
-          custom={0}
-          variants={fadeUp}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: '-100px' }}
-          className="mb-16 -mt-16 md:-mt-24"
-        >
-          <div className="flex items-center gap-3 mb-6">
-            <span className="h-px w-8 bg-[#2d8cf0]" />
-            <span className="text-[11px] font-[family-name:var(--font-mono)] text-[#2d8cf0] uppercase tracking-[0.3em] font-medium">
-              Professional Snapshot
-            </span>
-          </div>
-          <h2 className="font-[family-name:var(--font-display)] text-[40px] md:text-[56px] leading-[1.04] font-semibold text-black max-w-4xl tracking-tight">
-            <KineticTextReveal
-              text="Crafting digital experiences with precision and purpose."
-              splitBy="words"
-              direction="up"
-              distance={15}
-              stagger={0.04}
-              delay={0.2}
-              blur={false}
-            />
-          </h2>
-        </motion.div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-stretch">
+          {/* Left: Text + Action Buttons */}
+          <motion.div
+            custom={0}
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-80px' }}
+            className="flex flex-col"
+          >
+            <h2 className="font-(family-name:--font-display) text-[26px] sm:text-[34px] lg:text-[40px] leading-[1.1] font-bold text-black tracking-tight mb-5">
+              The craft is in getting the little things right.
+            </h2>
 
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-14 items-start">
-          {/* Left - Bio */}
-          <div className="lg:col-span-3">
-            <motion.div
-              custom={0.3}
-              variants={fadeUp}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: '-100px' }}
-              className="space-y-6"
-            >
-              <p className="text-[19px] text-[#323232] font-medium leading-[1.7]">
-                A Python Full Stack Developer specializing in building modern web applications : from
-                backend architecture to polished frontend experiences.
+            <div className="space-y-4">
+              <p className="text-[15px] sm:text-[16px] text-[#222] font-medium leading-[1.7]">
+                Python and Django at the core, REST APIs, databases, and React on the frontend. I care about how the pieces fit together, clean code, sound architecture, reliable functionality, and interfaces that feel right to use. Not complexity for its own sake, just the small decisions that make an application better.
               </p>
-              <p className="text-[16px] text-[#666] leading-[1.9]">
-                My work focuses on scalable APIs, clean system design, responsive interfaces, and
-                production deployment. I believe in writing code that is not only functional but
-                maintainable and elegant.
-              </p>
-              <p className="text-[16px] text-[#666] leading-[1.9]">
-                I've built real-world applications ranging from AI-powered platforms to commercial web
-                systems for businesses, always striving to bridge the gap between complex technology
-                and intuitive user experiences.
-              </p>
-            </motion.div>
+            </div>
 
-            <motion.div
-              custom={0.5}
-              variants={fadeUp}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: '-100px' }}
-              className="mt-10 flex flex-wrap items-center gap-4"
-            >
-              <Button as="a" href="/projects" variant="primary" size="lg">
-                View Projects
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-              </Button>
-              <Button as="a" href="/resume" variant="outline" size="lg" className="!border-2 !border-black !text-[#323232] hover:!border-[#2d8cf0] hover:!text-black hover:!bg-[#EDE8D0]">
-                Resume
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-              </Button>
-            </motion.div>
-          </div>
+            {/* Action Buttons */}
+            <div className="flex flex-wrap gap-3.5 pt-6 pb-6">
+              <Link
+                to="/about"
+                className="inline-flex items-center gap-2 px-5 py-3 bg-[#ADD8E6] text-black font-semibold rounded-full border-2 border-black shadow-[4px_4px_0_#000] hover:bg-[#2d8cf0] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0_#000] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all font-mono text-xs uppercase tracking-wider"
+              >
+                Explore My Background
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+              <Link
+                to="/resume"
+                className="inline-flex items-center gap-2 px-5 py-3 bg-transparent text-black font-semibold rounded-full border-2 border-black shadow-[4px_4px_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0_#000] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all font-mono text-xs uppercase tracking-wider"
+              >
+                View Resume
+                <FileText className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          </motion.div>
 
-          {/* Right - Stats (Teal feature blocks) */}
-          <div className="lg:col-span-2 grid grid-cols-2 gap-4">
-            {stats.map((stat, index) => (
+          {/* Right: Statistics Boxes */}
+          <motion.div
+            custom={0.15}
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-80px' }}
+            className="grid grid-cols-2 grid-rows-2 gap-4 sm:gap-5 h-full pb-6"
+          >
+            {stats.map((stat) => (
               <motion.div
                 key={stat.label}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.2 + index * 0.1, ease: [0.16, 1, 0.3, 1] }}
-                whileHover={{ y: -6, transition: { duration: 0.3 } }}
-                className="relative group"
+                whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                className="ct-panel bg-[#ADD8E6] rounded-[5px] p-5 text-center relative overflow-hidden group flex flex-col items-center justify-center"
               >
-                <div className="ct-panel bg-beige rounded-[5px] p-7 text-center overflow-hidden">
-                  <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#2d8cf0]/50 to-transparent opacity-60" />
-                  <div className="font-[family-name:var(--font-display)] text-[40px] md:text-[46px] text-black leading-none mb-3 font-semibold">
-                    {stat.value}
-                    <span className="text-[#2d8cf0]">{stat.suffix}</span>
-                  </div>
-                  <div className="text-[11px] text-[#666] uppercase tracking-[0.14em] font-[family-name:var(--font-mono)] leading-[1.5]">
-                    {stat.label}
-                  </div>
+                <div className="absolute top-0 left-0 right-0 h-1 bg-[#ADD8E6]/70 group-hover:bg-[#2d8cf0] transition-colors" />
+                <div className="font-(family-name:--font-display) text-[24px] sm:text-[28px] text-black leading-none mb-1.5 font-bold tracking-tight">
+                  {stat.value}
+                  <span className="text-[#2d8cf0]">{stat.suffix}</span>
+                </div>
+                <div className="text-[10px] sm:text-[11px] text-[#555] uppercase tracking-[0.14em] font-mono font-medium leading-tight">
+                  {stat.label}
                 </div>
               </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </Container>
-
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-black to-transparent" />
     </section>
   )
 }
 
 export default AboutMe
+

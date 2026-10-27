@@ -321,12 +321,11 @@ export default function DesignModeConnectButton({
           }
         }
 
-        @media (max-width: 700px) {
-          .design-connect-wrapper {
-            width: 100%;
-            transform-origin: top left;
-            transform: scale(min(1, calc((100vw - 32px) / 545)));
-          }
+        /* Mobile: nudge the "change style?" note + arrow left so they stay
+           inside the viewport beside the compact top-right CTA. */
+        @media (max-width: 767px) {
+          .design-connect-style-note { left: 360px; }
+          .design-connect-style-arrow { left: 350px; }
         }
       `}</style>
     </div>

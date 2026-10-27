@@ -1,122 +1,158 @@
 import { motion } from 'framer-motion'
+import { Link } from 'react-router-dom'
+import { ArrowRight, Code, Database, Layout, Rocket } from 'lucide-react'
 import Container from '../ui/Container'
-import { StaggerChildren, StaggerItem } from '../animations/StaggerChildren'
 
-const expertise = [
+const SERVICES = [
   {
+    number: '01',
     title: 'Full-Stack Development',
-    description: 'Building complete web applications from interface to backend infrastructure.',
-    items: ['Python', 'Django', 'React', 'REST APIs', 'Databases'],
+    description:
+      'Architecting end-to-end web applications where relational backend logic connects cleanly with interactive frontends. Built for data consistency, user engagement, and maintainable project evolution.',
+    technologies: ['Python', 'Django', 'React', 'REST APIs', 'PostgreSQL'],
+    icon: Code,
   },
   {
-    title: 'Backend & APIs',
-    description: 'Scalable systems, authentication, and clean data architecture.',
-    items: ['Django REST', 'PostgreSQL', 'Supabase', 'Authentication'],
+    number: '02',
+    title: 'Backend Systems & REST APIs',
+    description:
+      'Designing performant server architectures, secure authentication workflows, robust database schemas, and structured RESTful endpoints with Django REST Framework.',
+    technologies: ['Django REST Framework', 'PostgreSQL', 'Supabase', 'Authentication', 'API Design'],
+    icon: Database,
   },
   {
+    number: '03',
     title: 'Frontend Engineering',
-    description: 'Interfaces that feel right : responsive, animated, and thoughtful.',
-    items: ['React', 'JavaScript', 'Tailwind', 'Framer Motion'],
+    description:
+      'Developing responsive, tactile web interfaces with React, modern styling, and purposeful micro-interactions that feel rapid, intuitive, and consistent across all viewport sizes.',
+    technologies: ['React', 'JavaScript', 'Tailwind CSS', 'Framer Motion', 'Responsive UI'],
+    icon: Layout,
   },
   {
-    title: 'Deployment & DevOps',
-    description: 'Shipping to production with confidence and observability.',
-    items: ['Render', 'Railway', 'Docker', 'Cloudflare'],
+    number: '04',
+    title: 'Deployment & Integration',
+    description:
+      'Configuring production hosting, managing database storage, establishing custom domains, and ensuring dependable cloud deployments with zero runtime guesswork.',
+    technologies: ['Render', 'Railway', 'Cloudflare', 'Docker', 'WhiteNoise'],
+    icon: Rocket,
   },
 ]
 
 const fadeUp = {
-  hidden: { y: 40, opacity: 0 },
-  visible: (delay) => ({
+  hidden: { y: 30, opacity: 0 },
+  visible: (delay = 0) => ({
     y: 0,
     opacity: 1,
-    transition: { duration: 0.8, delay, ease: [0.16, 1, 0.3, 1] },
+    transition: { duration: 0.7, delay, ease: [0.16, 1, 0.3, 1] },
   }),
 }
 
 function WhatIDo() {
   return (
-    <section className="relative py-[7rem] md:py-[9rem] bg-white overflow-hidden">
+    <section id="services-expertise" className="relative pt-20 pb-20 md:pt-28 md:pb-28 bg-white overflow-hidden border-b-2 border-black">
+      {/* Soft ambient lighting */}
       <div
         className="absolute pointer-events-none"
         style={{
-          top: '-15%',
+          top: '-10%',
+          left: '10%',
+          width: '500px',
+          height: '500px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(45,140,240,0.06) 0%, transparent 70%)',
+        }}
+      />
+      <div
+        className="absolute pointer-events-none"
+        style={{
+          bottom: '-15%',
           right: '5%',
           width: '600px',
           height: '600px',
           borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(35,105,102,0.22) 0%, transparent 70%)',
-        }}
-      />
-      <div
-        className="absolute inset-0 pointer-events-none opacity-[0.03]"
-        style={{
-          backgroundImage:
-            'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
-          backgroundSize: '60px 60px',
+          background: 'radial-gradient(circle, rgba(173,216,230,0.12) 0%, transparent 70%)',
         }}
       />
 
       <Container size="lg">
-        <motion.div
-          custom={0}
-          variants={fadeUp}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: '-100px' }}
-          className="mb-16"
-        >
-          <div className="flex items-center gap-3 mb-5">
-            <span className="h-px w-8 bg-[#2d8cf0]" />
-            <span className="text-[11px] font-[family-name:var(--font-mono)] text-[#2d8cf0] uppercase tracking-[0.3em] font-medium">
-              What I Do
-            </span>
-          </div>
-          <h2 className="font-[family-name:var(--font-display)] text-[40px] md:text-[56px] leading-[1.04] font-semibold text-black tracking-tight">
-            Services
-          </h2>
-        </motion.div>
-
-        <StaggerChildren className="border-t-2 border-black">
-          {expertise.map((service, idx) => (
-            <StaggerItem key={service.title}>
+        {/* Structured 2x2 Expertise Grid with Clear Visual Boundaries */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {SERVICES.map((service, idx) => {
+            const Icon = service.icon
+            return (
               <motion.div
-                whileHover={{ x: 8 }}
-                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                className="group relative grid grid-cols-1 md:grid-cols-[auto_1fr_auto] gap-6 md:gap-10 items-center py-10 border-b-2 border-black"
+                key={service.number}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-60px' }}
+                transition={{ duration: 0.6, delay: idx * 0.1, ease: [0.16, 1, 0.3, 1] }}
+                whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                className="ct-panel bg-[#ADD8E6] p-7 sm:p-9 rounded-[5px] flex flex-col justify-between border-2 border-black shadow-[4px_4px_0_#000] relative group"
               >
-                <span className="font-[family-name:var(--font-display)] text-[28px] md:text-[36px] font-semibold text-[#2d8cf0]/70 group-hover:text-[#2d8cf0] transition-colors duration-300 leading-none">
-                  {String(idx + 1).padStart(2, '0')}
-                </span>
-
                 <div>
-                  <h3 className="font-[family-name:var(--font-display)] text-[24px] md:text-[30px] text-black font-medium leading-tight mb-2">
+                  {/* Card Top: Number + Icon */}
+                  <div className="flex items-center justify-between mb-6">
+                    <span className="font-(family-name:--font-display) text-[32px] sm:text-[38px] font-bold text-[#2d8cf0] leading-none">
+                      {service.number}
+                    </span>
+                    <div className="w-11 h-11 rounded-[5px] bg-white border-2 border-black flex items-center justify-center text-black shadow-[2px_2px_0_#000]">
+                      <Icon className="w-5 h-5 text-[#2d8cf0]" />
+                    </div>
+                  </div>
+
+                  {/* Title */}
+                  <h3 className="font-(family-name:--font-display) text-[20px] sm:text-[23px] text-black font-bold leading-tight mb-3">
                     {service.title}
                   </h3>
-                  <p className="text-[15px] text-[#666] leading-relaxed max-w-xl">
+
+                  {/* Description */}
+                  <p className="text-[14px] sm:text-[15px] text-[#555] leading-[1.75] mb-8 font-normal">
                     {service.description}
                   </p>
                 </div>
 
-                <div className="flex flex-wrap gap-2 md:justify-end">
-                  {service.items.map((item) => (
-                    <span
-                      key={item}
-                      className="ct-tag px-3 py-1.5 text-[12px] font-[family-name:var(--font-mono)] uppercase tracking-[0.06em] group-hover:border-[#2d8cf0] transition-colors duration-300"
-                    >
-                      {item}
-                    </span>
-                  ))}
+                {/* Relevant Technologies Chips */}
+                <div>
+                  <div className="text-[11px] font-mono text-[#777] uppercase tracking-wider mb-3 font-semibold">
+                    Core Technologies
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {service.technologies.map((tech) => (
+                      <span
+                        key={tech}
+                        className="px-2.5 py-1 bg-white border-2 border-black text-[11px] font-mono font-medium text-[#222] rounded-lg shadow-[2px_2px_0_#000]"
+                      >
+                        {tech}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </motion.div>
-            </StaggerItem>
-          ))}
-        </StaggerChildren>
-      </Container>
+            )
+          })}
+        </div>
 
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-black to-transparent" />
+        {/* Section Action Button */}
+        <motion.div
+          custom={0.3}
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          className="mt-12 text-center"
+        >
+          <Link
+            to="/about"
+            className="inline-flex items-center gap-2.5 px-6 py-3.5 bg-[#ADD8E6] text-black font-semibold rounded-[5px] border-2 border-black shadow-[4px_4px_0_#000] hover:bg-[#2d8cf0] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0_#000] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all font-mono text-xs uppercase tracking-wider"
+          >
+            Discover My Approach
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </motion.div>
+      </Container>
     </section>
   )
 }
 
 export default WhatIDo
+

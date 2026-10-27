@@ -59,14 +59,17 @@
 .about-test-nav .footer-responsive h6,
 .about-test-nav .footer-responsive button,
 .about-test-nav .footer-responsive [role="button"],
-.about-test-nav .footer-heading,
+.about-test-nav .footer-heading {
+  font-family: 'Michroma', sans-serif !important;
+}
+
 .about-test-nav .footer-nav,
 .about-test-nav .footer-connect,
 .about-test-nav .footer-brand-row,
 .about-test-nav .footer-desc,
 .about-test-nav .footer-top-btn,
 .about-test-nav .footer-bottom {
-  font-family: inherit !important;
+  font-family: 'Poppins', sans-serif !important;
   letter-spacing: inherit !important;
   image-rendering: auto !important;
   -webkit-font-smoothing: auto !important;

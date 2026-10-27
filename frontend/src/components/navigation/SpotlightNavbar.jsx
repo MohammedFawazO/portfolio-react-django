@@ -93,9 +93,80 @@ const entranceAnimations = {
 export function MobileMenu({ items, activeIndex, onItemClick, variant = 'default' }) {
   const [open, setOpen] = useState(false)
   const isTest = variant === 'test'
+  const design = variant === 'design'
   const blueprint = useBlueprintActive()
   const matrix = useMatrixActive()
   const panelRef = useRef(null)
+  const [fabTop, setFabTop] = useState(null)
+
+  // Footer avoidance: the hamburger is pinned to `top-10`, so on its own it
+  // would stay put while the footer area (video band + footer shell) scrolls up
+  // underneath it. Measure the same boundary the WhatsApp CTA uses - the last
+  // in-flow section in <main>, or the top of the footer shell including its
+  // top margin - and let the button ride up off-screen instead of ever
+  // overlapping the footer. Identical maths on every route.
+  useEffect(() => {
+    const compute = () => {
+      let sectionLine = null
+      const main = document.querySelector('main')
+      if (main) {
+        const kids = Array.from(main.children)
+        for (let i = kids.length - 1; i >= 0; i -= 1) {
+          const cs = getComputedStyle(kids[i])
+          if (cs.display === 'none' || cs.position === 'fixed' || cs.position === 'absolute') continue
+          sectionLine = kids[i].getBoundingClientRect().bottom
+          break
+        }
+      }
+
+      const footerEl = document.querySelector('footer.footer-responsive')
+      const shell = footerEl?.closest('.footer-shell') || footerEl
+      let footerLine = null
+      if (shell) {
+        const marginTop = parseFloat(getComputedStyle(shell).marginTop) || 0
+        footerLine = shell.getBoundingClientRect().top - marginTop
+      }
+
+      const boundary =
+        sectionLine !== null && footerLine !== null
+          ? Math.min(sectionLine, footerLine)
+          : (sectionLine ?? footerLine)
+
+      if (boundary === null) {
+        setFabTop(null)
+        return
+      }
+
+      // Natural top is 2.5rem (top-10). Keep the button's bottom edge a small
+      // clearance above the border; once the border rises past that line the
+      // computed offset turns negative and the button leaves the viewport
+      // rather than sitting over the footer.
+      const NATURAL_TOP = 40
+      const BTN_SIZE = 44
+      const CLEARANCE = 24
+      setFabTop(Math.min(NATURAL_TOP, boundary - BTN_SIZE - CLEARANCE))
+    }
+
+    let frame = 0
+    const schedule = () => {
+      if (frame) return
+      frame = requestAnimationFrame(() => {
+        frame = 0
+        compute()
+      })
+    }
+    compute()
+    window.addEventListener('scroll', schedule, { passive: true })
+    window.addEventListener('resize', schedule)
+    const ro = new ResizeObserver(schedule)
+    ro.observe(document.body)
+    return () => {
+      if (frame) cancelAnimationFrame(frame)
+      window.removeEventListener('scroll', schedule)
+      window.removeEventListener('resize', schedule)
+      ro.disconnect()
+    }
+  }, [])
 
   // Escape closes it, and so does a tap anywhere outside the panel.
   useEffect(() => {
@@ -131,12 +202,14 @@ export function MobileMenu({ items, activeIndex, onItemClick, variant = 'default
         aria-expanded={open}
         aria-controls="mobile-menu-panel"
         onClick={() => setOpen((v) => !v)}
+        style={fabTop !== null ? { top: `${fabTop}px` } : undefined}
         className={cn(
           'hamburger liquid-glass !fixed top-10 left-5 z-[70] md:hidden w-11 h-11 rounded-full flex items-center justify-center cursor-pointer p-0',
           open && 'is-open',
           blueprint && '!bg-[#001428] !border !border-[#00d2ff]/70',
           matrix && '!bg-black !border !border-[#03A062]/60',
-          isTest && '!bg-[#070204] !border !border-[#D2042D]'
+          isTest && '!bg-[#070204] !border !border-[#D2042D]',
+          design && 'hamburger--design'
         )}
       >
         <svg viewBox="0 0 32 32" className={cn(
@@ -164,7 +237,8 @@ export function MobileMenu({ items, activeIndex, onItemClick, variant = 'default
               blueprint ? 'border-[#00d2ff]/40 bg-[rgba(0,20,40,0.95)]' :
                 matrix ? 'border-[#03A062]/40 bg-[rgba(0,10,5,0.95)]' :
                   isTest ? 'border-[#D2042D]/40 bg-[rgba(7,2,4,0.95)]' :
-                    'border-white/10 bg-[rgba(10,12,15,0.92)]'
+                    design ? 'border-[#4c5355]/50 bg-[rgba(253,251,247,0.97)]' :
+                      'border-white/10 bg-[rgba(10,12,15,0.92)]'
             )}
           >
             <ul className="flex flex-col">
@@ -179,8 +253,8 @@ export function MobileMenu({ items, activeIndex, onItemClick, variant = 'default
                     className={cn(
                       'block px-4 py-3 rounded-xl text-sm font-medium transition-colors duration-200',
                       activeIndex === idx
-                        ? (blueprint ? 'bg-[#00d2ff]/20 text-[#00d2ff]' : matrix ? 'bg-[#03A062]/20 text-[#03A062]' : isTest ? 'bg-[#D2042D]/20 text-[#FF3B47]' : 'bg-white/10 text-white')
-                        : (blueprint ? 'text-[#00d2ff]/70 hover:bg-[#00d2ff]/10 hover:text-[#00d2ff]' : matrix ? 'text-[#03A062]/70 hover:bg-[#03A062]/10 hover:text-[#03A062]' : isTest ? 'text-[#D2042D]/70 hover:bg-[#D2042D]/10 hover:text-[#FF3B47]' : 'text-white/70 hover:bg-white/5 hover:text-white')
+                        ? (blueprint ? 'bg-[#00d2ff]/20 text-[#00d2ff]' : matrix ? 'bg-[#03A062]/20 text-[#03A062]' : isTest ? 'bg-[#D2042D]/20 text-[#FF3B47]' : design ? 'bg-[#246bff]/10 text-[#246bff]' : 'bg-white/10 text-white')
+                        : (blueprint ? 'text-[#00d2ff]/70 hover:bg-[#00d2ff]/10 hover:text-[#00d2ff]' : matrix ? 'text-[#03A062]/70 hover:bg-[#03A062]/10 hover:text-[#03A062]' : isTest ? 'text-[#D2042D]/70 hover:bg-[#D2042D]/10 hover:text-[#FF3B47]' : design ? 'text-[#3b4647]/80 hover:bg-[#246bff]/10 hover:text-[#246bff]' : 'text-white/70 hover:bg-white/5 hover:text-white')
                     )}
                   >
                     {item.label}

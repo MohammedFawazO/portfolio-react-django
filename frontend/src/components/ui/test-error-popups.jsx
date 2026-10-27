@@ -149,7 +149,21 @@ function ErrorPopup({ title, lines, status, accent = '#D2042D', delay = 0, reope
   }
   const onPointerUp = () => {
     draggingRef.current = false
+    if (typeof document !== 'undefined' && window.innerWidth < 768) {
+      document.body.style.overflow = ''
+    }
   }
+
+  // Prevent page scroll while interacting with popups on mobile
+  useEffect(() => {
+    if (!open || typeof document === 'undefined' || window.innerWidth >= 768) return
+    // Lock scroll when popup is open on mobile
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = prev
+    }
+  }, [open])
 
   if (!open) return null
 

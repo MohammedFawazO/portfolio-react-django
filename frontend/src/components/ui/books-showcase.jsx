@@ -893,8 +893,16 @@ export function BooksShowcase({
 
     function computeSlots() {
       const a = dims.w / Math.max(1, dims.h);
-      const portrait = a < 0.85;
-      const fit = portrait ? clamp(a / 1.08, 0.38, 0.74) : clamp(a / 1.62, 0.52, 1);
+      // The detail panel sits under the book for every container up to 760px
+      // wide (see the @max-[760px] panel styles). Treat those as portrait too,
+      // even when they are wider than they are tall, so a landscape phone or a
+      // short tablet still uses the camera and slot that reserve the panel's
+      // strip. Without this the opened CV kept the desktop (side) slot and slid
+      // behind the panel.
+      const portrait = a < 0.85 || dims.w <= 760;
+      // Portrait books are sized from the width they have to share, with a bit
+      // more presence on phones than before (was a / 1.08, capped at 0.74).
+      const fit = portrait ? clamp(a / 1.0, 0.4, 0.84) : clamp(a / 1.62, 0.52, 1);
       bookRoot.scale.setScalar(fit);
       bookRoot.position.y = -(1 - fit) * 0.28;
       SLOTS.portrait = portrait;
@@ -929,9 +937,17 @@ export function BooksShowcase({
       if (SLOTS.portrait) {
         const el = dpRef.current;
         const panelH = el && el.offsetHeight > 40 ? el.offsetHeight : dims.h * 0.44;
-        const gap = dims.h * 0.035;
+        // The panel is inset 3.5% from the bottom, so ask for an 8% gap: the
+        // book's slot then stops ~4.5% above the panel instead of touching it.
+        const gap = dims.h * 0.08;
         const navB = dims.h * 0.1;
         const freeTop = navB;
+        // Keep the strip reserved for the book clear of the panel and centre
+        // the slot inside it. Using 97% of the strip (and 2.32 against the
+        // 2.14 book height) leaves ~5% breathing room at the top and bottom,
+        // which absorbs the perspective growth of the rotated cover. The CV
+        // therefore cannot touch the panel's text no matter how tall the
+        // panel gets.
         const freeBot = Math.max(dims.h - panelH - gap, freeTop + 140);
         const midPx = (freeTop + freeBot) / 2;
         const T13 = 0.23087;
@@ -939,8 +955,12 @@ export function BooksShowcase({
         const zw = 0.8 * fit;
         const rootY = -(1 - fit) * 0.28;
         const yw = 0.1 + (1 - (2 * midPx) / dims.h) * T13 * (camZp - zw);
-        const availW = (((freeBot - freeTop) * 0.96) / dims.h) * 2 * T13 * (camZp - zw);
-        const s = clamp(availW / fit / 2.35, 0.5, 0.94);
+        const availW = (((freeBot - freeTop) * 0.97) / dims.h) * 2 * T13 * (camZp - zw);
+        // The upper cap only guards the floor/ceiling of the math; on a phone
+        // the CV now fills ~90% of the reserved strip instead of the old 0.94
+        // ceiling, which is what made the focused book read smaller than the
+        // shelf copy.
+        const s = clamp(availW / fit / 2.32, 0.4, 1.6);
         SLOTS.detail = { p: [0, (yw - rootY) / fit, 0.8], r: [-0.02, -0.4, 0.06], s };
       } else {
         SLOTS.detail = { p: [-1.68, 0.0, 0.85], r: [0.02, -0.44, 0.08], s: 1.06 };
@@ -1839,7 +1859,7 @@ export function BooksShowcase({
       aria-label={`${heroTitle} book showcase`}
       data-state={uiMode}
       className={cn(
-        'book-showcase relative isolate h-full min-h-[560px] overflow-hidden font-[family-name:var(--font-display)] outline-none [container-type:size] [-webkit-tap-highlight-color:transparent]',
+        'book-showcase relative isolate h-full min-h-[560px] max-[800px]:min-h-[660px]! overflow-hidden font-[family-name:var(--font-display)] outline-none [container-type:size] [-webkit-tap-highlight-color:transparent]',
         'focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--bs-peri)]',
         'transition-colors duration-500 ease-out',
         uiMode === 'hero'
@@ -1962,7 +1982,7 @@ export function BooksShowcase({
         <div
           ref={dpRef}
           aria-live="polite"
-          className={`bs-detail-scroll absolute right-[7%] top-1/2 z-[15] w-[min(560px,42%)] max-h-[88%] -translate-y-1/2 overflow-x-hidden overflow-y-auto overscroll-contain scroll-py-[6cqw] px-[clamp(20px,1.8cqw,30px)] py-[clamp(18px,1.6cqw,26px)] pointer-events-auto @max-[760px]:right-auto @max-[760px]:left-1/2 @max-[760px]:top-auto @max-[760px]:bottom-[3.5%] @max-[760px]:max-h-[58%] @max-[760px]:w-[min(560px,92cqw)] @max-[760px]:-translate-x-1/2 @max-[760px]:translate-y-0 @max-[760px]:px-4! @max-[760px]:py-4 @max-[760px]:scroll-py-4 ${panelVisible ? 'visible' : 'invisible delay-[500ms]'
+          className={`bs-detail-scroll absolute right-[7%] top-1/2 z-[15] w-[min(560px,42%)] max-h-[88%] -translate-y-1/2 overflow-x-hidden overflow-y-auto overscroll-contain scroll-py-[6cqw] px-[clamp(20px,1.8cqw,30px)] py-[clamp(18px,1.6cqw,26px)] pointer-events-auto @max-[760px]:right-auto @max-[760px]:left-1/2 @max-[760px]:top-auto @max-[760px]:bottom-[3.5%] @max-[760px]:max-h-[46%] @max-[760px]:w-[min(560px,92cqw)] @max-[760px]:-translate-x-1/2 @max-[760px]:translate-y-0 @max-[760px]:px-4! @max-[760px]:py-4 @max-[760px]:scroll-py-4 ${panelVisible ? 'visible' : 'invisible delay-[500ms]'
             }`}
         >
           <h1 className={`m-0 break-words text-balance text-[var(--bs-focus-fg)] text-[clamp(44px,4.7cqw,76px)] font-extrabold leading-[0.98] tracking-[-0.015em] @max-[760px]:text-center @max-[760px]:text-[clamp(26px,7cqw,38px)] @max-[760px]:leading-[1.02] ${dpChild(50)}`}>

@@ -134,7 +134,7 @@ function DesignModeNavbar({
         </div>
       )}
 
-      {isMobile && <MobileMenu items={items} activeIndex={activeIndex} onItemClick={handleItemClick} />}
+      {isMobile && <MobileMenu items={items} activeIndex={activeIndex} onItemClick={handleItemClick} variant="design" />}
 
       <style>{`
         /*
