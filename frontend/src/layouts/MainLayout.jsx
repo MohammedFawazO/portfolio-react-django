@@ -9,8 +9,9 @@ import ConnectButton from '../components/common/ConnectButton'
 import DesignModeConnectButton from '../components/common/DesignModeConnectButton'
 import SpotlightNavbar from '../components/navigation/SpotlightNavbar'
 import DesignModeNavbar from '../components/navigation/DesignModeNavbar'
+import CustomCursor from '../components/ui/CustomCursor'
 import EntryIntro from '../components/common/EntryIntro'
-import { EntryIntroProvider } from '../context/EntryIntroContext'
+import { EntryIntroProvider, useEntryIntro } from '../context/EntryIntroContext'
 import { HeroScrollContext } from '../context/HeroScrollContext'
 import { DesignModeProvider, useDesignMode } from '../context/DesignModeContext'
 
@@ -163,6 +164,16 @@ function ConnectSlot() {
   )
 }
 
+// The cube cursor belongs to the pages only. It stays unmounted until the
+// entry intro overlay has actually come down, so neither the cube nor its
+// global `cursor: none` rule can leak over the intro. This reads the context
+// from inside the provider - MainLayout itself sits above it.
+function CursorSlot() {
+  const { introGone } = useEntryIntro()
+  if (!introGone) return null
+  return <CustomCursor />
+}
+
 function MainLayout() {
   const location = useLocation()
   const isHome = location.pathname === '/'
@@ -190,11 +201,26 @@ function MainLayout() {
       autoRaf: true,
     })
     lenisRef.current = lenis
+    window.__lenis = lenis
+
+    // If entry intro is pending on the home page, lock Lenis immediately
+    const introPending =
+      location.pathname === '/' &&
+      typeof window !== 'undefined' &&
+      !sessionStorage.getItem('entryIntroShown')
+
+    if (introPending) {
+      lenis.stop()
+      lenis.scrollTo(0, { immediate: true, force: true })
+      window.scrollTo(0, 0)
+    }
+
     return () => {
       lenis.destroy()
       lenisRef.current = null
+      if (window.__lenis === lenis) window.__lenis = null
     }
-  }, [])
+  }, [location.pathname])
 
   useEffect(() => {
     // A hash means "go to that anchor", so don't reset to the top - let the
@@ -271,6 +297,7 @@ function MainLayout() {
       <DesignModeProvider>
         <HeroScrollContext.Provider value={heroProgress}>
           <div className="relative min-h-screen flex flex-col bg-[#07090B]">
+            <style>{`@media (min-width: 768px) { *, *::before, *::after { cursor: none !important; } }`}</style>
             <video
               ref={footerVideoRef}
               className="fixed inset-0 w-full h-full object-cover z-0"
@@ -280,6 +307,8 @@ function MainLayout() {
               playsInline
               src="/media/footer.mp4"
             />
+
+            <CursorSlot />
 
             <NavbarSlot />
 

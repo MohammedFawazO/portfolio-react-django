@@ -3,7 +3,6 @@ import AboutMe from '../components/sections/AboutMe'
 import Skills from '../components/sections/Skills'
 import FeaturedProjects from '../components/sections/FeaturedProjects'
 import Timeline from '../components/sections/Timeline'
-import Certificates from '../components/sections/Certificates'
 import Contact from '../components/sections/Contact'
 
 function Home() {
@@ -11,10 +10,9 @@ function Home() {
     <>
       <Hero />
       <AboutMe />
-      <Skills />
-      <FeaturedProjects />
       <Timeline />
-      <Certificates />
+      <FeaturedProjects />
+      <Skills />
       <Contact />
     </>
   )

@@ -73,8 +73,8 @@ function Timeline() {
         >
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-end">
             <div className="lg:col-span-8">
-              <h2 className="font-(family-name:--font-display) text-[32px] sm:text-[44px] lg:text-[52px] leading-[1.08] font-bold text-black tracking-tight">
-                Professional history & hands-on delivery.
+              <h2 className="font-(family-name:--font-display) text-[32px] sm:text-[44px] lg:text-[52px] leading-[1.08] font-bold text-black tracking-tight uppercase">
+                PROFESSIONAL EXPERIENCE
               </h2>
             </div>
             <div className="lg:col-span-4">
@@ -147,23 +147,7 @@ function Timeline() {
                         {exp.description}
                       </p>
 
-                      {techList.length > 0 && (
-                        <div>
-                          <div className="text-[11px] font-mono text-[#777] uppercase tracking-wider mb-2.5 font-semibold">
-                            Technologies Utilized
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            {techList.map((tech) => (
-                              <span
-                                key={tech}
-                                className="px-2.5 py-1 bg-white border-2 border-black text-[11px] font-mono font-medium text-black rounded-lg shadow-[2px_2px_0_#000]"
-                              >
-                                {tech}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+
                     </div>
                   </div>
                 </motion.div>
@@ -183,7 +167,7 @@ function Timeline() {
         >
           <Link
             to="/resume"
-            className="inline-flex items-center gap-2.5 px-6 py-3.5 bg-[#ADD8E6] text-black font-semibold rounded-[5px] border-2 border-black shadow-[4px_4px_0_#000] hover:bg-[#2d8cf0] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0_#000] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all font-mono text-xs uppercase tracking-wider"
+            className="inline-flex items-center gap-2.5 px-6 py-3.5 bg-[#ADD8E6] text-black font-semibold rounded-full border-2 border-black shadow-[4px_4px_0_#000] hover:bg-[#2d8cf0] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0_#000] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all font-mono text-xs uppercase tracking-wider"
           >
             View Full Career History
             <ArrowRight className="w-4 h-4" />

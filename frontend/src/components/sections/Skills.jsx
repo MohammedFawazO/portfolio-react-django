@@ -129,8 +129,8 @@ function Skills() {
         >
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-end">
             <div className="lg:col-span-12 text-center">
-              <h2 className="font-(family-name:--font-display) text-[32px] sm:text-[44px] lg:text-[52px] leading-[1.08] font-bold text-black tracking-tight">
-                What I work with
+              <h2 className="font-(family-name:--font-display) text-[32px] sm:text-[44px] lg:text-[52px] leading-[1.08] font-bold text-black tracking-tight uppercase text-center">
+                WHAT I WORK WITH
               </h2>
             </div>
             <div className="lg:col-span-12 lg:text-center">
@@ -156,7 +156,7 @@ function Skills() {
                 transition={{ duration: 0.4, delay: i * 0.05 }}
                 onMouseEnter={() => setHoveredIdx(globalIdx)}
                 onMouseLeave={() => setHoveredIdx(null)}
-                className={`group/card w-20 h-20 sm:w-24 sm:h-24 bg-white/20 backdrop-blur-md rounded-[16px] border border-white/40 shadow-[3px_3px_0_rgba(0,0,0,0.15)] flex flex-col items-center justify-center gap-1.5 text-black overflow-hidden p-2 [perspective:600px] [transform-style:preserve-3d] transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:-translate-y-3 hover:rotate-[-2deg] hover:scale-105 hover:z-10 hover:shadow-[6px_6px_15px_rgba(0,0,0,0.15)] ${isRipple ? 'scale-105 rotate-[-1deg] shadow-[6px_6px_15px_rgba(45,140,240,0.15)] translate-y-[-2px]' : ''}`}
+                className={`group/card w-20 h-20 sm:w-24 sm:h-24 bg-white/20 backdrop-blur-md rounded-[16px] border border-white/40 shadow-[3px_3px_0_rgba(0,0,0,0.15)] flex flex-col items-center justify-center gap-1.5 text-black overflow-hidden p-2 perspective-[600px] transform-3d transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:-translate-y-3 hover:-rotate-2 hover:scale-105 hover:z-10 hover:shadow-[6px_6px_15px_rgba(0,0,0,0.15)] ${isRipple ? 'scale-105 -rotate-1 shadow-[6px_6px_15px_rgba(45,140,240,0.15)] -translate-y-0.5' : ''}`}
               >
                 {tech.svg ? (
                   <span className="w-7 h-7 flex items-center justify-center grayscale group-hover/card:grayscale-0 transition-all duration-300 ease-in-out group-hover/card:drop-shadow-[0_0_8px_#2d8cf0] group-hover/card:scale-110">{tech.svg}</span>
@@ -184,7 +184,7 @@ function Skills() {
                 transition={{ duration: 0.4, delay: 0.3 + i * 0.05 }}
                 onMouseEnter={() => setHoveredIdx(globalIdx)}
                 onMouseLeave={() => setHoveredIdx(null)}
-                className={`group/card w-20 h-20 sm:w-24 sm:h-24 bg-white/20 backdrop-blur-md rounded-[16px] border border-white/40 shadow-[3px_3px_0_rgba(0,0,0,0.15)] flex flex-col items-center justify-center gap-1.5 text-black overflow-hidden p-2 [perspective:600px] [transform-style:preserve-3d] transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:-translate-y-3 hover:rotate-[-2deg] hover:scale-105 hover:z-10 hover:shadow-[6px_6px_15px_rgba(0,0,0,0.15)] ${isRipple ? 'scale-105 rotate-[-1deg] shadow-[6px_6px_15px_rgba(45,140,240,0.15)] translate-y-[-2px]' : ''}`}
+                className={`group/card w-20 h-20 sm:w-24 sm:h-24 bg-white/20 backdrop-blur-md rounded-[16px] border border-white/40 shadow-[3px_3px_0_rgba(0,0,0,0.15)] flex flex-col items-center justify-center gap-1.5 text-black overflow-hidden p-2 perspective-[600px] transform-3d transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:-translate-y-3 hover:-rotate-2 hover:scale-105 hover:z-10 hover:shadow-[6px_6px_15px_rgba(0,0,0,0.15)] ${isRipple ? 'scale-105 -rotate-1 shadow-[6px_6px_15px_rgba(45,140,240,0.15)] -translate-y-0.5' : ''}`}
               >
                 {tech.svg ? (
                   <span className="w-7 h-7 flex items-center justify-center grayscale group-hover/card:grayscale-0 transition-all duration-300 ease-in-out group-hover/card:drop-shadow-[0_0_8px_#2d8cf0] group-hover/card:scale-110">{tech.svg}</span>
@@ -212,7 +212,7 @@ function Skills() {
                 transition={{ duration: 0.4, delay: 0.5 + i * 0.05 }}
                 onMouseEnter={() => setHoveredIdx(globalIdx)}
                 onMouseLeave={() => setHoveredIdx(null)}
-                className={`group/card w-20 h-20 sm:w-24 sm:h-24 bg-white/20 backdrop-blur-md rounded-[16px] border border-white/40 shadow-[3px_3px_0_rgba(0,0,0,0.15)] flex flex-col items-center justify-center gap-1.5 text-black overflow-hidden p-2 [perspective:600px] [transform-style:preserve-3d] transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:-translate-y-3 hover:rotate-[-2deg] hover:scale-105 hover:z-10 hover:shadow-[6px_6px_15px_rgba(0,0,0,0.15)] ${isRipple ? 'scale-105 rotate-[-1deg] shadow-[6px_6px_15px_rgba(45,140,240,0.15)] translate-y-[-2px]' : ''}`}
+                className={`group/card w-20 h-20 sm:w-24 sm:h-24 bg-white/20 backdrop-blur-md rounded-[16px] border border-white/40 shadow-[3px_3px_0_rgba(0,0,0,0.15)] flex flex-col items-center justify-center gap-1.5 text-black overflow-hidden p-2 perspective-[600px] transform-3d transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:-translate-y-3 hover:-rotate-2 hover:scale-105 hover:z-10 hover:shadow-[6px_6px_15px_rgba(0,0,0,0.15)] ${isRipple ? 'scale-105 -rotate-1 shadow-[6px_6px_15px_rgba(45,140,240,0.15)] -translate-y-0.5' : ''}`}
               >
                 {tech.svg ? (
                   <span className="w-7 h-7 flex items-center justify-center grayscale group-hover/card:grayscale-0 transition-all duration-300 ease-in-out group-hover/card:drop-shadow-[0_0_8px_#2d8cf0] group-hover/card:scale-110">{tech.svg}</span>
@@ -240,7 +240,7 @@ function Skills() {
                 transition={{ duration: 0.4, delay: 0.8 + i * 0.05 }}
                 onMouseEnter={() => setHoveredIdx(globalIdx)}
                 onMouseLeave={() => setHoveredIdx(null)}
-                className={`group/card w-20 h-20 sm:w-24 sm:h-24 bg-white/20 backdrop-blur-md rounded-[16px] border border-white/40 shadow-[3px_3px_0_rgba(0,0,0,0.15)] flex flex-col items-center justify-center gap-1.5 text-black overflow-hidden p-2 [perspective:600px] [transform-style:preserve-3d] transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:-translate-y-3 hover:rotate-[-2deg] hover:scale-105 hover:z-10 hover:shadow-[6px_6px_15px_rgba(0,0,0,0.15)] ${isRipple ? 'scale-105 rotate-[-1deg] shadow-[6px_6px_15px_rgba(45,140,240,0.15)] translate-y-[-2px]' : ''}`}
+                className={`group/card w-20 h-20 sm:w-24 sm:h-24 bg-white/20 backdrop-blur-md rounded-[16px] border border-white/40 shadow-[3px_3px_0_rgba(0,0,0,0.15)] flex flex-col items-center justify-center gap-1.5 text-black overflow-hidden p-2 perspective-[600px] transform-3d transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:-translate-y-3 hover:-rotate-2 hover:scale-105 hover:z-10 hover:shadow-[6px_6px_15px_rgba(0,0,0,0.15)] ${isRipple ? 'scale-105 -rotate-1 shadow-[6px_6px_15px_rgba(45,140,240,0.15)] -translate-y-0.5' : ''}`}
               >
                 {tech.svg ? (
                   <span className="w-7 h-7 flex items-center justify-center grayscale group-hover/card:grayscale-0 transition-all duration-300 ease-in-out group-hover/card:drop-shadow-[0_0_8px_#2d8cf0] group-hover/card:scale-110">{tech.svg}</span>

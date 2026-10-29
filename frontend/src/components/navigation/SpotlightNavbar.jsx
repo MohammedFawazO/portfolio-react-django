@@ -55,7 +55,7 @@ const defaultItems = [
   { label: 'About', href: '/about' },
   { label: 'Projects', href: '/projects' },
   { label: 'Resume', href: '/resume' },
-  { label: 'Contact', href: '/contact' },
+  // { label: 'Contact', href: '/contact' },
 ]
 
 // Routes are compared normalised (see navActive.js) so "/about/" or

@@ -160,14 +160,14 @@ export const projects = [
 export const experience = [
   {
     id: 1,
-    title: 'Full Stack Developer',
-    company: 'UAE Startup',
+    title: 'Freelance Python Full Stack Developer',
+    company: 'Client Projects',
     location: 'Remote',
-    start_date: '2023-01-01',
-    end_date: '',
+    start_date: '2025-01-01',
+    end_date: 'present',
     description:
-      'Developed production websites, built REST APIs, handled deployments, and worked directly with international clients. Responsibilities included developing production websites for real clients, building and maintaining REST APIs, deploying applications to production environments, debugging and fixing issues in live applications, performing regular maintenance and updates, gathering client requirements, and implementing continuous improvements based on feedback.',
-    technologies: 'Python,Django,React,PostgreSQL',
+      'Developed and deployed production web applications and business portfolio websites for UAE-based clients using Django and modern web technologies. Built a complete automotive service platform (CarCure) with spare parts ordering, vehicle maintenance booking, SOS roadside assistance, role-based user/staff workflows, authentication, REST APIs, and responsive interfaces. Delivered a responsive corporate portfolio site (AL Shamil Turning LLC) for a marine machinery manufacturer, managing domain configuration, DNS, hosting, and production deployment.',
+    technologies: 'Python,Django,Django REST Framework,PostgreSQL,HTML,CSS,JavaScript,Render',
   },
 ]
 

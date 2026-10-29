@@ -3,17 +3,14 @@ import { motion } from 'framer-motion'
 import { useLocation } from 'react-router-dom'
 import { useEntryIntro } from '../../context/EntryIntroContext'
 
-const ZOOM_TRAVEL = 700
-// Exponential follow rate. The old 0.22 left the rendered scale roughly four
-// frames behind the scroll target, and its asymptotic tail kept crawling for
-// ~0.3s after the finger/wheel stopped - most noticeable at the end of the
-// zoom, where it read as a lag. A higher rate keeps the visual locked to the
-// input, and the larger snap threshold ends the invisible tail while the
-// black screen is already covering the frame.
-const ZOOM_RATE = 0.4
+const ZOOM_TRAVEL = 1100
+const MAX_DELTA_PER_EVENT = 85
+// Exponential follow rate.
+const ZOOM_RATE = 0.32
 const ZOOM_SNAP = 0.004
 const FRAME_MS = 1000 / 60
 const FALLBACK_SPAN = 8
+const REVEAL_MS = 700
 const TRANSITION_MS = 620
 const HERO_REVEAL_MS = 1000
 const TRANSITION_S = TRANSITION_MS / 1000
@@ -25,10 +22,13 @@ const TRANSITION_EASE = [0.4, 0, 0.2, 1]
 // of the desktop zoom. Stop scaling at the horizontal fit and grow the
 // remaining black area vertically instead - cheap, sharp, and it lands on the
 // same full-black frame.
-const FILL_MS = 520
-const FILL_EASE = 'cubic-bezier(0.33, 1, 0.68, 1)'
+// Wheel/touch travel (px) the black overlay takes to grow from the zoom's end
+// box to the full screen. It is scroll driven, not a fixed duration tween, so
+// the same gesture can run it backwards.
+const FILL_TRAVEL = 620
 const WHEEL_COOLDOWN = 16
-const GESTURE_END_MS = 250
+const GESTURE_END_MS = 320
+const COVERED_SETTLE_MS = 250
 const TOUCH_CLICK_GUARD_MS = 700
 const TOUCH_SWIPE_FACTOR = 1.1
 const TOUCH_TAP_SLOP = 40
@@ -43,7 +43,7 @@ const MOBILE_ZOOM_OFF = false
 const SCROLL_LOCK_OFF = false
 
 export default function EntryIntro() {
-  const { markDone } = useEntryIntro()
+  const { markDone, markGone } = useEntryIntro()
   const location = useLocation()
   const isHome = location.pathname === '/'
   const [isMobile, setIsMobile] = useState(() =>
@@ -69,8 +69,11 @@ export default function EntryIntro() {
   const sceneRef = useRef(null)
   const rectRef = useRef(null)
   const fillRef = useRef(null)
-  const fillStartedRef = useRef(false)
-  const fillTimeoutRef = useRef(0)
+  const fillActiveRef = useRef(false)
+  const fillStartRef = useRef(1)
+  const revealTimeoutRef = useRef(0)
+  const revealingRef = useRef(false)
+  const coveredAtRef = useRef(0)
   const widthProgressRef = useRef(1)
   const revealedRef = useRef(false)
   const targetRef = useRef(0)
@@ -95,17 +98,22 @@ export default function EntryIntro() {
 
   useEffect(() => {
     if (!isHome) {
-      markDone()
       // Leaving the home route mid-intro must take the overlay down with it.
       // `show` is only ever initialised once, so without this the full-screen
       // black intro stays parked over the whole site.
+      markGone()
       setShow(false)
     }
-  }, [isHome, markDone])
+  }, [isHome, markGone])
 
   const unlockScroll = () => {
     document.body.style.overflow = overflowRef.current
     document.body.style.paddingRight = paddingRef.current
+    window.scrollTo(0, 0)
+    if (window.__lenis) {
+      window.__lenis.scrollTo(0, { immediate: true, force: true })
+      window.__lenis.start()
+    }
   }
 
   useEffect(() => {
@@ -116,6 +124,8 @@ export default function EntryIntro() {
       video.play().catch(() => { })
     }
     window.scrollTo(0, 0)
+    window.__lenis?.stop()
+    window.__lenis?.scrollTo(0, { immediate: true, force: true })
     overflowRef.current = document.body.style.overflow
     paddingRef.current = document.body.style.paddingRight
     const scrollbar = window.innerWidth - document.documentElement.clientWidth
@@ -124,13 +134,16 @@ export default function EntryIntro() {
 
     const onWheel = (e) => {
       e.preventDefault()
+      e.stopPropagation()
+      e.stopImmediatePropagation?.()
       const now = Date.now()
       if (now - lastWheelRef.current < WHEEL_COOLDOWN) return
       lastWheelRef.current = now
       const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY
       intentRef.current?.(dy)
     }
-    window.addEventListener('wheel', onWheel, { passive: false })
+    window.addEventListener('wheel', onWheel, { passive: false, capture: true })
+
     // The touch scroll lock. It keeps one finger from dragging the page under
     // the overlay, but it lets a two finger gesture through so the pinch zoom
     // on a phone still works - the overlay's touch-action already makes the
@@ -139,14 +152,37 @@ export default function EntryIntro() {
       if (SCROLL_LOCK_OFF) return
       if (e.touches.length > 1) return
       e.preventDefault()
+      e.stopPropagation()
+      e.stopImmediatePropagation?.()
     }
-    window.addEventListener('touchmove', preventScroll, { passive: false })
+    window.addEventListener('touchmove', preventScroll, { passive: false, capture: true })
+
+    const onKeyDown = (e) => {
+      const scrollKeys = ['Space', 'PageUp', 'PageDown', 'End', 'Home', 'ArrowUp', 'ArrowDown']
+      if (scrollKeys.includes(e.code) || scrollKeys.includes(e.key)) {
+        e.preventDefault()
+        e.stopPropagation()
+        e.stopImmediatePropagation?.()
+      }
+    }
+    window.addEventListener('keydown', onKeyDown, { passive: false, capture: true })
+
+    const onScroll = () => {
+      if (window.scrollY !== 0 || window.scrollX !== 0) {
+        window.scrollTo(0, 0)
+        window.__lenis?.scrollTo(0, { immediate: true, force: true })
+      }
+    }
+    window.addEventListener('scroll', onScroll, { passive: false, capture: true })
+
     return () => {
       if (!finishedRef.current) unlockScroll()
       cancelAnimationFrame(rafRef.current)
-      clearTimeout(fillTimeoutRef.current)
-      window.removeEventListener('wheel', onWheel)
-      window.removeEventListener('touchmove', preventScroll)
+      clearTimeout(revealTimeoutRef.current)
+      window.removeEventListener('wheel', onWheel, { capture: true })
+      window.removeEventListener('touchmove', preventScroll, { capture: true })
+      window.removeEventListener('keydown', onKeyDown, { capture: true })
+      window.removeEventListener('scroll', onScroll, { capture: true })
     }
   }, [show])
 
@@ -154,26 +190,45 @@ export default function EntryIntro() {
   // the full width. Freeze the scale there and let a plain black layer grow
   // from the overlay's current on-screen box up and down to the viewport
   // edges, so the transition finishes vertically without an extra zoom step.
-  const beginFill = () => {
-    if (fillStartedRef.current) return
-    fillStartedRef.current = true
-    targetRef.current = Math.min(targetRef.current, widthProgressRef.current)
+  const markCovered = () => {
+    if (coveredRef.current) return
+    coveredRef.current = true
+    coveredAtRef.current = performance.now()
+    setCovered(true)
+  }
+
+  // Full black is a step, not a one way door: scrolling back the other way
+  // shrinks the fill and zooms out again, so the prompt and the commit gate
+  // have to come back down with it.
+  const clearCovered = () => {
+    if (!coveredRef.current) return
+    coveredRef.current = false
+    setCovered(false)
+  }
+
+  const hideFill = () => {
+    if (!fillActiveRef.current) return
+    fillActiveRef.current = false
+    const flood = fillRef.current
+    if (!flood) return
+    flood.style.transition = 'none'
+    flood.style.transform = ''
+    flood.style.display = 'none'
+  }
+
+  const ensureFill = () => {
+    if (fillActiveRef.current) return
     const rect = rectRef.current
     const flood = fillRef.current
-    if (!rect || !flood) {
-      coveredRef.current = true
-      setCovered(true)
-      return
-    }
+    if (!rect || !flood) return
     const box = rect.getBoundingClientRect()
     const vw = window.innerWidth
     const vh = window.innerHeight
     // Start as a full-width black sheet squashed to exactly the overlay's
-    // vertical span, then scale it up about the overlay's centre. Animating
-    // transform keeps the fill on the compositor; animating top/height forced
-    // a layout and repaint of a full-screen layer every frame, which is what
-    // read as jumpy.
-    const startScale = Math.max(0.001, box.height / vh)
+    // vertical span, then scale it about the overlay's centre. Driving the
+    // transform per frame instead of a timed transition keeps it on the
+    // compositor and lets the gesture rewind it.
+    fillStartRef.current = Math.max(0.001, box.height / vh)
     flood.style.display = 'block'
     flood.style.transition = 'none'
     flood.style.left = '0px'
@@ -181,20 +236,11 @@ export default function EntryIntro() {
     flood.style.width = `${vw}px`
     flood.style.height = `${vh}px`
     flood.style.transformOrigin = `50% ${box.top + box.height / 2}px`
-    flood.style.transform = `scaleY(${startScale})`
-    // Flush the starting box before arming the transition, otherwise the
-    // browser coalesces both style writes and the layer never animates.
-    void flood.offsetHeight
-    flood.style.transition = `transform ${FILL_MS}ms ${FILL_EASE}`
-    flood.style.transform = 'scaleY(1)'
-    fillTimeoutRef.current = setTimeout(() => {
-      if (coveredRef.current) return
-      coveredRef.current = true
-      setCovered(true)
-    }, FILL_MS)
+    flood.style.transform = `scaleY(${fillStartRef.current})`
+    fillActiveRef.current = true
   }
 
-  const applyScale = (p) => {
+  const applyProgress = (p) => {
     const el = sceneRef.current
     if (!el) return
     el.style.transformOrigin = originRef.current
@@ -205,11 +251,22 @@ export default function EntryIntro() {
       el.style.transform = 'scale(1)'
       return
     }
-    if (widthProgressRef.current < 1 && p >= widthProgressRef.current) {
-      el.style.transform = `scale(${1 + widthProgressRef.current * spanRef.current})`
-      beginFill()
+
+    const widthProgress = widthProgressRef.current
+    // Past the horizontal fit the scene stops scaling and the black sheet is
+    // what grows. Both stretches read from the same 0..1 progress, so running
+    // the gesture backwards unwinds the fill and then the zoom.
+    if (p > 0 && widthProgress < 1 && p >= widthProgress) {
+      el.style.transform = `scale(${1 + widthProgress * spanRef.current})`
+      ensureFill()
+      const t = Math.min(1, Math.max(0, (p - widthProgress) / (1 - widthProgress)))
+      const start = fillStartRef.current
+      const flood = fillRef.current
+      if (flood) flood.style.transform = `scaleY(${start + (1 - start) * t})`
       return
     }
+
+    hideFill()
     el.style.transform = `scale(${1 + p * spanRef.current})`
   }
 
@@ -247,7 +304,7 @@ export default function EntryIntro() {
       1,
       Math.max(0, (neededX - 1) / spanRef.current),
     )
-    applyScale(shownRef.current)
+    applyProgress(shownRef.current)
   }
 
   const startTransition = () => {
@@ -259,15 +316,27 @@ export default function EntryIntro() {
     rafRef.current = 0
     lastFrameRef.current = 0
 
+    // Ensure Lenis and window scroll position remain frozen at (0, 0)
+    window.scrollTo(0, 0)
+    window.__lenis?.stop()
+    window.__lenis?.scrollTo(0, { immediate: true, force: true })
+
     // Both layers are full-screen black, so the overlay fade and the Hero curtain
     // overlap into one continuous motion. markDone() fires partway through the fade
     // so the curtain is already moving when the overlay lifts, with no dead beat.
-    // Scroll stays locked until the reveal has settled - releasing it early forces
-    // a whole-document reflow underneath the animating curtain.
     setExiting(true)
     setTimeout(markDone, TRANSITION_MS * 0.4)
-    setTimeout(() => setShow(false), TRANSITION_MS)
-    setTimeout(unlockScroll, TRANSITION_MS + HERO_REVEAL_MS)
+
+    // Keep the overlay mounted and window-level scroll interception active
+    // until the Hero curtain animation has completely finished.
+    // Only then do we unlock scroll, resume Lenis, and unmount the intro overlay.
+    setTimeout(() => {
+      unlockScroll()
+      setShow(false)
+      // The overlay is coming down for good: everything gated on the intro
+      // being fully gone (the cube cursor) may mount now.
+      markGone()
+    }, TRANSITION_MS + HERO_REVEAL_MS)
   }
 
   const runZoom = (ts) => {
@@ -283,19 +352,23 @@ export default function EntryIntro() {
 
     if (Math.abs(target - next) < ZOOM_SNAP) {
       shownRef.current = target
-      applyScale(target)
+      applyProgress(target)
       rafRef.current = 0
       lastFrameRef.current = 0
       // Flip `covered` only once the zoom has visually landed, so the prompt
       // change and the next gesture never land mid-tween.
-      if (target >= 1 && !coveredRef.current) {
-        coveredRef.current = true
-        setCovered(true)
+      if (target >= 1) {
+        markCovered()
+      } else if (coveredRef.current) {
+        clearCovered()
       }
       return
     }
     shownRef.current = next
-    applyScale(next)
+    applyProgress(next)
+    // Reversing out of full black has to hand the prompt back immediately,
+    // even while the tween is still in flight.
+    if (coveredRef.current && next < 1) clearCovered()
     rafRef.current = requestAnimationFrame(runZoom)
   }
 
@@ -306,26 +379,46 @@ export default function EntryIntro() {
   }
 
   const advanceZoom = (deltaPx) => {
-    if (finishedRef.current || exitingRef.current || coveredRef.current) return
-    if (fillStartedRef.current) return
+    if (finishedRef.current || exitingRef.current) return
+    if (revealingRef.current) return
+    if (deltaPx === 0) return
+
     const before = targetRef.current
-    // Measure before clamping the target: the cap is the horizontal-fit
-    // fraction, which is exactly the point where the expensive scaling ends.
+    // Measure before the target moves: the horizontal-fit fraction is exactly
+    // where the expensive scaling ends and the black sheet starts.
     if (before <= 0 && deltaPx > 0) {
       measureZoom()
       if (videoRef.current) videoRef.current.pause()
       setZoomStarted(true)
     }
-    const cap = Math.min(1, widthProgressRef.current)
-    const next = Math.min(cap, Math.max(0, before + deltaPx / ZOOM_TRAVEL))
+    // The zoom keeps its old 1/ZOOM_TRAVEL feel, while the fill gets its own,
+    // shorter travel so growing the black sheet does not need a long extra
+    // scroll (it used to be a fixed 520ms tween).
+    const clampedDelta = isMobile
+      ? deltaPx
+      : Math.sign(deltaPx) * Math.min(Math.abs(deltaPx), MAX_DELTA_PER_EVENT)
+    const inFill =
+      widthProgressRef.current < 1 && before >= widthProgressRef.current
+    const rate = inFill ? 1 / FILL_TRAVEL : 1 / ZOOM_TRAVEL
+    const next = Math.min(1, Math.max(0, before + clampedDelta * rate))
     if (next === before) return
     targetRef.current = next
+    setZoomStarted(next > 0)
+    // Back at the untouched clip: let it play again until the next zoom.
+    if (next === 0) videoRef.current?.play().catch(() => { })
     pumpZoom()
   }
 
   const reveal = () => {
+    if (revealedRef.current) return
     revealedRef.current = true
+    revealingRef.current = true
+    gestureSpentRef.current = true
     setRevealed(true)
+    clearTimeout(revealTimeoutRef.current)
+    revealTimeoutRef.current = setTimeout(() => {
+      revealingRef.current = false
+    }, REVEAL_MS)
   }
 
   const handleScrollIntent = (deltaPx) => {
@@ -334,16 +427,44 @@ export default function EntryIntro() {
     const newGesture = now - lastIntentAtRef.current >= GESTURE_END_MS
     if (newGesture) gestureSpentRef.current = false
     lastIntentAtRef.current = now
+
+    // Step 1: Reveal step
     if (!revealedRef.current) {
-      revealRef.current?.()
+      if (deltaPx > 0) {
+        revealRef.current?.()
+      }
+      return
+    }
+
+    // While the black panels are actively lifting up over the monitors (700ms),
+    // swallow scroll input so a fast initial scroll cannot bleed into the zoom in.
+    if (revealingRef.current) {
       gestureSpentRef.current = true
       return
     }
+
+    // If the current gesture was spent (e.g. from the zoom in finish or entering covered),
+    // ignore until the user stops scrolling and begins a fresh gesture.
     if (gestureSpentRef.current) return
+
+    // Step 3: Covered ("Scroll again to enter") step. Scrolling back up
+    // unwinds the fill and the zoom, so full black is never a dead end.
     if (coveredRef.current) {
-      if (newGesture) transitionRef.current?.()
+      if (deltaPx < 0) {
+        advanceRef.current?.(deltaPx)
+        return
+      }
+      if (
+        newGesture &&
+        deltaPx > 0 &&
+        now - coveredAtRef.current >= COVERED_SETTLE_MS
+      ) {
+        transitionRef.current?.()
+      }
       return
     }
+
+    // Step 2: Zoom in (or back out) step
     advanceRef.current?.(deltaPx)
   }
 
@@ -379,7 +500,7 @@ export default function EntryIntro() {
     <>
       {show && (
         <motion.div
-          className="fixed inset-0 max-h-[100dvh] z-[100] bg-black cursor-pointer select-none"
+          className="fixed inset-0 max-h-dvh z-100 bg-black cursor-none select-none"
           style={{
             pointerEvents: exiting ? 'none' : 'auto',
             // pinch-zoom, and nothing else: the browser refuses the one finger
@@ -405,11 +526,12 @@ export default function EntryIntro() {
             if (touchStartY.current === null) return
             const deltaY = e.changedTouches[0].clientY - touchStartY.current
             touchStartY.current = null
-            if (deltaY < -TOUCH_TAP_SLOP) {
-              handleScrollIntent(deltaY * -TOUCH_SWIPE_FACTOR)
-            } else if (Math.abs(deltaY) < TOUCH_TAP_SLOP) {
+            if (Math.abs(deltaY) < TOUCH_TAP_SLOP) {
               // A tap is the phone's version of a click - it lifts the panels.
               reveal()
+            } else {
+              // Swipe up zooms in, swipe down zooms back out.
+              handleScrollIntent(-deltaY * TOUCH_SWIPE_FACTOR)
             }
           }}
         >
@@ -505,17 +627,17 @@ export default function EntryIntro() {
 
           {/* Grows the horizontal-fit overlay into a full-screen black frame
               instead of zooming the clip past the point where the width fits.
-              It is driven imperatively from beginFill so the transition can be
-              measured from the overlay's real box. */}
+              It is driven imperatively from the shared progress so the gesture
+              can shrink it back down again. */}
           <div
             ref={fillRef}
             aria-hidden="true"
-            className="absolute z-[2] bg-black pointer-events-none"
+            className="absolute z-2 bg-black pointer-events-none"
             style={{ display: 'none' }}
           />
 
           <div
-            className={`absolute inset-x-0 z-[3] flex justify-center px-5 pointer-events-none ${
+            className={`absolute inset-x-0 z-3 flex justify-center px-5 pointer-events-none ${
               isMobile
                 ? 'bottom-[calc(env(safe-area-inset-bottom)+1.75rem)]'
                 : 'bottom-5'

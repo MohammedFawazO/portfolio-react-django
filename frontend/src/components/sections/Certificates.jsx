@@ -73,8 +73,8 @@ function Certificates() {
         >
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-end">
             <div className="lg:col-span-8">
-              <h2 className="font-(family-name:--font-display) text-[32px] sm:text-[44px] lg:text-[52px] leading-[1.08] font-bold text-black tracking-tight">
-                Verified qualifications and domain mastery.
+              <h2 className="font-(family-name:--font-display) text-[32px] sm:text-[44px] lg:text-[52px] leading-[1.08] font-bold text-black tracking-tight uppercase">
+                VERIFIED QUALIFICATIONS AND DOMAIN MASTERY.
               </h2>
             </div>
             <div className="lg:col-span-4">

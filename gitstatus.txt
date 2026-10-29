@@ -1,0 +1,37 @@
+ M "frontend/public/media/hull machine.png"
+ M frontend/src/App.jsx
+ M frontend/src/components/common/EntryIntro.jsx
+ M frontend/src/components/common/Footer.jsx
+ M frontend/src/components/navigation/DesignModeNavbar.jsx
+ M frontend/src/components/navigation/FloatingNavbar.jsx
+ M frontend/src/components/navigation/SpotlightNavbar.jsx
+ M frontend/src/components/sections/AboutMe.jsx
+ M frontend/src/components/sections/Certificates.jsx
+ M frontend/src/components/sections/Contact.jsx
+ M frontend/src/components/sections/FeaturedProjects.jsx
+ M frontend/src/components/sections/Projects.jsx
+ M frontend/src/components/sections/Skills.jsx
+ M frontend/src/components/sections/Timeline.jsx
+ M frontend/src/components/sections/WhatIDo.jsx
+ M frontend/src/context/EntryIntroContext.jsx
+ M frontend/src/data/content.js
+ M frontend/src/index.css
+ M frontend/src/layouts/MainLayout.jsx
+ M frontend/src/pages/Contact.jsx
+ M frontend/src/pages/Home.jsx
+?? .freebuff/
+?? frontend/public/media/about.png
+?? frontend/public/media/alshamil-2.png
+?? frontend/public/media/alshamil-3.png
+?? frontend/public/media/carcure-2.png
+?? frontend/public/media/carcure-3.png
+?? frontend/public/media/home.png
+?? frontend/public/media/projects.png
+?? "frontend/public/media/tour package 3.png"
+?? "frontend/public/media/tour package-2.png"
+?? "frontend/public/media/tour package.png"
+?? frontend/public/media/tourly.png
+?? frontend/src/components/ui/CustomCursor.jsx
+?? frontend/src/components/ui/ScrollReveal.jsx
+?? frontend/src/components/ui/StickyImageStack.jsx
+?? gitstatus.txt

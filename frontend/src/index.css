@@ -11,6 +11,11 @@
 @custom-variant dark (&:is(.dark *));
 
 @layer base {
+  @media (min-width: 768px) {
+    *, *::before, *::after {
+      cursor: none !important;
+    }
+  }
   * {
     margin: 0;
     padding: 0;
@@ -2170,7 +2175,7 @@ html.project-detail-open #projects-grid {
 
   padding: 10px 16px;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 4px;
+  border-radius: 999px;
   background: rgba(255, 255, 255, 0.03);
 
   transition: border-color 0.25s ease, color 0.25s ease, background 0.25s ease;

@@ -20,8 +20,8 @@ function Projects() {
     <section className="py-20 bg-[#07090B]">
       <Container>
         <FadeInWhenVisible>
-          <h2 className="text-3xl font-bold text-[#F2F5F7] text-center mb-12">
-            Projects
+          <h2 className="text-3xl font-bold text-[#F2F5F7] text-center mb-12 uppercase">
+            PROJECTS
           </h2>
         </FadeInWhenVisible>
 

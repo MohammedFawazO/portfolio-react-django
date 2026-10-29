@@ -1,3 +1,4 @@
+/*
 import { Helmet } from 'react-helmet-async'
 import ContactForm from '../components/common/ContactForm'
 import Card from '../components/ui/Card'
@@ -148,3 +149,5 @@ function Contact() {
 }
 
 export default Contact
+
+*/

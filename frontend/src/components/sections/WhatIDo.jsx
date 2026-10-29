@@ -101,7 +101,7 @@ function WhatIDo() {
                   </div>
 
                   {/* Title */}
-                  <h3 className="font-(family-name:--font-display) text-[20px] sm:text-[23px] text-black font-bold leading-tight mb-3">
+                  <h3 className="font-(family-name:--font-display) text-[20px] sm:text-[23px] text-black font-bold leading-tight mb-3 uppercase">
                     {service.title}
                   </h3>
 

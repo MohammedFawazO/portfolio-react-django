@@ -59,8 +59,8 @@ function AboutMe() {
             viewport={{ once: true, margin: '-80px' }}
             className="flex flex-col"
           >
-            <h2 className="font-(family-name:--font-display) text-[26px] sm:text-[34px] lg:text-[40px] leading-[1.1] font-bold text-black tracking-tight mb-5">
-              The craft is in getting the little things right.
+            <h2 className="font-(family-name:--font-display) text-[22px] sm:text-[30px] lg:text-[36px] leading-[1.05] font-bold text-black tracking-tighter mb-5 wrap-break-word uppercase">
+              THE CRAFT IS IN GETTING THE LITTLE THINGS RIGHT.
             </h2>
 
             <div className="space-y-4">
