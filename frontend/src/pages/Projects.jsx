@@ -498,7 +498,7 @@ function Projects() {
 
       {/* Hero Section : pinned during scroll animation */}
       <div ref={heroRef} className="h-[1400vh] flex flex-col">
-      <motion.section className="sticky top-0 h-screen shrink-0 min-h-175 bg-[#050505] overflow-hidden">
+      <motion.section className="projects-hero sticky top-0 h-screen shrink-0 min-h-175 bg-[#050505] overflow-hidden">
       {/* Background : static, subtle central glow (behind text) */}
       <div className="absolute inset-0 z-0">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-150 h-150 rounded-full bg-[#D8B878]/5 blur-[150px]" />
@@ -510,7 +510,7 @@ function Projects() {
            {/* Hands layer */}
           <div className="absolute inset-0 pointer-events-none">
             {/* Robot */}
-            <div className="hand-robot absolute -left-16 top-[65%] max-md:top-[35%] -translate-y-1/2 pointer-events-none">
+            <div className="hand-robot absolute -left-16 top-[65%] max-md:top-[21rem] -translate-y-1/2 pointer-events-none">
               <motion.img
                 src="/media/robot.png"
                 alt=""
@@ -519,7 +519,7 @@ function Projects() {
               />
             </div>
             {/* Human */}
-            <div className="hand-human absolute -right-16 top-[65%] max-md:top-[35%] -translate-y-1/2 pointer-events-none">
+            <div className="hand-human absolute -right-16 top-[65%] max-md:top-[21rem] -translate-y-1/2 pointer-events-none">
               <motion.img
                 src="/media/human.png"
                 alt=""
@@ -532,7 +532,7 @@ function Projects() {
           {/* Connection glow : symmetric star with rays and streaks */}
           <motion.div
              style={{ opacity: isMobile ? connectionGlowMobile : connectionGlow, scale: isMobile ? glowScaleMobile : glowScale }}
-            className="absolute left-1/2 top-[35%] max-md:top-[21%] -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+            className="absolute left-1/2 top-[35%] max-md:top-[26%] -translate-x-1/2 -translate-y-1/2 pointer-events-none"
           >
             {/* Outer haze : pulsing */}
             <div className="absolute w-32 h-32 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
@@ -682,7 +682,7 @@ function Projects() {
               blur={false}
               autoPlay={true}
               delay={2.0}
-              className="font-(family-name:--font-display) text-[35px] md:text-[70px] lg:text-[90px] leading-[0.95] font-light text-[#F3F0EA] justify-center uppercase"
+              className="font-(family-name:--font-display) text-[clamp(1.75rem,8vw,2.5rem)] md:text-[70px] lg:text-[90px] leading-[0.95] font-light text-[#F3F0EA] justify-center uppercase max-md:leading-[0.95] whitespace-nowrap flex-nowrap"
             />
           </motion.div>
 
@@ -691,14 +691,14 @@ function Projects() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: -26 }}
             transition={{ duration: 0.6, delay: 2.4, ease: [0.22, 1, 0.36, 1] }}
-            className="text-[18px] md:text-[22px] text-[rgba(255,255,255,.55)] font-light max-w-lg mx-auto leading-[1.6]"
+            className="text-[15px] md:text-[22px] text-[rgba(255,255,255,.55)] font-light max-w-lg mx-auto leading-[1.6] max-md:leading-[1.35] max-md:max-w-md"
           >
             Real applications built for real problems.
           </motion.p>
         </motion.div>
 
         {/* Bottom section: stats + scroll indicator : fades with the text on scroll */}
-        <motion.div style={{ opacity: textCombinedFade }} className="absolute bottom-28 left-0 right-0 z-10 flex flex-col items-center px-6">
+        <motion.div style={{ opacity: textCombinedFade }} className="absolute bottom-28 md:bottom-28 max-md:bottom-20 left-0 right-0 z-10 flex flex-col items-center px-6">
           {/* Stats Glass Rail : with scroll transforms */}
             <motion.div
               ref={statsRef}
@@ -711,8 +711,7 @@ function Projects() {
               initial={{ opacity: 0, y: 20, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ duration: 0.8, delay: 2.8, ease: [0.16, 1, 0.3, 1] }}
-              style={{ padding: '28px 24px' }}
-              className="bg-linear-to-b from-[rgba(255,255,255,.07)] to-[rgba(255,255,255,.02)] backdrop-blur-[32px] border border-[rgba(255,255,255,.15)] rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,.08)]"
+              className="max-md:p-[20px_16px] md:p-[28px_24px] bg-linear-to-b from-[rgba(255,255,255,.07)] to-[rgba(255,255,255,.02)] backdrop-blur-[32px] border border-[rgba(255,255,255,.15)] rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,.08)]"
             >
               <div className="grid grid-cols-2 md:grid-cols-4">
                  {stats.map((stat, i) => (
@@ -759,9 +758,10 @@ function Projects() {
       <motion.div id="projects-grid" style={{ y: gridSlide, marginBottom: -vh }} className="relative z-30 bg-[linear-gradient(180deg,#1c1f24_0%,#101216_35%,#070809_100%)] pt-10 pb-0 overflow-hidden rounded-t-[40px] flex-1 flex flex-col">
 
         <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-72 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.10),transparent_70%)]" />
-        <Container>
-          <div className="relative z-10">
+        <Container className="projects-milestones-container">
+          <div className="relative z-10 milestones-stack">
             <SectionHeading
+              className="milestones-heading"
               tone="dark"
               title="Milestones"
               subtitle="A selection of applications I've designed, built, and shipped."

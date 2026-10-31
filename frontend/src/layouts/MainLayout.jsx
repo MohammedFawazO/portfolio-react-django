@@ -23,7 +23,20 @@ import { DesignModeProvider, useDesignMode } from '../context/DesignModeContext'
 function useProjectsNavFade() {
   const heroProgress = useContext(HeroScrollContext)
   const atTop = useMotionValue(1)
-  const navFade = useTransform(heroProgress, [0, 0.55, 0.85, 0.98], [1, 1, 0, 1])
+  const [isDesktop, setIsDesktop] = useState(typeof window !== 'undefined' ? window.innerWidth >= 768 : false)
+
+  useEffect(() => {
+    const check = () => setIsDesktop(window.innerWidth >= 768)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
+
+  const navFade = useTransform(
+    heroProgress,
+    isDesktop ? [0, 0.55, 0.85, 1] : [0, 0.55, 0.85, 0.98],
+    isDesktop ? [1, 1, 0, 0] : [1, 1, 0, 1]
+  )
 
   useEffect(() => {
     const update = () => atTop.set(window.scrollY <= 8 ? 1 : 0)

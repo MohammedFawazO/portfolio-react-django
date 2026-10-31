@@ -119,20 +119,20 @@ export const projects = [
     order: 3,
     image: '',
   },
-  {
-    id: 4,
-    title: 'Dubai Travel AI Assistant',
-    description:
-      'A conversational travel companion for exploring Dubai, built in Python with Streamlit. Visitors describe a budget, a day or a mood and get back a shaped itinerary they can actually follow, then refine it without starting over.',
-    tags: 'Python,Streamlit,AI/ML',
-    link: '',
-    github: '',
-    featured: false,
-    order: 4,
-    image: '',
-  },
-  {
-    id: 5,
+  // comment out this section for reordering
+  // {
+  //   id: 4,
+  //   title: 'Dubai Travel AI Assistant',
+  //   description:
+  //     'A conversational travel companion for exploring Dubai, built in Python with Streamlit. Visitors describe a budget, a day or a mood and get back a shaped itinerary they can actually follow, then refine it without starting over.',
+  //   tags: 'Python,Streamlit,AI/ML',
+  //   link: '',
+  //   github: '',
+  //   featured: false,
+  //   order: 4,
+  //   image: '',
+  // },
+  {// commented out for Tourly\n  id: 5,
     title: 'Tour Package Management System',
     description:
       'A booking platform for tour operators covering packages, availability and customers in one place. Built on Django with SQLite for a zero-friction setup, it carries a reservation from first enquiry through confirmation with a staff admin panel for everyday changes.',
@@ -140,7 +140,7 @@ export const projects = [
     link: '',
     github: '',
     featured: false,
-    order: 5,
+    order: 3,
     image: '',
   },
   {

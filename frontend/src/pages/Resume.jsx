@@ -764,14 +764,14 @@ const [cvDocuments] = useState(() => [
                       <StaggerItem key={`${activeCv.id}-exp-${index}`}>
                         <Card variant="light" className="ct-panel p-0! overflow-hidden">
                           <div className="resume-split-grid grid md:grid-cols-[2fr_3fr]">
-                            <div className="px-4! py-5! sm:px-5! md:px-7! md:py-6!">
-                              <h4 className="text-[18px] md:text-[20px] leading-snug break-words font-semibold text-black font-[family-name:var(--font-display)]">{exp.title}</h4>
-                              <p className="mt-3 break-words text-[14px] font-medium text-[#666]">{exp.company}</p>
-                              <span className="mt-3 inline-block break-words text-[12px] text-[#666] uppercase tracking-[0.14em] font-[family-name:var(--font-mono)]">{exp.period}</span>
+                            <div className="px-4! py-5! sm:px-5! md:px-7! md:py-6! max-md:text-center">
+                              <h4 className="text-[16px] md:text-[20px] leading-snug break-words font-semibold text-black font-[family-name:var(--font-display)] max-md:whitespace-normal text-center">{exp.title}</h4>
+                              <p className="mt-3 break-words text-[13px] md:text-[14px] font-medium text-[#666] max-md:text-[13px] max-md:text-center">{exp.company}</p>
+                              <span className="mt-3 inline-block break-words text-[11px] md:text-[12px] text-[#666] uppercase tracking-[0.14em] font-[family-name:var(--font-mono)] max-md:text-[11px] max-md:text-center">{exp.period}</span>
                             </div>
                             <div className="border-t border-black/10 px-4! py-5! sm:px-5! md:border-t-0 md:px-7! md:py-6!">
                               {exp.description && (
-                                <p className="mb-5 break-words text-[15px] leading-[1.7] text-[#323232]">{exp.description}</p>
+                                <p className="mb-5 break-words text-[14px] md:text-[15px] leading-[1.7] text-[#323232] max-md:text-[14px] max-md:leading-[1.6]">{exp.description}</p>
                               )}
                               <ul className="space-y-2">
                                 {exp.highlights.map((highlight, i) => (
@@ -810,7 +810,7 @@ const [cvDocuments] = useState(() => [
                               {project.highlights?.length > 0 && (
                                 <ul className="space-y-2 mt-4">
                                   {project.highlights.map((highlight, i) => (
-                                    <li key={i} className="flex items-start gap-2 break-words text-[#323232] text-[14px]">
+                                <li key={i} className="flex items-start gap-2 break-words text-[13px] md:text-[14px] text-[#323232] max-md:text-[13px]">
                                       <Monitor size={14} strokeWidth={2} className="mt-[3px] shrink-0 text-[#2d8cf0]" />
                                       {highlight}
                                     </li>

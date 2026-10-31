@@ -12,19 +12,25 @@
 
 @layer base {
   @media (min-width: 768px) {
-    *, *::before, *::after {
+
+    *,
+    *::before,
+    *::after {
       cursor: none !important;
     }
   }
+
   * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+
   html {
     @apply font-sans;
   }
@@ -185,6 +191,7 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   from {
     background-position: 0% 0%;
   }
+
   to {
     background-position: 0% -1000%;
   }
@@ -194,15 +201,19 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
 }
 
 @keyframes iconNudge {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0);
   }
+
   50% {
     transform: translateY(-4px);
   }
@@ -215,27 +226,38 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   0% {
     transform: translateY(0);
   }
+
   31.25% {
     transform: translateY(-4px);
   }
-  62.5%, 100% {
+
+  62.5%,
+  100% {
     transform: translateY(0);
   }
 }
 
 @keyframes iconNudgeX {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateX(0);
   }
+
   50% {
     transform: translateX(4px);
   }
 }
 
 @keyframes designBlink {
-  0%, 45%, 55%, 100% {
+
+  0%,
+  45%,
+  55%,
+  100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0;
   }
@@ -245,15 +267,19 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   0% {
     clip-path: inset(0 100% 0 0);
   }
+
   10% {
     clip-path: inset(0 0 0 0);
   }
+
   50% {
     clip-path: inset(0 0 0 0);
   }
+
   60% {
     clip-path: inset(0 0 0 100%);
   }
+
   100% {
     clip-path: inset(0 0 0 100%);
   }
@@ -335,11 +361,9 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
      everywhere and the instant it reaches that window it is switched under the
      photo - it pops out on the far side of the top. */
   --orbit-apex: calc(50% - var(--orbit-r));
-  mask-image: radial-gradient(
-    ellipse var(--orbit-dip-w) var(--orbit-dip-h) at 50% var(--orbit-apex),
-    transparent 0 86%,
-    #000 100%
-  );
+  mask-image: radial-gradient(ellipse var(--orbit-dip-w) var(--orbit-dip-h) at 50% var(--orbit-apex),
+      transparent 0 86%,
+      #000 100%);
 }
 
 /* the rotating layer : only this one is turned by the motion value */
@@ -387,10 +411,23 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   top: var(--slot-y);
 }
 
-.about-photo-btn--blueprint { --slot-y: calc(50% - var(--orbit-r)); }
-.about-photo-btn--code { --slot-y: calc(50% + var(--orbit-r)); }
-.about-photo-btn--design { --slot-x: calc(50% + var(--orbit-r)); --slot-y: calc(50% - var(--orbit-r)); }
-.about-photo-btn--red { --slot-x: calc(50% + var(--orbit-r)); --slot-y: calc(50% + var(--orbit-r)); }
+.about-photo-btn--blueprint {
+  --slot-y: calc(50% - var(--orbit-r));
+}
+
+.about-photo-btn--code {
+  --slot-y: calc(50% + var(--orbit-r));
+}
+
+.about-photo-btn--design {
+  --slot-x: calc(50% + var(--orbit-r));
+  --slot-y: calc(50% - var(--orbit-r));
+}
+
+.about-photo-btn--red {
+  --slot-x: calc(50% + var(--orbit-r));
+  --slot-y: calc(50% + var(--orbit-r));
+}
 
 /* selected mode : the clicked button is already sliding to the resting spot
    (transform), the others fade out where they stand. The dip window is
@@ -398,14 +435,17 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
 .about-photo-group.is-mode-on .about-photo-orbit {
   mask-image: none;
 }
+
 .about-photo-group.is-mode-on .about-photo-btn.is-active {
   opacity: 1;
   pointer-events: auto;
 }
+
 /* the docked button no longer reacts to hover : no nudge, no scale jump */
 .about-photo-group.is-mode-on .about-photo-btn.is-active:hover {
   scale: 1.05;
 }
+
 .about-photo-group.is-mode-on .about-photo-btn:not(.is-active) {
   opacity: 0;
   pointer-events: none;
@@ -431,6 +471,7 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
     background-color 0.7s ease,
     color 0.7s ease;
 }
+
 /* mode backdrop (grid / hatching) lives on the sections themselves, so the
    opaque section colours never hide it */
 .about-body :is(h2, h3, h4, p, span, li, div) {
@@ -440,6 +481,7 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
     border-color 0.6s ease,
     box-shadow 0.6s ease;
 }
+
 .about-section {
   transition:
     background-color 0.7s ease,
@@ -447,9 +489,17 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
 }
 
 /* --- shared section-heading bits ----------------------------------------- */
-.about-body .about-section-heading h2 { transition: color 0.6s ease; }
-.about-body .about-section-heading > p { transition: color 0.6s ease; }
-.about-body .about-section-heading > div > span:nth-child(2) { transition: color 0.6s ease; }
+.about-body .about-section-heading h2 {
+  transition: color 0.6s ease;
+}
+
+.about-body .about-section-heading>p {
+  transition: color 0.6s ease;
+}
+
+.about-body .about-section-heading>div>span:nth-child(2) {
+  transition: color 0.6s ease;
+}
 
 /* One size for every heading below the hero. The block has two heading
    families that had drifted apart - the hand-written h3s (about-body-title)
@@ -504,6 +554,7 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
     box-shadow 0.15s ease,
     transform 0.15s ease;
 }
+
 .skill-swap-label {
   grid-area: 1 / 1;
   /* Grid items default to min-width:auto, which would refuse to shrink below
@@ -516,6 +567,7 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
     transform 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.6s,
     filter 0.3s ease 0.6s;
 }
+
 .skill-swap-icon {
   position: absolute;
   left: 50%;
@@ -533,15 +585,18 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
     opacity 0.55s ease 0s,
     transform 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) 0s;
 }
+
 .skill-swap-icon--inline {
   display: grid;
   place-items: center;
 }
+
 .skill-swap-icon--inline svg {
   width: 18px;
   height: 18px;
   display: block;
 }
+
 .skill-swap:hover .skill-swap-label,
 .skill-swap:focus-visible .skill-swap-label {
   opacity: 0;
@@ -552,6 +607,7 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
     transform 0.42s cubic-bezier(0.22, 1, 0.36, 1) 0s,
     filter 0.28s ease 0s;
 }
+
 .skill-swap:hover .skill-swap-icon,
 .skill-swap:focus-visible .skill-swap-icon {
   opacity: 1;
@@ -565,17 +621,21 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
 .skill-swap-icon--flip {
   filter: invert(1);
 }
+
 :is(.about-mode-blueprint, .about-mode-matrix, .about-mode-test) .skill-swap-icon--flip {
   filter: none;
 }
+
 :is(.about-mode-blueprint, .about-mode-matrix, .about-mode-test) .skill-swap-icon[data-icon='GitHub'] {
   filter: invert(1);
 }
+
 :is(.about-mode-blueprint, .about-mode-matrix, .about-mode-test) .skill-swap-icon[data-icon='Django'] {
   filter: invert(1);
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   /* The track is what collapses now, so it needs the transition suppressed and
      the end state forced - the same job the old max-width override did. The
      hover rules carry their own transition, so they have to be suppressed as
@@ -593,6 +653,7 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   .skill-swap:focus-visible .skill-swap-icon {
     transition: none;
   }
+
   .skill-swap-icon,
   .skill-swap:hover .skill-swap-icon,
   .skill-swap:focus-visible .skill-swap-icon {
@@ -625,28 +686,27 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   height: 316px;
   z-index: -1;
   pointer-events: none;
-  background: linear-gradient(
-    to bottom,
-    var(--bg-primary) 0,
-    var(--bg-primary) 56px,
-    transparent 316px
-  );
+  background: linear-gradient(to bottom,
+      var(--bg-primary) 0,
+      var(--bg-primary) 56px,
+      transparent 316px);
 }
+
 .page-tail-fade {
   -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 56px), transparent 100%);
   mask-image: linear-gradient(to bottom, #000 calc(100% - 56px), transparent 100%);
 }
+
 @media (max-width: 767px) {
   .page-shell::before {
     top: calc(100% - 40px);
     height: 220px;
-    background: linear-gradient(
-      to bottom,
-      var(--bg-primary) 0,
-      var(--bg-primary) 40px,
-      transparent 220px
-    );
+    background: linear-gradient(to bottom,
+        var(--bg-primary) 0,
+        var(--bg-primary) 40px,
+        transparent 220px);
   }
+
   .page-tail-fade {
     -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 40px), transparent 100%);
     mask-image: linear-gradient(to bottom, #000 calc(100% - 40px), transparent 100%);
@@ -659,6 +719,7 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   color: #cfe9ff;
   font-family: "Courier New", "Courier", monospace;
 }
+
 .about-mode-blueprint .about-section--main {
   background-color: #001428;
   background-image:
@@ -666,6 +727,7 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
     linear-gradient(to bottom, rgba(0, 210, 255, 0.14) 1px, transparent 1px);
   background-size: 28px 28px;
 }
+
 .about-mode-blueprint .about-section--mission {
   background-color: #011a36;
   background-image:
@@ -674,29 +736,47 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   background-size: 28px 28px;
   border-top: 1px solid rgba(0, 210, 255, 0.35);
 }
+
 .about-mode-blueprint .about-body-title,
 .about-mode-blueprint .about-section-heading h2,
 .about-mode-blueprint .about-skill-title,
 .about-mode-blueprint .about-card-teal-title,
-.about-mode-blueprint .about-info-label { color: #00d2ff; }
+.about-mode-blueprint .about-info-label {
+  color: #00d2ff;
+}
+
 .about-mode-blueprint .about-body-copy,
 .about-mode-blueprint .about-card-teal-text,
-.about-mode-blueprint .about-section-heading > p,
-.about-mode-blueprint .about-mission-copy { color: #a9d4f2; }
-.about-mode-blueprint .about-section-heading > div > span:nth-child(2),
-.about-mode-blueprint .about-mission-eyebrow { color: #00d2ff; }
-.about-mode-blueprint .about-mission-title { color: #e6f6ff; }
+.about-mode-blueprint .about-section-heading>p,
+.about-mode-blueprint .about-mission-copy {
+  color: #a9d4f2;
+}
+
+.about-mode-blueprint .about-section-heading>div>span:nth-child(2),
+.about-mode-blueprint .about-mission-eyebrow {
+  color: #00d2ff;
+}
+
+.about-mode-blueprint .about-mission-title {
+  color: #e6f6ff;
+}
+
 .about-mode-blueprint .about-card-light {
   background: rgba(0, 52, 102, 0.35);
   border: 1px dashed rgba(0, 210, 255, 0.5);
   box-shadow: none;
 }
-.about-mode-blueprint .about-info-value { color: #e6f6ff; }
+
+.about-mode-blueprint .about-info-value {
+  color: #e6f6ff;
+}
+
 .about-mode-blueprint .about-card-teal {
   background: rgba(0, 52, 102, 0.3);
   border: 1px dashed rgba(0, 210, 255, 0.45);
   box-shadow: none;
 }
+
 .about-mode-blueprint .about-badge {
   background: rgba(0, 210, 255, 0.08);
   color: #7fdcff;
@@ -710,6 +790,7 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   color: #8ef0c0;
   font-family: "Courier New", "Courier", monospace;
 }
+
 .about-mode-matrix .about-section--main {
   background-color: #000000;
   background-image:
@@ -717,6 +798,7 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
     linear-gradient(to bottom, rgba(3, 160, 98, 0.12) 1px, transparent 1px);
   background-size: 24px 24px;
 }
+
 .about-mode-matrix .about-section--mission {
   background-color: #010a05;
   background-image:
@@ -725,31 +807,49 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   background-size: 24px 24px;
   border-top: 1px solid rgba(3, 160, 98, 0.4);
 }
+
 .about-mode-matrix .about-body-title,
 .about-mode-matrix .about-section-heading h2,
 .about-mode-matrix .about-skill-title,
 .about-mode-matrix .about-card-teal-title,
-.about-mode-matrix .about-info-label { color: #03a062; }
+.about-mode-matrix .about-info-label {
+  color: #03a062;
+}
+
 .about-mode-matrix .about-body-copy,
 .about-mode-matrix .about-card-teal-text,
-.about-mode-matrix .about-section-heading > p,
-.about-mode-matrix .about-mission-copy { color: #7fd9ae; }
-.about-mode-matrix .about-section-heading > div > span:nth-child(2),
-.about-mode-matrix .about-mission-eyebrow { color: #03a062; }
-.about-mode-matrix .about-mission-title { color: #c7ffe4; }
+.about-mode-matrix .about-section-heading>p,
+.about-mode-matrix .about-mission-copy {
+  color: #7fd9ae;
+}
+
+.about-mode-matrix .about-section-heading>div>span:nth-child(2),
+.about-mode-matrix .about-mission-eyebrow {
+  color: #03a062;
+}
+
+.about-mode-matrix .about-mission-title {
+  color: #c7ffe4;
+}
+
 .about-mode-matrix .about-card-light {
   background: rgba(3, 160, 98, 0.07);
   border: 1px solid rgba(3, 160, 98, 0.4);
   box-shadow: none;
   border-radius: 2px;
 }
-.about-mode-matrix .about-info-value { color: #c7ffe4; }
+
+.about-mode-matrix .about-info-value {
+  color: #c7ffe4;
+}
+
 .about-mode-matrix .about-card-teal {
   background: rgba(3, 160, 98, 0.08);
   border: 1px solid rgba(3, 160, 98, 0.45);
   box-shadow: none;
   border-radius: 2px;
 }
+
 .about-mode-matrix .about-badge {
   background: rgba(3, 160, 98, 0.1);
   color: #4ade80;
@@ -762,6 +862,7 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   background: #eef1f1;
   color: #405354;
 }
+
 .about-mode-design .about-section--main {
   background-color: #f4f6f6;
   background-image:
@@ -769,6 +870,7 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
     linear-gradient(to bottom, rgba(36, 107, 255, 0.13) 1px, transparent 1px);
   background-size: 22px 22px;
 }
+
 .about-mode-design .about-section--mission {
   background-color: #ffffff;
   background-image:
@@ -777,29 +879,50 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   background-size: 22px 22px;
   border-top: 2px solid #246bff;
 }
+
 .about-mode-design .about-body-title,
 .about-mode-design .about-section-heading h2,
 .about-mode-design .about-info-value,
-.about-mode-design .about-card-teal-title { color: #0a3332; }
+.about-mode-design .about-card-teal-title {
+  color: #0a3332;
+}
+
 .about-mode-design .about-skill-title,
-.about-mode-design .about-info-label { color: #246bff; }
+.about-mode-design .about-info-label {
+  color: #246bff;
+}
+
 .about-mode-design .about-body-copy,
 .about-mode-design .about-card-teal-text,
-.about-mode-design .about-section-heading > p,
-.about-mode-design .about-mission-copy { color: #405354; }
-.about-mode-design .about-section-heading > div > span:nth-child(2) { color: #e6019a; }
-.about-mode-design .about-mission-eyebrow { color: #246bff; }
-.about-mode-design .about-mission-title { color: #0a3332; }
+.about-mode-design .about-section-heading>p,
+.about-mode-design .about-mission-copy {
+  color: #405354;
+}
+
+.about-mode-design .about-section-heading>div>span:nth-child(2) {
+  color: #e6019a;
+}
+
+.about-mode-design .about-mission-eyebrow {
+  color: #246bff;
+}
+
+.about-mode-design .about-mission-title {
+  color: #0a3332;
+}
+
 .about-mode-design .about-card-light {
   background: #ffffff;
   border: 2px solid #246bff;
   box-shadow: 3px 3px 0 rgba(36, 107, 255, 0.18);
 }
+
 .about-mode-design .about-card-teal {
   background: #ffffff;
   border: 2px solid #0a3332;
   box-shadow: 3px 3px 0 rgba(10, 51, 50, 0.16);
 }
+
 .about-mode-design .about-badge {
   background: rgba(36, 107, 255, 0.08);
   color: #0a3332;
@@ -811,77 +934,86 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
 .about-mode-test {
   background-color: #070204;
   background-image:
-    repeating-linear-gradient(
-      0deg,
+    repeating-linear-gradient(0deg,
       rgba(210, 4, 45, 0.055) 0 1px,
-      transparent 1px 28px
-    ),
-    repeating-linear-gradient(
-      90deg,
+      transparent 1px 28px),
+    repeating-linear-gradient(90deg,
       rgba(210, 4, 45, 0.055) 0 1px,
-      transparent 1px 28px
-    );
+      transparent 1px 28px);
   color: #ffd7dd;
   font-family: "Courier New", "Courier", monospace;
 }
+
 .about-mode-test .about-section--main {
   background-color: transparent;
   background-image:
-    repeating-linear-gradient(
-      0deg,
+    repeating-linear-gradient(0deg,
       rgba(210, 4, 45, 0.055) 0 1px,
-      transparent 1px 28px
-    ),
-    repeating-linear-gradient(
-      90deg,
+      transparent 1px 28px),
+    repeating-linear-gradient(90deg,
       rgba(210, 4, 45, 0.055) 0 1px,
-      transparent 1px 28px
-    );
+      transparent 1px 28px);
 }
+
 .about-mode-test .about-section--mission {
   background-color: rgba(18, 3, 10, 0.85);
   background-image:
-    repeating-linear-gradient(
-      0deg,
+    repeating-linear-gradient(0deg,
       rgba(210, 4, 45, 0.07) 0 1px,
-      transparent 1px 28px
-    ),
-    repeating-linear-gradient(
-      90deg,
+      transparent 1px 28px),
+    repeating-linear-gradient(90deg,
       rgba(210, 4, 45, 0.07) 0 1px,
-      transparent 1px 28px
-    );
+      transparent 1px 28px);
   border-top: 1px solid rgba(210, 4, 45, 0.5);
 }
+
 .about-mode-test .about-body-title,
 .about-mode-test .about-section-heading h2,
 .about-mode-test .about-skill-title,
 .about-mode-test .about-card-teal-title,
-.about-mode-test .about-info-label { color: #ff3b47; }
+.about-mode-test .about-info-label {
+  color: #ff3b47;
+}
+
 .about-mode-test .about-body-copy,
 .about-mode-test .about-card-teal-text,
-.about-mode-test .about-section-heading > p,
-.about-mode-test .about-mission-copy { color: #f0b9c0; }
-.about-mode-test .about-section-heading > div > span:nth-child(2),
-.about-mode-test .about-mission-eyebrow { color: #d2042d; }
-.about-mode-test .about-mission-title { color: #fff1f3; }
+.about-mode-test .about-section-heading>p,
+.about-mode-test .about-mission-copy {
+  color: #f0b9c0;
+}
+
+.about-mode-test .about-section-heading>div>span:nth-child(2),
+.about-mode-test .about-mission-eyebrow {
+  color: #d2042d;
+}
+
+.about-mode-test .about-mission-title {
+  color: #fff1f3;
+}
+
 .about-mode-test .about-card-light {
   background: rgba(210, 4, 45, 0.08);
   border: 1px dashed rgba(255, 59, 71, 0.55);
   box-shadow: none;
 }
-.about-mode-test .about-info-value { color: #fff1f3; }
+
+.about-mode-test .about-info-value {
+  color: #fff1f3;
+}
+
 .about-mode-test .about-card-teal {
   background: rgba(139, 0, 0, 0.25);
   border: 1px solid rgba(210, 4, 45, 0.55);
   box-shadow: none;
 }
+
 .about-mode-test .about-badge {
   background: rgba(210, 4, 45, 0.12);
   color: #ff8a92;
   border: 1px solid rgba(210, 4, 45, 0.5);
   border-radius: 2px;
 }
+
 /* Prevent test-mode font from leaking into footer */
 .about-mode-test .footer-responsive,
 .about-mode-test .footer-responsive * {
@@ -889,6 +1021,7 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .about-body,
   .about-body::before,
   .about-body :is(h2, h3, h4, p, span, li, div),
@@ -908,8 +1041,9 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   from {
     transform: translateX(0);
   }
+
   to {
-  transform: translateX(-50%);
+    transform: translateX(-50%);
   }
 }
 
@@ -926,6 +1060,7 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   .footer-responsive {
     text-align: center;
   }
+
   .footer-responsive .footer-brand-row {
     position: relative;
     justify-content: center;
@@ -934,7 +1069,8 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
     padding-left: 2.75rem;
     padding-right: 2.75rem;
   }
-  .footer-responsive .footer-brand-row > div:first-child {
+
+  .footer-responsive .footer-brand-row>div:first-child {
     /* Mobile only: the logo sits top-left instead of behind the wordmark.
        Shrunk rather than clipped so the full name stays readable. */
     position: absolute;
@@ -945,25 +1081,31 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
     width: 2.25rem;
     height: 2.25rem;
   }
-  .footer-responsive .footer-brand-row > div:first-child svg {
+
+  .footer-responsive .footer-brand-row>div:first-child svg {
     width: 20px;
     height: 22px;
   }
+
   .footer-responsive .footer-desc {
     margin-left: auto;
     margin-right: auto;
   }
+
   .footer-responsive .footer-heading {
     text-align: center;
     font-family: 'Michroma', sans-serif;
   }
+
   .footer-responsive .footer-nav {
     justify-items: center;
     text-align: center;
   }
+
   .footer-responsive .footer-connect {
     justify-content: center;
   }
+
   .footer-responsive .footer-bottom {
     /* Mobile only: keep the two lines stacked (availability first, copyright
        last) even between 640px and 767px, where Tailwind's sm:flex-row would
@@ -980,12 +1122,14 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
     flex-direction: row;
     align-items: center;
   }
-  .footer-responsive .footer-bottom > p:first-child {
+
+  .footer-responsive .footer-bottom>p:first-child {
     flex-direction: row;
     flex-wrap: wrap;
     align-items: center;
   }
-  .footer-responsive .footer-bottom > p:last-child {
+
+  .footer-responsive .footer-bottom>p:last-child {
     margin-left: auto;
     text-align: right;
   }
@@ -1011,7 +1155,7 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   stroke-linejoin: round;
   stroke-width: 3;
   transition: stroke-dasharray 600ms cubic-bezier(0.4, 0, 0.2, 1),
-              stroke-dashoffset 600ms cubic-bezier(0.4, 0, 0.2, 1);
+    stroke-dashoffset 600ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .line-top-bottom {
@@ -1038,14 +1182,12 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   mix-blend-mode: normal;
   background-color: #fdfbf7;
   background-blend-mode: normal;
-  background-image: repeating-linear-gradient(
-    -45deg,
-    #246bff 0px,
-    #246bff 3px,
-    rgba(36, 107, 255, 0.85) 4px,
-    #246bff 5px,
-    #246bff 8px
-  );
+  background-image: repeating-linear-gradient(-45deg,
+      #246bff 0px,
+      #246bff 3px,
+      rgba(36, 107, 255, 0.85) 4px,
+      #246bff 5px,
+      #246bff 8px);
   border: 3px dashed #444;
   border-radius: 50%;
   box-shadow: none;
@@ -1058,14 +1200,12 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
 
 .hamburger.hamburger--design:active {
   transform: scale(0.96);
-  background-image: repeating-linear-gradient(
-    -45deg,
-    #1e56d6 0px,
-    #1e56d6 3px,
-    rgba(30, 86, 214, 0.85) 4px,
-    #1e56d6 5px,
-    #1e56d6 8px
-  );
+  background-image: repeating-linear-gradient(-45deg,
+      #1e56d6 0px,
+      #1e56d6 3px,
+      rgba(30, 86, 214, 0.85) 4px,
+      #1e56d6 5px,
+      #1e56d6 8px);
 }
 
 /* Liquid Glass Footer */
@@ -1086,15 +1226,13 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   inset: 0;
   border-radius: inherit;
   padding: 1.4px;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.45) 0%,
-    rgba(255, 255, 255, 0.15) 20%,
-    rgba(255, 255, 255, 0) 40%,
-    rgba(255, 255, 255, 0) 60%,
-    rgba(255, 255, 255, 0.15) 80%,
-    rgba(255, 255, 255, 0.45) 100%
-  );
+  background: linear-gradient(180deg,
+      rgba(255, 255, 255, 0.45) 0%,
+      rgba(255, 255, 255, 0.15) 20%,
+      rgba(255, 255, 255, 0) 40%,
+      rgba(255, 255, 255, 0) 60%,
+      rgba(255, 255, 255, 0.15) 80%,
+      rgba(255, 255, 255, 0.45) 100%);
   -webkit-mask: linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
   mask: linear-gradient(#fff 0 0) content-box,
@@ -1133,14 +1271,12 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   border-radius: inherit;
   padding: 2px;
   /* Bright where light hits (top-left), dark where the glass turns away. */
-  background: linear-gradient(
-    145deg,
-    rgba(255, 255, 255, 0.9) 0%,
-    rgba(255, 255, 255, 0.38) 26%,
-    rgba(255, 255, 255, 0.06) 52%,
-    rgba(0, 0, 0, 0.18) 76%,
-    rgba(0, 0, 0, 0.34) 100%
-  );
+  background: linear-gradient(145deg,
+      rgba(255, 255, 255, 0.9) 0%,
+      rgba(255, 255, 255, 0.38) 26%,
+      rgba(255, 255, 255, 0.06) 52%,
+      rgba(0, 0, 0, 0.18) 76%,
+      rgba(0, 0, 0, 0.34) 100%);
   -webkit-mask: linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
   mask: linear-gradient(#fff 0 0) content-box,
@@ -1157,12 +1293,10 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   position: absolute;
   inset: 1px;
   border-radius: inherit;
-  background: radial-gradient(
-    120% 90% at 22% 8%,
-    rgba(255, 255, 255, 0.34) 0%,
-    rgba(255, 255, 255, 0.09) 36%,
-    rgba(255, 255, 255, 0) 62%
-  );
+  background: radial-gradient(120% 90% at 22% 8%,
+      rgba(255, 255, 255, 0.34) 0%,
+      rgba(255, 255, 255, 0.09) 36%,
+      rgba(255, 255, 255, 0) 62%);
   box-shadow:
     inset 0 1px 2px rgba(255, 255, 255, 0.4),
     inset 0 -2px 3px rgba(0, 0, 0, 0.16);
@@ -1282,24 +1416,51 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
 }
 
 @keyframes gridDrift {
-  0% { background-position: 0px 0px; }
-  100% { background-position: 320px 320px; }
+  0% {
+    background-position: 0px 0px;
+  }
+
+  100% {
+    background-position: 320px 320px;
+  }
 }
 
 @keyframes scanY {
-  0% { top: 0%; }
-  50% { top: 100%; }
-  100% { top: 0%; }
+  0% {
+    top: 0%;
+  }
+
+  50% {
+    top: 100%;
+  }
+
+  100% {
+    top: 0%;
+  }
 }
 
 @keyframes gridMove {
-  0% { background-position: 0px 0px; }
-  100% { background-position: 240px 240px; }
+  0% {
+    background-position: 0px 0px;
+  }
+
+  100% {
+    background-position: 240px 240px;
+  }
 }
 
 @keyframes radarScan {
-  0%, 100% { top: 0%; opacity: 0.2; }
-  50% { top: 100%; opacity: 0.8; }
+
+  0%,
+  100% {
+    top: 0%;
+    opacity: 0.2;
+  }
+
+  50% {
+    top: 100%;
+    opacity: 0.8;
+  }
 }
 
 @layer utilities {
@@ -1314,10 +1475,19 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
     animation: caretBlink 1s step-end infinite;
   }
 }
+
 @keyframes caretBlink {
-  0% { opacity: 1; }
-  50% { opacity: 0; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
 }
 
 /* About hero : engineering-note look in blueprint mode */
@@ -1328,6 +1498,7 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   line-height: 1.6;
   opacity: 0.85;
 }
+
 /* About hero : terminal look in matrix mode (scoped so it never leaks) */
 .matrix-mode .hero-description {
   font-family: 'Fira Code', 'Courier New', monospace;
@@ -1338,6 +1509,7 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   text-transform: none;
   opacity: 1;
 }
+
 /* About hero : terminal buttons in matrix mode (scoped so it never leaks) */
 .matrix-mode .btn-matrix {
   background: rgba(0, 20, 5, 0.6);
@@ -1353,6 +1525,7 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   box-shadow: 0 0 18px rgba(0, 255, 102, 0.45);
   transition: all 0.2s ease-in-out;
 }
+
 /* Matrix button label : the "Resume" word, with its own [ ] on hover.
    No reserved width at rest so the label stays dead-center; the padding is
    only added on hover (when the brackets are visible). */
@@ -1361,9 +1534,11 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   display: inline-block;
   white-space: nowrap;
 }
+
 .matrix-mode .btn-matrix:hover .matrix-btn-label {
   padding: 0 8px;
 }
+
 /* "Resume" brackets : appear only on hover, absolutely positioned (no shift) */
 .matrix-mode .btn-matrix .matrix-btn-label::before,
 .matrix-mode .btn-matrix .matrix-btn-label::after {
@@ -1376,18 +1551,22 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   letter-spacing: normal;
   transition: opacity 0.16s steps(2, end);
 }
+
 .matrix-mode .btn-matrix .matrix-btn-label::before {
   content: '[';
   left: 0;
 }
+
 .matrix-mode .btn-matrix .matrix-btn-label::after {
   content: ']';
   right: 0;
 }
+
 .matrix-mode .btn-matrix:hover .matrix-btn-label::before,
 .matrix-mode .btn-matrix:hover .matrix-btn-label::after {
   opacity: 1;
 }
+
 /* Matrix resume download icon : lives in its OWN [ ] on the right of the
    label, revealed on hover. Hidden at rest so "Resume" sits dead-center. */
 .matrix-mode .btn-matrix .matrix-dl-wrap {
@@ -1397,10 +1576,12 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   justify-content: center;
   white-space: nowrap;
 }
+
 .matrix-mode .btn-matrix:hover .matrix-dl-wrap {
   margin-left: 6px;
   padding: 0 8px;
 }
+
 .matrix-mode .btn-matrix .matrix-dl-wrap::before,
 .matrix-mode .btn-matrix .matrix-dl-wrap::after {
   position: absolute;
@@ -1412,18 +1593,22 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   letter-spacing: normal;
   transition: opacity 0.16s steps(2, end);
 }
+
 .matrix-mode .btn-matrix .matrix-dl-wrap::before {
   content: '[';
   left: 0;
 }
+
 .matrix-mode .btn-matrix .matrix-dl-wrap::after {
   content: ']';
   right: 0;
 }
+
 .matrix-mode .btn-matrix:hover .matrix-dl-wrap::before,
 .matrix-mode .btn-matrix:hover .matrix-dl-wrap::after {
   opacity: 1;
 }
+
 .matrix-mode .btn-matrix .matrix-dl-icon {
   display: inline-block;
   color: #00ff66;
@@ -1436,29 +1621,35 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   transition: opacity 0.16s steps(2, end), transform 0.16s steps(2, end),
     width 0.16s steps(2, end), margin 0.16s steps(2, end);
 }
+
 .matrix-mode .btn-matrix:hover .matrix-dl-icon {
   width: 14px;
   margin: 0;
   opacity: 1;
   transform: translateY(-2px);
 }
+
 /* Arrows stay baseline-centered in their [ ] (the -2px lift is for the
    download icon only). */
 .matrix-mode .btn-matrix:hover .matrix-dl-icon--flat {
   transform: none;
 }
+
 .matrix-mode .btn-matrix span {
   color: #00ff66;
 }
+
 .matrix-mode .btn-matrix:hover span {
   color: #00ff66;
 }
+
 .matrix-mode .btn-matrix:hover {
   background: #031a09;
   color: #00ff66;
   box-shadow: 0 0 30px rgba(0, 255, 102, 0.75);
   font-weight: bold;
 }
+
 .matrix-mode .hero-heading {
   font-family: 'Fira Code', 'Courier New', monospace;
   color: #a3ffb4;
@@ -1467,6 +1658,7 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   text-transform: uppercase;
   font-weight: 700;
 }
+
 .matrix-mode .hero-description span.keyword {
   color: #00ff66;
   font-weight: bold;
@@ -1486,6 +1678,7 @@ html.about-matrix-nav .spotlight-nav {
   box-shadow: 0 0 18px rgba(0, 255, 102, 0.45) !important;
   backdrop-filter: blur(12px);
 }
+
 html.about-matrix-nav .spotlight-nav a {
   color: #00ff66 !important;
   font-family: 'Fira Code', 'Courier New', monospace !important;
@@ -1493,20 +1686,24 @@ html.about-matrix-nav .spotlight-nav a {
   letter-spacing: 2px !important;
   font-size: 12px !important;
 }
+
 html.about-matrix-nav .spotlight-nav a:hover {
   color: #a3ffb4 !important;
 }
+
 /* Active link gets terminal [ ] brackets instead of the bottom line */
 html.about-matrix-nav .spotlight-nav a.is-active::before {
   content: '[';
   margin-right: 4px;
 }
+
 html.about-matrix-nav .spotlight-nav a.is-active::after {
   content: ']';
   margin-left: 4px;
 }
+
 /* Hide the bottom ambience line in code mode (brackets replace it) */
-html.about-matrix-nav .spotlight-nav > div:nth-of-type(2) {
+html.about-matrix-nav .spotlight-nav>div:nth-of-type(2) {
   display: none !important;
 }
 
@@ -1712,10 +1909,12 @@ html.about-blueprint-nav .bp-nav a {
   text-shadow: none;
   transition: color 0.15s ease;
 }
+
 html.about-blueprint-nav .bp-nav a.is-active {
   color: #00d2ff;
   text-shadow: 0 0 8px rgba(0, 210, 255, 0.6);
 }
+
 html.about-blueprint-nav .bp-nav a:hover {
   color: rgba(255, 255, 255, 0.9);
 }
@@ -1733,12 +1932,14 @@ html.about-matrix-nav a[aria-label="Get Resume"] {
   border-radius: 0 !important;
   box-shadow: 0 0 18px rgba(0, 255, 102, 0.45) !important;
 }
+
 html.about-matrix-nav a[aria-label="Get Resume"]:hover {
   background: #031a09 !important;
   color: #00ff66 !important;
   box-shadow: 0 0 30px rgba(0, 255, 102, 0.75) !important;
   font-weight: bold;
 }
+
 /* On hover in matrix mode only, wrap the label and the icon in their own
    [ ] brackets. Absolute-positioned like the hero .matrix-btn-label /
    .matrix-dl-wrap so the brackets blink in over the hover padding instead
@@ -1751,15 +1952,19 @@ html.about-matrix-nav .connect-btn-icon-wrap {
   align-items: center;
   white-space: nowrap;
 }
+
 html.about-matrix-nav .connect-btn:hover .connect-btn-label-wrap {
   padding: 0 8px;
 }
+
 html.about-matrix-nav .connect-btn-icon-wrap {
   padding-block: 0.15rem;
 }
+
 html.about-matrix-nav .connect-btn:hover .connect-btn-icon-wrap {
   padding: 0.15rem 8px;
 }
+
 html.about-matrix-nav .connect-btn-label-wrap::before,
 html.about-matrix-nav .connect-btn-label-wrap::after,
 html.about-matrix-nav .connect-btn-icon-wrap::before,
@@ -1773,16 +1978,19 @@ html.about-matrix-nav .connect-btn-icon-wrap::after {
   letter-spacing: normal;
   transition: opacity 0.16s steps(2, end);
 }
+
 html.about-matrix-nav .connect-btn-label-wrap::before,
 html.about-matrix-nav .connect-btn-icon-wrap::before {
   content: '[';
   left: 0;
 }
+
 html.about-matrix-nav .connect-btn-label-wrap::after,
 html.about-matrix-nav .connect-btn-icon-wrap::after {
   content: ']';
   right: 0;
 }
+
 html.about-matrix-nav .connect-btn:hover .connect-btn-label-wrap::before,
 html.about-matrix-nav .connect-btn:hover .connect-btn-label-wrap::after,
 html.about-matrix-nav .connect-btn:hover .connect-btn-icon-wrap::before,
@@ -1793,18 +2001,28 @@ html.about-matrix-nav .connect-btn:hover .connect-btn-icon-wrap::after {
 /* Default mode : up-and-down bounce on the download icon when hovering
    the Get Resume button. */
 @keyframes connect-chevron-bounce {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(4px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(4px);
+  }
 }
+
 .connect-btn:hover .connect-chevron {
   animation: connect-chevron-bounce 0.8s ease-in-out infinite;
 }
+
 /* In matrix mode the chevron matches the hero .matrix-dl-icon hover:
    one choppy translateY step, no bounce loop. */
 html.about-matrix-nav a[aria-label="Get Resume"] .connect-chevron {
   transition: transform 0.16s steps(2, end);
   animation: none !important;
 }
+
 html.about-matrix-nav a[aria-label="Get Resume"]:hover .connect-chevron {
   transform: translateY(-2px);
 }
@@ -1842,21 +2060,21 @@ html.about-matrix-nav a[aria-label="Get Resume"]:hover .connect-chevron {
   align-items: flex-end;
   justify-content: center;
 
-/* Explicit width so the podium image, lights and base
+  /* Explicit width so the podium image, lights and base
        overlay all scale as one grouped unit */
-    width: 430px;
+  width: 430px;
 
-    isolation: isolate;
+  isolation: isolate;
 
-    /* Allows the light to extend outside the image */
-    overflow: visible;
+  /* Allows the light to extend outside the image */
+  overflow: visible;
 
-    cursor: pointer;
+  cursor: pointer;
 
-    /* No `filter` in this transition: animating it re-filters the beam
+  /* No `filter` in this transition: animating it re-filters the beam
        (blur + mask + clip-path) every frame and flickers. See the is-dimmed
        rule below. */
-    transition: opacity 0.6s ease, transform 0.6s ease;
+  transition: opacity 0.6s ease, transform 0.6s ease;
 }
 
 /* When a milestone is selected : the non-selected ones slowly fade out.
@@ -1892,9 +2110,11 @@ html.about-matrix-nav a[aria-label="Get Resume"]:hover .connect-chevron {
 .podium-left.is-selected {
   transform: translateY(-130px) translateX(0) scale(1.3);
 }
+
 .podium-center.is-selected {
   transform: translateY(-30px) translateX(-30vw) scale(1.3);
 }
+
 .podium-right.is-selected {
   transform: translateY(-130px) translateX(-44vw) scale(1.3);
 }
@@ -2198,6 +2418,7 @@ html.project-detail-open #projects-grid {
   border-color: rgba(255, 255, 255, 0.18);
   background: rgba(255, 255, 255, 0.015);
 }
+
 .console-btn--note:hover {
   border-color: rgba(255, 255, 255, 0.18);
   color: rgba(243, 240, 234, 0.55);
@@ -2246,6 +2467,13 @@ html.project-detail-open #projects-grid {
   border-radius: 5px;
   box-shadow: 4px 4px black;
   transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+@media (max-width: 767px) {
+  .ct-panel {
+    overflow: hidden;
+    max-width: calc(100% - 8px);
+  }
 }
 
 /* Hover feedback belongs to things you can actually act on, so the accent only
@@ -2309,10 +2537,21 @@ html.project-detail-open #projects-grid {
 
 /* Skill pills: hover border follows the active about-mode accent instead of
    the default nav blue, which read as a foreign colour on the dark themes. */
-.about-mode-blueprint .about-badge.ct-tag:hover { border-color: #00d2ff; }
-.about-mode-matrix .about-badge.ct-tag:hover { border-color: #00ff66; }
-.about-mode-test .about-badge.ct-tag:hover { border-color: #ff3b47; }
-.about-mode-design .about-badge.ct-tag:hover { border-color: #246bff; }
+.about-mode-blueprint .about-badge.ct-tag:hover {
+  border-color: #00d2ff;
+}
+
+.about-mode-matrix .about-badge.ct-tag:hover {
+  border-color: #00ff66;
+}
+
+.about-mode-test .about-badge.ct-tag:hover {
+  border-color: #ff3b47;
+}
+
+.about-mode-design .about-badge.ct-tag:hover {
+  border-color: #246bff;
+}
 
 .ct-form {
   --input-focus: var(--color-nav-accent, #2d8cf0);
@@ -2390,7 +2629,7 @@ select.ct-input {
 select.ct-input option {
   background: #ffffff;
   color: #323232;
-  }
+}
 
 .ct-error {
   margin-top: 8px;
@@ -2458,6 +2697,7 @@ select.ct-input option {
   background: rgba(163, 32, 32, 0.08);
   color: #7a1c1c;
 }
+
 /* =========================================================
    SELECTED MILESTONE - TECH-STACK MARQUEE
    Mirrors the hero TechMarquee; constrained to the left half
@@ -2519,6 +2759,8 @@ select.ct-input option {
 }
 
 .podium-object-back {
+  --podium-perspective: 700px;
+
   position: absolute;
   z-index: 5;
 
@@ -2528,7 +2770,7 @@ select.ct-input option {
   width: 72%;
   height: auto;
 
-  transform: translateX(-50%) perspective(700px) rotateY(-52deg);
+  transform: translateX(-50%) perspective(var(--podium-perspective, 700px)) rotateY(-52deg);
 
   object-fit: contain;
   pointer-events: none;
@@ -2538,8 +2780,8 @@ select.ct-input option {
   border-radius: 16px;
 
   transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
-              width 0.55s cubic-bezier(0.22, 1, 0.36, 1),
-              left 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    width 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    left 0.55s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* The snapshot doubles as a link to the live site (same target as the
@@ -2592,7 +2834,7 @@ select.ct-input option {
 
 /* Tilted web image straightens on hover */
 .podium-item.podium-center:hover .podium-object-back:not(.is-flat) {
-  transform: translateX(-50%) perspective(700px) rotateY(0deg) scaleY(1.3);
+  transform: translateX(-50%) perspective(var(--podium-perspective, 700px)) rotateY(0deg) scaleY(1.3);
   width: 69%;
   left: 50%;
   bottom: 56%;
@@ -2605,7 +2847,7 @@ select.ct-input option {
 
 /* Right podium: same straighten + shrink + shift on hover */
 .podium-item.podium-right:hover .podium-object-back:not(.is-flat) {
-  transform: translateX(-50%) perspective(700px) rotateY(0deg);
+  transform: translateX(-50%) perspective(var(--podium-perspective, 700px)) rotateY(0deg);
   width: 69%;
   left: 50%;
 }
@@ -2746,6 +2988,7 @@ select.ct-input option {
 .podium-chevron--selected.podium-chevron--left {
   left: min(-8vw, -32px);
 }
+
 .podium-chevron--selected.podium-chevron--right {
   right: min(-8vw, -32px);
 }
@@ -2793,12 +3036,10 @@ select.ct-input option {
 
   border-radius: 50%;
 
-  background: radial-gradient(
-    ellipse at center,
-    rgba(0, 0, 0, 1) 0%,
-    rgba(0, 0, 0, 1) 55%,
-    rgba(0, 0, 0, 0) 82%
-  );
+  background: radial-gradient(ellipse at center,
+      rgba(0, 0, 0, 1) 0%,
+      rgba(0, 0, 0, 1) 55%,
+      rgba(0, 0, 0, 0) 82%);
 
   filter: blur(3px);
 
@@ -2854,28 +3095,24 @@ select.ct-input option {
   will-change: opacity, transform;
 
   /* Conic gradient creates the cone angles naturally */
-  background: conic-gradient(
-    from 145deg at 50% 0%,
-    transparent 0deg,
-    rgba(255, 255, 255, 0.58) 35deg,
-    transparent 70deg
-  );
+  background: conic-gradient(from 145deg at 50% 0%,
+      transparent 0deg,
+      rgba(255, 255, 255, 0.58) 35deg,
+      transparent 70deg);
 
   /* Straight top edge + straight slanted sides (no bottle-neck pinch) */
-  clip-path: polygon(
-    24% 0%,
-    76% 0%,
-    100% 100%,
-    0% 100%
-  );
+  clip-path: polygon(24% 0%,
+      76% 0%,
+      100% 100%,
+      0% 100%);
 
   /* Rounds the bottom of the light into a soft pool while
      keeping the straight top border */
   -webkit-mask-image: radial-gradient(ellipse 82% 96% at 50% 22%, white 52%, transparent 88%),
-                      linear-gradient(to right, transparent, white 8%, white 92%, transparent);
+    linear-gradient(to right, transparent, white 8%, white 92%, transparent);
   -webkit-mask-composite: source-in;
   mask-image: radial-gradient(ellipse 82% 96% at 50% 22%, white 52%, transparent 88%),
-              linear-gradient(to right, transparent, white 8%, white 92%, transparent);
+    linear-gradient(to right, transparent, white 8%, white 92%, transparent);
   mask-composite: intersect;
 
   filter: blur(15px);
@@ -2904,11 +3141,9 @@ select.ct-input option {
 
   border-radius: 0 0 50% 50%;
 
-  background: linear-gradient(
-    to right,
-    #ffffff 0%,
-    #ffffff 100%
-  );
+  background: linear-gradient(to right,
+      #ffffff 0%,
+      #ffffff 100%);
 
   /* Glow + downward-only bloom, sharper so the line stays defined */
   box-shadow:
@@ -2939,13 +3174,11 @@ select.ct-input option {
   transform: translateX(-50%);
 
   background:
-    radial-gradient(
-      ellipse at center,
+    radial-gradient(ellipse at center,
       rgba(255, 255, 255, 0.75) 0%,
       rgba(255, 255, 255, 0.42) 30%,
       rgba(255, 255, 255, 0.14) 58%,
-      rgba(255, 255, 255, 0) 82%
-    );
+      rgba(255, 255, 255, 0) 82%);
 
   filter: blur(26px);
 
@@ -2977,13 +3210,11 @@ select.ct-input option {
   transform: translate(-50%, -50%);
 
   background:
-    radial-gradient(
-      ellipse at center,
+    radial-gradient(ellipse at center,
       rgba(255, 255, 255, 0.42) 0%,
       rgba(255, 255, 255, 0.18) 35%,
       rgba(255, 255, 255, 0.05) 58%,
-      transparent 75%
-    );
+      transparent 75%);
 
   filter: blur(10px);
 
@@ -3002,8 +3233,7 @@ select.ct-input option {
   width: min(41vw, 520px);
 
   transform:
-    translateY(-60px)
-    scale(0.96);
+    translateY(-60px) scale(0.96);
 }
 
 
@@ -3012,8 +3242,7 @@ select.ct-input option {
   width: min(53vw, 750px);
 
   transform:
-    translateY(40px)
-    scale(1);
+    translateY(40px) scale(1);
 }
 
 
@@ -3022,8 +3251,7 @@ select.ct-input option {
   width: min(41vw, 520px);
 
   transform:
-    translateY(-60px)
-    scale(0.96);
+    translateY(-60px) scale(0.96);
 }
 
 
@@ -3074,7 +3302,7 @@ select.ct-input option {
   }
 
   .podium-floor-glow {
-  width: 94%;
+    width: 94%;
   }
 
   /* Non-active podiums on tablet. The base dimmed state is tuned for the
@@ -3130,9 +3358,11 @@ select.ct-input option {
   .podium-left.is-selected {
     transform: translateY(-130px) translateX(0) scale(1.1);
   }
+
   .podium-center.is-selected {
     transform: translateY(-30px) translateX(-30vw) scale(1.1);
   }
+
   .podium-right.is-selected {
     transform: translateY(-130px) translateX(-44vw) scale(1.1);
   }
@@ -3160,12 +3390,15 @@ select.ct-input option {
   .podium-console {
     width: 52%;
   }
+
   .console-num {
     font-size: 2rem;
   }
+
   .console-name {
     font-size: 1.3rem;
   }
+
   .console-highlights {
     grid-template-columns: 1fr;
   }
@@ -3175,19 +3408,24 @@ select.ct-input option {
   .podium-console {
     width: 62%;
   }
+
   .console-num {
     font-size: 1.6rem;
   }
+
   .console-name {
     font-size: 1.1rem;
   }
+
   .console-desc {
     font-size: 0.82rem;
   }
+
   .console-actions {
     flex-direction: column;
     align-items: flex-start;
   }
+
   .console-btn {
     width: 100%;
     justify-content: center;
@@ -3215,7 +3453,7 @@ select.ct-input option {
 
 /* Left podium: straighten tilted web image on hover too */
 .podium-item.podium-left:hover .podium-object-back:not(.is-flat) {
-  transform: translateX(-50%) perspective(700px) rotateY(0deg);
+  transform: translateX(-50%) perspective(var(--podium-perspective, 700px)) rotateY(0deg);
   width: 69%;
   left: 50%;
 }
@@ -3228,8 +3466,7 @@ select.ct-input option {
 /* While one podium is hovered (and nothing is selected), dim the other two
    to focus attention. This is disabled once a milestone is selected, so the
    hidden milestones stay hidden until the user returns to the default view. */
-.podium-stage:not(:has(.podium-item.is-selected)):has(.podium-item:hover)
-  .podium-item:not(:hover) {
+.podium-stage:not(:has(.podium-item.is-selected)):has(.podium-item:hover) .podium-item:not(:hover) {
   opacity: 0.35;
   filter: blur(3px);
 }
@@ -3240,6 +3477,7 @@ select.ct-input option {
   width: 32%;
   left: 32%;
 }
+
 .podium-item.podium-left .podium-caption-eyebrow,
 .podium-item.podium-right .podium-caption-eyebrow {
   margin-top: 8px;
@@ -3316,6 +3554,7 @@ select.ct-input option {
   --wa-accent-soft: rgba(111, 231, 255, 0.12);
   --wa-glow: rgba(111, 231, 255, 0.38);
 }
+
 /* Blueprint : match the other blueprint buttons (BlueprintPillButton) without
    copying their decoration. Those buttons are a TRANSPARENT pill with a solid
    #00d2ff rule, a soft cyan glow and cyan text - the dashed outer frame, dotted
@@ -3337,9 +3576,11 @@ select.ct-input option {
   box-shadow: 0 0 15px rgba(0, 210, 255, 0.15);
   transition: box-shadow 0.3s ease-out;
 }
+
 .wa-cta[data-about-mode='blueprint'] .wa-fab:hover {
   box-shadow: 0 0 25px rgba(0, 210, 255, 0.35);
 }
+
 .wa-cta[data-about-mode='blueprint'] .wa-fab:active {
   background-color: #001a2e;
 }
@@ -3359,6 +3600,7 @@ select.ct-input option {
   box-shadow: 0 0 18px rgba(0, 255, 102, 0.45);
   transition: box-shadow 0.3s ease-out;
 }
+
 .wa-cta[data-about-mode='matrix'] .wa-fab:hover {
   background-color: #031a09;
   color: #00ff66;
@@ -3377,11 +3619,13 @@ select.ct-input option {
   box-shadow: 0 0 6px rgba(210, 4, 45, 0.9);
   transition: box-shadow 0.3s ease-out;
 }
+
 .wa-cta[data-about-mode='test'] .wa-fab:hover {
   background-color: rgba(26, 6, 12, 0.95);
   color: #ff3b47;
   box-shadow: 0 0 14px rgba(255, 59, 71, 0.75);
 }
+
 .wa-cta[data-about-mode='test'] .wa-fab:active {
   background-color: #2a0410;
 }
@@ -3396,6 +3640,7 @@ select.ct-input option {
 .wa-fab-ring {
   display: none;
 }
+
 .wa-cta[data-about-mode='blueprint'] .wa-fab-ring {
   display: block;
   position: absolute;
@@ -3404,6 +3649,7 @@ select.ct-input option {
   border-radius: 50%;
   pointer-events: none;
 }
+
 .wa-cta[data-about-mode='blueprint'] .wa-fab:hover .wa-fab-ring {
   border-color: rgba(0, 210, 255, 0.75);
 }
@@ -3420,6 +3666,7 @@ select.ct-input option {
 .wa-fab-frame {
   display: none;
 }
+
 .wa-cta[data-about-mode='blueprint'] .wa-fab-frame {
   display: block;
   position: absolute;
@@ -3452,32 +3699,30 @@ select.ct-input option {
   --wa-accent-soft: rgba(37, 211, 102, 0.16);
   --wa-glow: rgba(37, 211, 102, 0.38);
 }
+
 .wa-cta[data-about-mode='design'] .wa-fab {
   background-color: #fdfbf7;
-  background-image: repeating-linear-gradient(
-    -45deg,
-    #25d366 0px,
-    #25d366 3px,
-    rgba(37, 211, 102, 0.85) 4px,
-    #25d366 5px,
-    #25d366 8px
-  );
+  background-image: repeating-linear-gradient(-45deg,
+      #25d366 0px,
+      #25d366 3px,
+      rgba(37, 211, 102, 0.85) 4px,
+      #25d366 5px,
+      #25d366 8px);
   border: 3px dashed #444;
   border-radius: 50%;
   color: #333;
   box-shadow: none;
   transition: transform 0.1s ease;
 }
+
 .wa-cta[data-about-mode='design'] .wa-fab:active {
   transform: scale(0.96);
-  background-image: repeating-linear-gradient(
-    -45deg,
-    #1fbc59 0px,
-    #1fbc59 3px,
-    rgba(31, 188, 89, 0.85) 4px,
-    #1fbc59 5px,
-    #1fbc59 8px
-  );
+  background-image: repeating-linear-gradient(-45deg,
+      #1fbc59 0px,
+      #1fbc59 3px,
+      rgba(31, 188, 89, 0.85) 4px,
+      #1fbc59 5px,
+      #1fbc59 8px);
 }
 
 /* ==================================================================
@@ -3665,41 +3910,41 @@ html.route-projects .footer-shell {
    route that 256px stacked on the 280px reserved gap already inside the section,
    making the footer a long scroll away. Trimmed to 6rem; every other route keeps
    the original spacing. Unlayered, so it outranks the layered md:mt-64. */
-html.route-projects .footer-shell {
-  margin-top: 6rem;
-}
+  html.route-projects .footer-shell {
+    margin-top: 6rem;
+  }
 
-/* Keeps the text at the same width it had inside Container (max-w-6xl with the
+  /* Keeps the text at the same width it had inside Container (max-w-6xl with the
    same px steps), while the card behind it spans the full section. */
-.milestone-cta-inner {
-  /* width:100% + margin-inline:auto inside the flex row: fills the row, then
+  .milestone-cta-inner {
+    /* width:100% + margin-inline:auto inside the flex row: fills the row, then
      centres the 72rem measure. Without width:100% the flex item would shrink to
      its content and margin-inline:auto would have nothing to distribute. */
-  width: 100%;
-  max-width: 72rem;
-  margin-inline: auto;
-  padding-inline: 1.5rem;
-}
-
-@media (min-width: 640px) {
-  .milestone-cta-inner {
-    padding-inline: 2.5rem;
+    width: 100%;
+    max-width: 72rem;
+    margin-inline: auto;
+    padding-inline: 1.5rem;
   }
-}
 
-@media (min-width: 1024px) {
-  .milestone-cta-inner {
-    padding-inline: 3.5rem;
+  @media (min-width: 640px) {
+    .milestone-cta-inner {
+      padding-inline: 2.5rem;
+    }
   }
-}
 
-@media (min-width: 1536px) {
-  .milestone-cta-inner {
-    padding-inline: 5rem;
+  @media (min-width: 1024px) {
+    .milestone-cta-inner {
+      padding-inline: 3.5rem;
+    }
   }
-}
 
-.milestone-cta-title {
+  @media (min-width: 1536px) {
+    .milestone-cta-inner {
+      padding-inline: 5rem;
+    }
+  }
+
+  .milestone-cta-title {
     font-size: 0.82rem;
     letter-spacing: 0.12em;
   }
@@ -3753,7 +3998,7 @@ html.route-projects .footer-shell {
     height: 36px;
   }
 
-  .about-bp-actions .bp-target > span {
+  .about-bp-actions .bp-target>span {
     font-size: 10px;
     letter-spacing: 0.12em;
   }
@@ -3870,7 +4115,7 @@ html.route-projects .footer-shell {
     font-size: 8px;
   }
 
-  .bp-axis > div {
+  .bp-axis>div {
     white-space: nowrap;
   }
 
@@ -3887,12 +4132,331 @@ html.route-projects .footer-shell {
     height: 34px;
   }
 
-  .bp-hero-resume .bp-target > span {
+  .bp-hero-resume .bp-target>span {
     font-size: 10px;
     letter-spacing: 0.1em;
   }
 
   .bp-hero-resume .bp-h-dim {
     display: none;
+  }
+}
+
+/* =========================================================
+   MILESTONES PODIUM - MOBILE SINGLE-PROJECT VIEW
+   Desktop and tablet keep the three-podium carousel exactly as
+   it is. Below 768px the stage shows one large centered podium
+   with the project caption underneath and the two chevrons
+   flanking it. Every fixed-pixel part of the podium composition
+   is scaled from --pod-w so the shadow, beam, light source and
+   project snapshot keep the same proportions as desktop.
+   ========================================================= */
+@media (max-width: 767px) {
+
+  /* Clear the fixed mobile chrome (menu / Get Resume) when the projects panel
+     finishes sliding over the hero. Without this the centred "Milestones"
+     heading lands behind those controls at the start of the section. */
+  #projects-grid {
+    padding-top: 7rem;
+  }
+
+  /* The legacy spacing scale makes Container's px-6 64px on phones, which is
+     wider than the space left by the podium and pushes the whole milestone
+     block off-centre. Use a normal phone gutter for this section only. */
+  .projects-milestones-container {
+    padding-inline: 1.5rem;
+  }
+
+  /* Focus mode reads top-to-bottom: podium, project details, then the tech
+     marquee. The close button tucks into the first detail row instead of
+     taking a row of its own. */
+  .milestones-stack {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .milestones-stack>.podium-stage {
+    order: 1;
+  }
+
+  .milestones-stack>.podium-close-btn {
+    order: 2;
+  }
+
+  .milestones-stack>.podium-console {
+    order: 3;
+  }
+
+  .milestones-stack>.marquee-slot {
+    order: 4;
+  }
+
+  .milestones-heading {
+    margin-bottom: 0.5rem;
+    padding-inline: 0.25rem;
+  }
+
+  .milestones-heading h2 {
+    font-size: clamp(2rem, 9vw, 2.5rem);
+    line-height: 1.05;
+  }
+
+  .milestones-heading p {
+    margin-top: 0.45rem;
+    font-size: clamp(0.9rem, 4vw, 1rem);
+    line-height: 1.5;
+  }
+
+  .podium-stage {
+    --pod-w: min(80vw, 54svh, 520px);
+    --pod-caption-gap: 56px;
+
+    min-height: calc(var(--pod-w) * 1.0133 + var(--pod-caption-gap));
+    padding-bottom: var(--pod-caption-gap);
+    margin-top: 0.75rem !important;
+    gap: 0;
+  }
+
+  /* In focus mode the caption is replaced by the console, so the stage only
+     needs a small breathing gap below the podium. */
+  .projects-milestones-container:has(.podium-console) .podium-stage {
+    --pod-caption-gap: 16px;
+  }
+
+  .podium-left,
+  .podium-right {
+    display: none;
+  }
+
+  .podium-center {
+    width: var(--pod-w);
+    transform: translateY(0);
+  }
+
+  .podium-center.is-selected {
+    transform: translateY(0);
+    transform-origin: center bottom;
+  }
+
+  .podium-item.podium-center::after {
+    bottom: 16%;
+    width: 95%;
+    height: 28%;
+    filter: blur(calc(var(--pod-w) * 0.0055));
+  }
+
+  .podium-object-back {
+    --podium-perspective: calc(var(--pod-w) * 0.9333);
+
+    border-width: calc(var(--pod-w) * 0.002667);
+    border-radius: calc(var(--pod-w) * 0.021333);
+  }
+
+  .podium-spotlight {
+    top: -52%;
+    width: 138%;
+    height: 120%;
+    filter: blur(calc(var(--pod-w) * 0.02));
+  }
+
+  .podium-light-source {
+    top: -52%;
+    width: calc(var(--pod-w) * 0.04);
+    height: calc(var(--pod-w) * 0.005333);
+
+    box-shadow:
+      0 0 calc(var(--pod-w) * 0.008) calc(var(--pod-w) * 0.001333) rgba(255, 255, 255, 0.85),
+      0 calc(var(--pod-w) * 0.016) calc(var(--pod-w) * 0.024) calc(var(--pod-w) * 0.005333) rgba(255, 255, 255, 0.28);
+
+    filter: blur(calc(var(--pod-w) * 0.000933));
+  }
+
+  .podium-floor-glow {
+    height: 30%;
+    filter: blur(calc(var(--pod-w) * 0.034667));
+  }
+
+  .podium-top-light {
+    filter: blur(calc(var(--pod-w) * 0.013333));
+  }
+
+  /* The selected podium stays at its default size and position. Lower the beam
+     and light source again because the desktop selection rule lifts them for a
+     1.3x podium. */
+  .podium-item.is-selected .podium-spotlight,
+  .podium-item.is-selected .podium-light-source {
+    top: -52%;
+  }
+
+  .podium-item.is-selected .podium-top-light {
+    top: 38%;
+  }
+
+  /* Touch devices have no hover. Keep the default tilted snapshot and the
+     front overlay, so the single podium always matches the desktop
+     default-view composition. */
+  .podium-item:hover .podium-object {
+    opacity: 1;
+  }
+
+  .podium-item.podium-center:hover .podium-object-back:not(.is-flat) {
+    transform: translateX(-50%) perspective(var(--podium-perspective)) rotateY(-52deg);
+    width: 72%;
+    left: 57%;
+    bottom: 53%;
+  }
+
+  /* Label the visible milestone without requiring a hover. The base
+     `.podium-item.is-selected .podium-caption` rule uses !important, so the
+     caption still disappears once the detail console opens. */
+  .podium-center .podium-caption {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .podium-caption-title {
+    font-size: 1.05rem;
+  }
+
+  .podium-caption-eyebrow {
+    font-size: 0.56rem;
+  }
+
+  /* Chevrons: a compact, legible tap target on each side of the podium,
+     vertically centered on the podium rather than on the whole stage. */
+  .podium-chevron {
+    top: calc(100% - var(--pod-caption-gap) - var(--pod-w) / 3);
+
+    width: 36px;
+    height: 36px;
+
+    border-radius: 9999px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(7, 8, 9, 0.38);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  .podium-chevron--left,
+  .podium-chevron--selected.podium-chevron--left {
+    left: -2px;
+  }
+
+  .podium-chevron--right,
+  .podium-chevron--selected.podium-chevron--right {
+    right: -2px;
+  }
+
+  .podium-chevron svg {
+    width: 20px;
+    height: 20px;
+    stroke-width: 2.2;
+  }
+
+  /* Selected milestone: the tech marquee spans the phone width, the X button
+     joins the normal flow, and the information console stacks below the
+     podium instead of squeezing into a 62%-wide overlay. */
+  .marquee-slot {
+    height: 0;
+  }
+
+  .projects-milestones-container:has(.podium-console) .marquee-slot {
+    height: 64px;
+  }
+
+  .project-tech-marquee {
+    left: 0;
+    top: -10px;
+    width: 100%;
+  }
+
+  .podium-close-btn {
+    position: relative;
+    top: auto;
+    right: auto;
+
+    align-self: flex-end;
+
+    width: 36px;
+    height: 36px;
+
+    /* Pull the X into the stage's small bottom gap and let the console start
+       immediately after it, so the control sits beside the project heading. */
+    margin: -16px 0 -20px;
+  }
+
+  .podium-console {
+    position: relative;
+    right: auto;
+    bottom: auto;
+
+    width: 100%;
+    height: auto;
+
+    pointer-events: auto;
+  }
+
+  .podium-console .console-inner {
+    gap: 12px;
+    padding: 16px 0 0;
+  }
+
+  .console-head {
+    align-items: flex-start;
+    gap: 12px;
+    padding-right: 40px;
+  }
+
+  .console-num {
+    font-size: 1.8rem;
+  }
+
+  .console-name {
+    font-size: 1.15rem;
+    line-height: 1.15;
+  }
+
+  .console-desc {
+    font-size: 0.84rem;
+    line-height: 1.55;
+  }
+
+  .console-highlights {
+    gap: 10px;
+  }
+
+  .console-highlight-title {
+    font-size: 0.8rem;
+  }
+
+  .console-highlight-text {
+    font-size: 0.74rem;
+    line-height: 1.45;
+  }
+
+  .console-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    margin-top: 6px;
+  }
+
+  .console-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* The old 200px gap above the CTA was reserved for a never-built section and
+     reads as dead space under the single-podium phone layout. */
+  .milestone-cta {
+    margin-top: 32px;
+  }
+}
+
+@media (max-width: 767px) {
+  body { overflow-x: hidden; }
+  .projects-hero .absolute.bottom-28,
+  .projects-hero .absolute.bottom-20 {
+    bottom: 4rem;
   }
 }

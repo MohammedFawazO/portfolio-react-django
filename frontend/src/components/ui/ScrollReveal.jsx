@@ -48,7 +48,7 @@ export default function ScrollReveal({ text, trackRef }) {
   let charIndex = 0;
   return (
     <div ref={containerRef} style={trackRef ? undefined : { minHeight: '80vh' }}>
-      <p className="text-[16px] leading-[1.7] text-[#555] font-bold sm:text-[18px] md:text-[22px] md:leading-[1.75]">
+      <p className="text-[15px] leading-[1.7] text-[#555] font-bold sm:text-[18px] md:text-[22px] md:leading-[1.75] text-center whitespace-pre-wrap break-keep">
         {segments.map((segment, sIdx) => {
           return segment.split('').map((char, i) => {
             const idx = charIndex++;

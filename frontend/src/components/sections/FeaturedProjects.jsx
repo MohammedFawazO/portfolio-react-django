@@ -51,6 +51,29 @@ const SUPPORTING_PROJECTS = [
 
 const PROJECTS = [PROMINENT_PROJECT, ...SUPPORTING_PROJECTS]
 
+// The showcase swaps whole image sets while scrolling, so every frame of a
+// project has to be in the browser cache before it can slide in. Warm all of
+// them on first mount instead of waiting for each <img> to enter the DOM.
+const GALLERY_IMAGES = Array.from(
+  new Set(PROJECTS.flatMap((project) => [project.preview, ...project.images]).filter(Boolean)),
+)
+
+const preloadedGalleryImages = new Set()
+// Hold the detached <img> nodes so decoded frames stay hot for the first swap.
+const preloadedGalleryNodes = []
+
+function preloadGalleryImage(src) {
+  if (preloadedGalleryImages.has(src)) return
+  preloadedGalleryImages.add(src)
+  const image = new Image()
+  image.decoding = 'async'
+  image.src = src
+  if (typeof image.decode === 'function') {
+    image.decode().catch(() => {})
+  }
+  preloadedGalleryNodes.push(image)
+}
+
 const fadeUp = {
   hidden: { y: 30, opacity: 0 },
   visible: (delay = 0) => ({
@@ -119,6 +142,8 @@ function ProjectGallery({ project, progress, onImageClick }) {
             style={{
               transform: `translate3d(0, ${(1 - eased) * 108}%, 0)`,
               zIndex: index + 1,
+              willChange: 'transform',
+              backfaceVisibility: 'hidden',
             }}
           >
             <ProjectLink
@@ -129,6 +154,10 @@ function ProjectGallery({ project, progress, onImageClick }) {
               <img
                 src={image}
                 alt={`${project.title} preview ${index + 1}`}
+                loading="eager"
+                decoding="async"
+                fetchPriority={index === 0 ? 'high' : 'auto'}
+                draggable={false}
                 className="rounded-[5px] object-contain object-center transition-transform duration-500 ease-out group-hover:scale-[1.015]"
                 style={{
                   width: `${(IMAGE_SCALES[image] ?? 1) * 100}%`,
@@ -146,15 +175,16 @@ function ProjectGallery({ project, progress, onImageClick }) {
 function MobileGallery({ project }) {
   // The first image is the cover already shown in the desktop card, so the
   // phone view starts from the actual site shots instead of repeating it.
-  const images = project.images.slice(1)
+  const images = project.images.length > 1 ? project.images.slice(1) : []
   const trackRef = useRef(null)
   const [active, setActive] = useState(0)
 
   const handleScroll = () => {
     const track = trackRef.current
     if (!track) return
-    const next = Math.round(track.scrollLeft / Math.max(track.clientWidth, 1))
-    setActive((current) => (current === next ? current : next))
+    const { scrollLeft, clientWidth } = track
+    const next = Math.round(scrollLeft / Math.max(clientWidth, 1))
+    setActive(next)
   }
 
   if (!images.length) return null
@@ -165,17 +195,16 @@ function MobileGallery({ project }) {
         ref={trackRef}
         onScroll={handleScroll}
         data-lenis-prevent
-        className="flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain bg-[#E8EEF2] scrollbar-none [&::-webkit-scrollbar]:hidden"
+        className="flex snap-x snap-mandatory overflow-x-auto bg-[#E8EEF2] [&::-webkit-scrollbar]:hidden"
       >
         {images.map((image, index) => (
-          <figure
-            key={`${project.id}-mobile-${index}`}
+            <figure              key={`${project.id}-mobile-${index}`}
             className="w-full shrink-0 snap-center p-2.5 sm:p-3"
           >
             <ProjectLink project={project} className="block">
               <img
                 src={image}
-                alt={`${project.title} preview ${index + 2}`}
+                alt={`${project.title} preview ${index + 1}`}
                 className="mx-auto aspect-16/10 w-full rounded-[5px] object-contain"
               />
             </ProjectLink>
@@ -205,8 +234,10 @@ function StickyShowcase({ trackRefs }) {
   const [swapFrom, setSwapFrom] = useState(null)
   const displayedIndexRef = useRef(0)
   const progressRef = useRef(0)
-  const outgoingGalleryRef = useRef(null)
-  const swapRunningRef = useRef(false)
+  const targetProgressRef = useRef(0)
+  const frameRef = useRef(0)
+  const lastFrameRef = useRef(0)
+  const swapTimerRef = useRef(0)
   // Click sequence: a tweened progress override drives the shuffle, then the
   // card swells while the whole screen fades to black.
   const [overrideProgress, setOverrideProgress] = useState(null)
@@ -262,13 +293,10 @@ function StickyShowcase({ trackRefs }) {
   }, [blackout])
 
   useEffect(() => {
-    let frame = 0
-
-    const update = () => {
-      frame = 0
-      // The click sequence owns progress while it runs; scrolling must not
-      // fight the shuffle halfway through.
-      if (transitionRef.current || swapRunningRef.current) return
+    // The description block nearest the eye line owns the gallery. Reading it
+    // on scroll gives the target state, but the reveal itself runs on a frame
+    // loop so fast scrolling cannot snap the image stack forward.
+    const readTarget = () => {
       const eyeLevel = window.innerHeight * 0.62
       let nextIndex = 0
       let nextProgress = 0
@@ -282,34 +310,91 @@ function StickyShowcase({ trackRefs }) {
         }
       })
 
-      if (displayedIndexRef.current !== nextIndex) {
-        const direction = nextIndex > displayedIndexRef.current ? 'forward' : 'backward'
-        setSwapFrom({
-          index: direction === 'forward' ? displayedIndexRef.current : nextIndex,
-          progress: direction === 'forward' ? progressRef.current : nextProgress,
-          direction,
-        })
+      return { index: nextIndex, progress: nextProgress }
+    }
 
-        if (direction === 'forward') setDisplayedIndex(nextIndex)
-        displayedIndexRef.current = nextIndex
+    const tick = (now) => {
+      const dt = Math.min((now - lastFrameRef.current) / 1000, 0.05)
+      lastFrameRef.current = now
+      const current = progressRef.current
+      const target = targetProgressRef.current
+      const diff = target - current
+
+      if (Math.abs(diff) < 0.0005) {
+        if (current !== target) {
+          progressRef.current = target
+          setProgress(target)
+        }
+        frameRef.current = 0
+        return
       }
 
-      progressRef.current = nextProgress
-      if (nextIndex === displayedIndexRef.current) setProgress(nextProgress)
+      // Time-based easing keeps the stack gliding at the same pace whether the
+      // wheel moved one notch or half the section.
+      const smoothing = 1 - Math.exp(-dt * 9)
+      let next = current + diff * smoothing
+      // Hard per-frame cap: a single fast scroll event can move the target from
+      // 0 to 1, and without this the images teleport through the stack instead
+      // of sliding.
+      const maxStep = dt * 1.35
+      next = Math.max(current - maxStep, Math.min(current + maxStep, next))
+      next = clamp01(next)
+
+      progressRef.current = next
+      setProgress(next)
+      frameRef.current = requestAnimationFrame(tick)
     }
 
-    const scheduleUpdate = () => {
-      if (!frame) frame = window.requestAnimationFrame(update)
+    const ensureAnimation = () => {
+      if (frameRef.current) return
+      lastFrameRef.current = performance.now()
+      frameRef.current = requestAnimationFrame(tick)
     }
 
-    update()
-    window.addEventListener('scroll', scheduleUpdate, { passive: true })
-    window.addEventListener('resize', scheduleUpdate)
+    const handleScroll = () => {
+      // The click sequence owns the card while it runs; scrolling must not
+      // fight the shuffle halfway through.
+      if (transitionRef.current) return
+      const target = readTarget()
+
+      if (target.index !== displayedIndexRef.current) {
+        const direction = target.index > displayedIndexRef.current ? 'forward' : 'backward'
+        setSwapFrom({
+          index: displayedIndexRef.current,
+          progress: progressRef.current,
+          direction,
+        })
+        displayedIndexRef.current = target.index
+        setDisplayedIndex(target.index)
+
+        // Enter the new set from its natural edge (cover forward, last frame
+        // backward) so the swap never opens halfway through the stack when a
+        // fast wheel jumps straight to a new project.
+        progressRef.current = direction === 'forward' ? 0 : 1
+        setProgress(progressRef.current)
+
+        // Keep the outgoing set mounted for the full crossfade, regardless of
+        // how fast the wheel keeps moving.
+        window.clearTimeout(swapTimerRef.current)
+        swapTimerRef.current = window.setTimeout(() => {
+          setSwapFrom(null)
+        }, 700)
+      }
+
+      targetProgressRef.current = target.progress
+      ensureAnimation()
+    }
+
+    handleScroll()
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    window.addEventListener('resize', handleScroll)
 
     return () => {
-      window.removeEventListener('scroll', scheduleUpdate)
-      window.removeEventListener('resize', scheduleUpdate)
-      if (frame) window.cancelAnimationFrame(frame)
+      window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('resize', handleScroll)
+      window.clearTimeout(swapTimerRef.current)
+      if (frameRef.current) cancelAnimationFrame(frameRef.current)
+      frameRef.current = 0
     }
   }, [trackRefs])
 
@@ -325,8 +410,20 @@ function StickyShowcase({ trackRefs }) {
     setBlackout({ href, isSwap: false })
   }
 
+  const outgoingProject = swapFrom ? PROJECTS[swapFrom.index] : null
+
   return (
-    <div className="sticky top-0 h-screen max-lg:hidden lg:block">
+    <div className="sticky top-0 h-screen max-lg:hidden">
+      <style>{`
+        @keyframes expandVanish {
+          0% { transform: scale(1); opacity: 1; z-index: 20; }
+          100% { transform: scale(1.08); opacity: 0; z-index: 20; }
+        }
+        @keyframes emergeFromBehind {
+          0% { transform: scale(0.92); opacity: 0; z-index: 1; }
+          100% { transform: scale(1); opacity: 1; z-index: 30; }
+        }
+      `}</style>
       {blackout && (
         createPortal(
           <div
@@ -351,13 +448,38 @@ function StickyShowcase({ trackRefs }) {
             </div>
 
             <div className="relative min-h-0 flex-1">
-              <div className="absolute inset-0 z-0">
+              {/* Incoming new gallery */}
+              <div
+                className="absolute inset-0"
+                style={{
+                  zIndex: swapFrom ? 30 : 0,
+                  animation: swapFrom ? 'emergeFromBehind 0.6s ease-out forwards' : 'none',
+                }}
+              >
                 <ProjectGallery
                   project={project}
                   progress={overrideProgress ?? progress}
                   onImageClick={handleCardClick}
                 />
               </div>
+
+              {/* Outgoing old gallery during swap */}
+              {swapFrom && outgoingProject && (
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    zIndex: 20,
+                    animation: 'expandVanish 0.6s ease-out forwards',
+                    pointerEvents: 'none',
+                  }}
+                >
+                  <ProjectGallery
+                    project={outgoingProject}
+                    progress={swapFrom ? swapFrom.progress : 1}
+                    onImageClick={() => {}}
+                  />
+                </div>
+              )}
 
               <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 gap-1.5 rounded-full border-2 border-black bg-white/85 px-2.5 py-1.5 backdrop-blur-sm">
                 {project.images.map((_, index) => (
@@ -383,7 +505,7 @@ function StickyShowcase({ trackRefs }) {
 
 function ProjectActions({ project, compact = false }) {
   return (
-    <div className="mt-5 flex flex-nowrap items-stretch gap-2 lg:mt-6 lg:flex-wrap lg:gap-3">
+    <div className="mt-5 flex flex-wrap items-stretch justify-center gap-2 lg:mt-6 lg:gap-3">
       {project.live && (
         <a
           href={project.live}
@@ -430,16 +552,16 @@ function ProjectStory({ project, index, trackRef }) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-80px' }}
       transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-      className="flex flex-col justify-center py-7 sm:py-9 lg:py-10"
+      className="flex flex-col justify-center pt-2 pb-7 sm:py-9 lg:py-10"
     >
       <MobileGallery project={project} />
 
-      <div className="mb-2 flex flex-wrap items-center gap-2 sm:mb-3 sm:gap-3">
-        <span className="font-mono text-[11px] font-semibold tracking-[0.18em] text-[#2d8cf0] sm:text-[12px]">
+      <div className="mb-2 flex flex-nowrap items-center gap-1.5 sm:mb-3 sm:gap-3">
+        <span className="shrink-0 font-mono text-[11px] font-semibold tracking-widest text-[#2d8cf0] sm:text-[12px] sm:tracking-[0.18em]">
           {String(index + 1).padStart(2, '0')}
         </span>
-        <span className="h-px w-8 bg-black/20 sm:w-10" />
-        <span className="font-mono text-[10px] sm:text-[13px] uppercase tracking-[0.16em] font-semibold text-[#2d8cf0] sm:tracking-[0.2em]">
+        <span className="h-px w-5 shrink-0 bg-black/20 sm:w-10" />
+        <span className="min-w-0 font-mono text-[clamp(8px,2.3vw,10px)] sm:text-[13px] uppercase tracking-wider font-semibold text-[#2d8cf0] sm:tracking-[0.2em] whitespace-nowrap">
           {project.eyebrow}
         </span>
       </div>
@@ -458,6 +580,13 @@ function ProjectStory({ project, index, trackRef }) {
 
 function FeaturedProjects() {
   const trackRefs = useRef([])
+
+  // Warm every gallery frame as soon as the page mounts. The section is far
+  // enough down the page that the browser has time to fetch them before the
+  // first scroll reaches the showcase, so image sets swap without buffering.
+  useEffect(() => {
+    GALLERY_IMAGES.forEach(preloadGalleryImage)
+  }, [])
 
   return (
     <section id="selected-work" className="relative pt-20 pb-20 md:pt-28 md:pb-28 bg-white border-b-2 border-black">
@@ -486,27 +615,21 @@ function FeaturedProjects() {
         />
       </div>
 
-      <Container size="lg" style={{ paddingLeft: '2rem', paddingRight: '2rem' }}>
+      <Container size="lg" className="max-md:px-4!">
         <motion.div
           custom={0}
           variants={fadeUp}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: '-80px' }}
-          className="mb-10 sm:mb-12 lg:mb-14"
+          className="mb-10 max-sm:mb-5 sm:mb-12 lg:mb-14"
         >
-          <div className="grid grid-cols-1 items-end gap-4 sm:gap-5 lg:grid-cols-12 lg:gap-6">
-            <div className="text-center lg:col-span-12">
-              <h2 className="font-(family-name:--font-display) text-[26px] leading-[1.1] font-bold text-black tracking-tight uppercase text-center sm:text-[38px] sm:leading-[1.08] lg:text-[44px]">
-                SELECTED WORK
-              </h2>
-            </div>
-            <div className="text-center lg:col-span-12">
-              <p className="mx-auto max-w-2xl text-[14px] text-[#666] leading-relaxed sm:text-[15px]">
-                A selection of live commercial client platforms and software applications highlighting clean architecture, robust backends, and tactile interfaces.
-              </p>
-            </div>
-          </div>
+          <h2 className="font-(family-name:--font-display) text-[26px] leading-[1.1] font-bold text-black tracking-tight uppercase text-center sm:text-[38px] sm:leading-[1.08] lg:text-[44px]">
+            SELECTED WORK
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-[14px] text-center text-[#666] leading-relaxed sm:mt-5 sm:text-[15px] lg:mt-6">
+            A selection of live commercial client platforms and software applications highlighting clean architecture, robust backends, and tactile interfaces.
+          </p>
         </motion.div>
 
         <div className="grid gap-4 lg:grid-cols-[60%_minmax(0,1fr)]">
@@ -525,6 +648,12 @@ function FeaturedProjects() {
                 }}
               />
             ))}
+
+            {/* Scroll runway. A sticky card can only stay pinned while its grid
+                item is taller than the viewport; without this the card starts
+                sliding away before the last description's text reveal (the
+                portfolio project) has finished. */}
+            <div aria-hidden="true" className="hidden lg:block lg:h-[50vh]" />
           </div>
         </div>
 

@@ -69,16 +69,16 @@ function Timeline() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: '-80px' }}
-          className="mb-14"
+          className="mb-14 text-center lg:text-center"
         >
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-end">
-            <div className="lg:col-span-8">
-              <h2 className="font-(family-name:--font-display) text-[32px] sm:text-[44px] lg:text-[52px] leading-[1.08] font-bold text-black tracking-tight uppercase">
+            <div className="lg:col-span-12">
+              <h2 className="font-(family-name:--font-display) text-[28px] sm:text-[40px] lg:text-[52px] leading-[1.08] font-bold text-black tracking-tight uppercase text-center whitespace-pre-wrap break-keep">
                 PROFESSIONAL EXPERIENCE
               </h2>
             </div>
-            <div className="lg:col-span-4">
-              <p className="text-[15px] text-[#666] leading-relaxed">
+            <div className="lg:col-span-12 text-center">
+              <p className="text-[15px] text-[#666] leading-relaxed whitespace-pre-wrap break-keep max-md:text-[14px]">
                 Demonstrated real-world experience building, deploying, and maintaining production systems for client companies and startups.
               </p>
             </div>

@@ -48,7 +48,7 @@ function AboutMe() {
         }}
       />
 
-      <Container size="lg">
+      <Container size="lg" className="px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-stretch">
           {/* Left: Text + Action Buttons */}
           <motion.div
@@ -59,28 +59,28 @@ function AboutMe() {
             viewport={{ once: true, margin: '-80px' }}
             className="flex flex-col"
           >
-            <h2 className="font-(family-name:--font-display) text-[22px] sm:text-[30px] lg:text-[36px] leading-[1.05] font-bold text-black tracking-tighter mb-5 wrap-break-word uppercase">
+            <h2 className="font-(family-name:--font-display) text-[20px] sm:text-[28px] lg:text-[36px] leading-[1.05] font-bold text-black tracking-tighter mb-5 uppercase text-center whitespace-normal break-keep">
               THE CRAFT IS IN GETTING THE LITTLE THINGS RIGHT.
             </h2>
 
             <div className="space-y-4">
-              <p className="text-[15px] sm:text-[16px] text-[#222] font-medium leading-[1.7]">
+              <p className="text-[15px] sm:text-[16px] text-[#222] font-medium leading-[1.7] text-justify">
                 Python and Django at the core, REST APIs, databases, and React on the frontend. I care about how the pieces fit together, clean code, sound architecture, reliable functionality, and interfaces that feel right to use. Not complexity for its own sake, just the small decisions that make an application better.
               </p>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-wrap gap-3.5 pt-6 pb-6">
+            <div className="flex flex-wrap gap-3.5 pt-6 pb-6 max-md:flex-col max-md:gap-3">
               <Link
                 to="/about"
-                className="inline-flex items-center gap-2 px-5 py-3 bg-[#ADD8E6] text-black font-semibold rounded-full border-2 border-black shadow-[4px_4px_0_#000] hover:bg-[#2d8cf0] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0_#000] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all font-mono text-xs uppercase tracking-wider"
+                className="inline-flex items-center gap-2 px-5 py-3 bg-[#ADD8E6] text-black font-semibold rounded-full border-2 border-black shadow-[4px_4px_0_#000] hover:bg-[#2d8cf0] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0_#000] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all font-mono text-xs uppercase tracking-wider max-md:w-full max-md:justify-center max-md:py-2.5 max-md:text-[11px]"
               >
                 Explore My Background
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
               <Link
                 to="/resume"
-                className="inline-flex items-center gap-2 px-5 py-3 bg-transparent text-black font-semibold rounded-full border-2 border-black shadow-[4px_4px_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0_#000] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all font-mono text-xs uppercase tracking-wider"
+                className="inline-flex items-center gap-2 px-5 py-3 bg-transparent text-black font-semibold rounded-full border-2 border-black shadow-[4px_4px_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0_#000] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all font-mono text-xs uppercase tracking-wider max-md:w-full max-md:justify-center max-md:py-2.5 max-md:text-[11px]"
               >
                 View Resume
                 <FileText className="w-3.5 h-3.5" />

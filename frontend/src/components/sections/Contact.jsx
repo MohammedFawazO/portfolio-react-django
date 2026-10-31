@@ -35,7 +35,10 @@ function Contact() {
         </div>
 
         <div className="grid items-start gap-10 sm:gap-14 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1fr)] lg:gap-20">
-          <div className="space-y-8 sm:space-y-10 lg:space-y-12">
+          {/* max-lg:contents dissolves this wrapper on phones so its children
+              become grid items and can be ordered around the form; desktop
+              keeps the normal stacked column. */}
+          <div className="max-lg:contents max-lg:space-y-0! space-y-8 sm:space-y-10 lg:space-y-12">
             <div className="grid gap-3 sm:gap-4! sm:grid-cols-2 lg:grid-cols-1">
               <div className="ct-panel flex flex-col items-start gap-1 px-5 py-4 sm:flex-row! sm:items-center! sm:justify-between sm:gap-6! sm:px-6">
                 <span className="font-[family-name:var(--font-mono)] text-[11px] uppercase tracking-[0.18em] text-[#666]">Availability</span>
@@ -75,9 +78,9 @@ function Contact() {
               </button>
             </div>
 
-            <div>
+            <div className="max-lg:order-last max-lg:text-center">
               <span className="mb-4 block font-[family-name:var(--font-mono)] text-[11px] uppercase tracking-[0.18em] text-[#666]">Find me online</span>
-              <div className="flex flex-wrap gap-3 sm:gap-4">
+              <div className="flex flex-wrap gap-3 max-lg:justify-center sm:gap-4">
                 {socials.map((social) => (
                   <a
                     key={social.id}

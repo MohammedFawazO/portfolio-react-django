@@ -20,7 +20,7 @@ function Container({
       // of competing with it - plain clsx left both px-* sets in the class list,
       // where the winner is stylesheet order, not the class attribute.
       className={cn(
-        'mx-auto px-6 sm:px-10 lg:px-14 2xl:px-20',
+        'mx-auto px-4 sm:px-8 lg:px-12 2xl:px-20',
         sizes[size],
         className
       )}
