@@ -556,7 +556,7 @@ function ProjectStory({ project, index, trackRef }) {
     >
       <MobileGallery project={project} />
 
-      <div className="mb-2 flex flex-nowrap items-center gap-1.5 sm:mb-3 sm:gap-3">
+      <div className="mb-2 flex flex-nowrap items-center gap-1.5 max-md:justify-center sm:mb-3 sm:gap-3">
         <span className="shrink-0 font-mono text-[11px] font-semibold tracking-widest text-[#2d8cf0] sm:text-[12px] sm:tracking-[0.18em]">
           {String(index + 1).padStart(2, '0')}
         </span>
@@ -566,7 +566,7 @@ function ProjectStory({ project, index, trackRef }) {
         </span>
       </div>
 
-      <h3 className="mb-3.5 font-(family-name:--font-display) text-[26px] font-bold leading-[1.12] tracking-tight text-black sm:text-[36px] sm:leading-tight sm:tracking-normal md:text-[42px] lg:mb-5 lg:text-[46px]">
+      <h3 className="mb-3.5 font-(family-name:--font-display) text-[26px] font-bold leading-[1.12] tracking-tight text-black max-md:text-center sm:text-[36px] sm:leading-tight sm:tracking-normal md:text-[42px] lg:mb-5 lg:text-[46px]">
         {project.title}
       </h3>
 
@@ -667,7 +667,7 @@ function FeaturedProjects() {
         >
           <Link
             to="/projects"
-            className="inline-flex items-center gap-2.5 px-6 py-3.5 bg-[#ADD8E6] text-black font-semibold rounded-full border-2 border-black shadow-[4px_4px_0_#000] hover:bg-[#2d8cf0] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0_#000] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all font-mono text-xs uppercase tracking-wider"
+            className="section-cta inline-flex items-center gap-2.5 px-6 py-3.5 bg-[#ADD8E6] text-black font-semibold rounded-full border-2 border-black shadow-[4px_4px_0_#000] hover:bg-[#2d8cf0] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0_#000] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all font-mono text-xs uppercase tracking-wider"
           >
             Explore All Projects
             <ArrowRight className="w-4 h-4" />

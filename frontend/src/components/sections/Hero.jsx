@@ -178,6 +178,7 @@ function Hero() {
           .hero-subtitle {
             flex-direction: row !important;
             flex-wrap: nowrap !important;
+            justify-content: center !important;
             gap: 1.8vw !important;
             margin-left: 0 !important;
           }
@@ -403,17 +404,17 @@ function Hero() {
 
           <div className="w-[70vw] max-w-[480px] -mt-[7vh]">
             <video
+              ref={heroVideoRef}
               className="w-full aspect-3/4 object-cover rounded-sm"
               src="/media/hero-video.webm"
-              autoPlay
               muted
               playsInline
               preload="auto"
             />
           </div>
 
-          <div className="leading-[1.75] font-light text-[3.1vw] -mt-[3vh] text-left">
-            <div className="text-white/80 font-medium mb-0.5 text-[4.2vw] text-left">
+          <div className="leading-[1.75] font-light text-[3.1vw] -mt-[3vh] text-center">
+            <div className="text-white/80 font-medium mb-0.5 text-[4.2vw] text-center">
               <KineticTextReveal
                 text="Every pixel has a purpose."
                 splitBy="words"
@@ -423,10 +424,11 @@ function Hero() {
                 delay={0.6}
                 blur={false}
                 autoPlay={contentReveal}
+                className="justify-center"
                 segmentClassName="text-white/80 font-medium"
               />
             </div>
-            <div className="text-white/80 font-medium mb-1.5 text-[4.2vw] text-left">
+            <div className="text-white/80 font-medium mb-1.5 text-[4.2vw] text-center">
               <KineticTextReveal
                 text="Every line of code has a reason."
                 splitBy="words"
@@ -436,10 +438,11 @@ function Hero() {
                 delay={0.9}
                 blur={false}
                 autoPlay={contentReveal}
+                className="justify-center"
                 segmentClassName="text-white/80 font-medium"
               />
             </div>
-            <div className="text-white/45 mt-1 text-[2.9vw]">
+            <div className="text-white/45 mt-1 text-[2.9vw] text-center">
               <KineticTextReveal
                 text="I'm Mohammed Fawaz, a Python Full Stack Developer focused on building scalable web applications with clean architecture, thoughtful interfaces, and production-ready code."
                 splitBy="words"
@@ -449,6 +452,7 @@ function Hero() {
                 delay={1.2}
                 blur={false}
                 autoPlay={contentReveal}
+                className="justify-center"
               />
             </div>
           </div>

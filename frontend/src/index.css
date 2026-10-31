@@ -7,15 +7,17 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
+@import "@fontsource/comic-neue/400.css";
+@import "@fontsource/comic-neue/700.css";
 
 @custom-variant dark (&:is(.dark *));
 
 @layer base {
   @media (min-width: 768px) {
 
-    *,
-    *::before,
-    *::after {
+    html.cube-cursor-active *,
+    html.cube-cursor-active *::before,
+    html.cube-cursor-active *::after {
       cursor: none !important;
     }
   }
@@ -570,11 +572,12 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
 
 .skill-swap-icon {
   position: absolute;
-  left: 50%;
-  top: 50%;
-  /* Centred with the individual translate property so it composes with the
-     scale/rotate below instead of fighting it. */
-  translate: -50% -50%;
+  /* Centred by insetting the box and letting auto margins balance it. This
+     deliberately avoids the individual `translate` property: the production
+     CSS minifier drops it when the same rule also declares `transform`, which
+     left the icon sitting half its own size down and to the right. */
+  inset: 0;
+  margin: auto;
   width: 18px;
   height: 18px;
   object-fit: contain;
@@ -1012,6 +1015,15 @@ html:is(.route-about, .route-contact, .route-resume):not(.about-blueprint-nav, .
   color: #ff8a92;
   border: 1px solid rgba(210, 4, 45, 0.5);
   border-radius: 2px;
+}
+
+/* Test-mode error popups are draggable. On phones, keep the touch gesture on
+   the card instead of letting the page scroll underneath it; desktop keeps
+   its normal scroll behaviour. */
+@media (max-width: 767px) {
+  .test-error-popup {
+    touch-action: none;
+  }
 }
 
 /* Prevent test-mode font from leaking into footer */
@@ -4454,9 +4466,39 @@ html.route-projects .footer-shell {
 }
 
 @media (max-width: 767px) {
-  body { overflow-x: hidden; }
-  .projects-hero .absolute.bottom-28,
-  .projects-hero .absolute.bottom-20 {
-    bottom: 4rem;
+  .projects-hero .absolute.bottom-\[15vh\],
+  .projects-hero .absolute.bottom-\[12vh\],
+  .projects-hero .absolute.bottom-\[10vh\] {
+    bottom: 12vh;
+  }
+}
+
+/* Professional Experience card: center its content on mobile only.
+   This explicit media query mirrors the Tailwind max-md classes on the
+   elements, so the centering still applies even if a browser does not
+   support Tailwind v4's range-syntax variants or another rule competes. */
+@media (max-width: 767px) {
+  .experience-card,
+  .experience-card h3,
+  .experience-card p {
+    text-align: center;
+  }
+
+  .experience-card .experience-meta {
+    justify-content: center;
+  }
+}
+
+/* Section CTA pills: the legacy .px-6 utility resolves to 64px per side and
+   makes these buttons wrap onto two lines on phones. Give them a compact,
+   single-line size on mobile only. */
+@media (max-width: 767px) {
+  .section-cta {
+    padding: 10px 20px !important;
+    gap: 8px !important;
+    font-size: 11px !important;
+    line-height: 1.2;
+    white-space: nowrap;
+    max-width: calc(100% - 32px);
   }
 }

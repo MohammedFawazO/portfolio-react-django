@@ -194,6 +194,7 @@ function DesignModeNavbar({
            * Replace this with your actual canvas font if needed.
            */
           font-family:
+            "Comic Neue",
             "Comic Sans MS",
             "Segoe Print",
             "Bradley Hand",
@@ -298,6 +299,7 @@ function DesignModeNavbar({
           color: #246bff;
 
           font-family:
+            "Comic Neue",
             "Comic Sans MS",
             "Segoe Print",
             "Bradley Hand",

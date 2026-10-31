@@ -698,7 +698,7 @@ function Projects() {
         </motion.div>
 
         {/* Bottom section: stats + scroll indicator : fades with the text on scroll */}
-        <motion.div style={{ opacity: textCombinedFade }} className="absolute bottom-28 md:bottom-28 max-md:bottom-20 left-0 right-0 z-10 flex flex-col items-center px-6">
+        <motion.div style={{ opacity: textCombinedFade }} className="absolute bottom-[15vh] md:bottom-[10vh] max-md:bottom-[12vh] left-0 right-0 z-10 flex flex-col items-center px-6">
           {/* Stats Glass Rail : with scroll transforms */}
             <motion.div
               ref={statsRef}

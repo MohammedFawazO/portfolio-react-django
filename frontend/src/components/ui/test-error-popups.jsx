@@ -79,6 +79,7 @@ function ErrorPopup({ title, lines, status, accent = '#D2042D', delay = 0, reope
   const dragRef = useRef(null)
   const offsetRef = useRef({ x: 0, y: 0 })
   const draggingRef = useRef(false)
+  const scrollLockRef = useRef(null)
 
   useEffect(() => {
     if (open || disabled) return
@@ -120,6 +121,30 @@ function ErrorPopup({ title, lines, status, accent = '#D2042D', delay = 0, reope
     return () => clearInterval(t)
   }, [open])
 
+  const isMobileViewport = () => typeof window !== 'undefined' && window.innerWidth < 768
+
+  const lockPageScroll = () => {
+    if (!isMobileViewport() || typeof document === 'undefined') return
+    if (scrollLockRef.current !== null) return
+    scrollLockRef.current = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+  }
+
+  const unlockPageScroll = () => {
+    if (typeof document === 'undefined' || scrollLockRef.current === null) return
+    document.body.style.overflow = scrollLockRef.current
+    scrollLockRef.current = null
+  }
+
+  useEffect(() => {
+    return () => {
+      if (typeof document !== 'undefined' && scrollLockRef.current !== null) {
+        document.body.style.overflow = scrollLockRef.current
+        scrollLockRef.current = null
+      }
+    }
+  }, [])
+
   const heroRect = () => {
     const hero = typeof document !== 'undefined' ? document.getElementById('about-hero-section') : null
     return hero ? hero.getBoundingClientRect() : { left: 0, top: 0 }
@@ -127,6 +152,7 @@ function ErrorPopup({ title, lines, status, accent = '#D2042D', delay = 0, reope
   const onPointerDown = (e) => {
     if (e.target.closest('button')) return
     draggingRef.current = true
+    lockPageScroll()
     const r = heroRect()
     offsetRef.current = {
       x: e.clientX - r.left - pos.x,
@@ -149,21 +175,8 @@ function ErrorPopup({ title, lines, status, accent = '#D2042D', delay = 0, reope
   }
   const onPointerUp = () => {
     draggingRef.current = false
-    if (typeof document !== 'undefined' && window.innerWidth < 768) {
-      document.body.style.overflow = ''
-    }
+    unlockPageScroll()
   }
-
-  // Prevent page scroll while interacting with popups on mobile
-  useEffect(() => {
-    if (!open || typeof document === 'undefined' || window.innerWidth >= 768) return
-    // Lock scroll when popup is open on mobile
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.overflow = prev
-    }
-  }, [open])
 
   if (!open) return null
 
@@ -190,8 +203,10 @@ function ErrorPopup({ title, lines, status, accent = '#D2042D', delay = 0, reope
         onPointerDown={(e) => { e.stopPropagation(); onPointerDown(e) }}
         onPointerMove={onPointerMove}
         onPointerUp={(e) => { e.stopPropagation(); onPointerUp(e) }}
+        onPointerCancel={(e) => { e.stopPropagation(); onPointerUp(e) }}
+        onLostPointerCapture={onPointerUp}
         onClick={(e) => e.stopPropagation()}
-        className="cursor-grab active:cursor-grabbing select-none"
+        className="test-error-popup cursor-grab active:cursor-grabbing select-none"
       >
         <div
           className="relative rounded-md overflow-hidden border shadow-[0_18px_40px_-12px_rgba(0,0,0,0.7)]"

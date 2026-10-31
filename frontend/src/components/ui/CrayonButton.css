@@ -10,7 +10,7 @@
   position: relative;
   padding: 14px 28px;
   font-size: 1.2rem;
-  font-family: 'Comic Sans MS', 'Chalkboard SE', 'Segoe Print', 'Bradley Hand', cursive;
+  font-family: 'Comic Neue', 'Comic Sans MS', 'Chalkboard SE', 'Segoe Print', 'Bradley Hand', cursive;
   font-weight: bold;
   color: #333;
   background: #fdfbf7;
@@ -112,7 +112,7 @@
   transform: translateX(-50%) rotate(-4deg);
   white-space: nowrap;
   color: #246bff;
-  font-family: 'Comic Sans MS', 'Segoe Print', 'Bradley Hand', cursive;
+  font-family: 'Comic Neue', 'Comic Sans MS', 'Segoe Print', 'Bradley Hand', cursive;
   font-size: 12px;
   font-weight: 400;
   pointer-events: none;

@@ -97,7 +97,7 @@ function TypingLoader({ text = 'icons/illustrations loading...', className = '' 
   return (
     <span
       className={`inline-flex items-center text-[13px] tracking-wide text-[#5b6b6e] ${className}`}
-      style={{ fontFamily: '"Comic Sans MS", "Comic Sans", "Chalkboard SE", "Comic Neue", cursive' }}
+      style={{ fontFamily: '"Comic Neue", "Comic Sans MS", "Comic Sans", "Chalkboard SE", cursive' }}
     >
       <span className="whitespace-pre">{text.slice(0, count)}</span>
       <span className="caret-blink ml-0.5 inline-block w-[0.55ch] h-[1.05em] bg-current align-middle" />
@@ -116,7 +116,7 @@ function HoverColorAnnot({ label = 'hover color?', color = '#246bff', style, arr
       <span
         style={{
           color,
-          fontFamily: "'Comic Sans MS', 'Segoe Print', 'Bradley Hand', cursive",
+          fontFamily: "'Comic Neue', 'Comic Sans MS', 'Segoe Print', 'Bradley Hand', cursive",
           fontSize: '12px',
           transform: 'rotate(8deg)',
           display: 'inline-block',
@@ -146,7 +146,7 @@ function BackgroundIdeaNote({ className = '', arrowShift = '-60%' }) {
           transition={{ duration: 0.35, delay: 0.15 }}
           style={{
             color: '#e6019a',
-            fontFamily: "'Comic Sans MS', 'Segoe Print', 'Bradley Hand', cursive",
+            fontFamily: "'Comic Neue', 'Comic Sans MS', 'Segoe Print', 'Bradley Hand', cursive",
             fontSize: '16px',
             transform: 'rotate(-4deg)',
             whiteSpace: 'nowrap',
@@ -1139,7 +1139,7 @@ function About() {
                     variants={[
                       'मोहम्मद फ़वाज़ ओ',
                       'മുഹമ്മദ് ഫവാസ് ഒ',
-                      'முகம்மது ஃபவாஸ் ஓ',
+                      'محمد فواز أو',
                     ]}
                   />
                 </div>

@@ -310,7 +310,7 @@ function MainLayout() {
       <DesignModeProvider>
         <HeroScrollContext.Provider value={heroProgress}>
           <div className="relative min-h-screen flex flex-col bg-[#07090B]">
-            <style>{`@media (min-width: 768px) { *, *::before, *::after { cursor: none !important; } }`}</style>
+            <style>{`@media (min-width: 768px) { html.cube-cursor-active *, html.cube-cursor-active *::before, html.cube-cursor-active *::after { cursor: none !important; } }`}</style>
             <video
               ref={footerVideoRef}
               className="fixed inset-0 w-full h-full object-cover z-0"

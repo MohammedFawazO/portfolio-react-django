@@ -105,12 +105,12 @@ function Timeline() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: '-60px' }}
                   transition={{ duration: 0.6, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
-                  className="ct-panel bg-[#ADD8E6] p-7 sm:p-10 rounded-[5px] border-2 border-black shadow-[4px_4px_0_#000] relative"
+                  className="experience-card ct-panel bg-[#ADD8E6] p-7 sm:p-10 rounded-[5px] border-2 border-black shadow-[4px_4px_0_#000] relative"
                 >
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10">
                     {/* Left Column: Organization, Dates, Role */}
-                    <div className="lg:col-span-5 space-y-3 border-b-2 lg:border-b-0 lg:border-r-2 border-black/15 pb-6 lg:pb-0 lg:pr-8">
-                      <div className="flex items-center gap-2">
+                    <div className="lg:col-span-5 space-y-3 border-b-2 lg:border-b-0 lg:border-r-2 border-black/15 pb-6 lg:pb-0 lg:pr-8 max-md:text-center">
+                      <div className="experience-meta flex items-center gap-2 max-md:flex-wrap max-md:justify-center">
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white border-2 border-black rounded-lg shadow-[2px_2px_0_#000] text-[11px] font-mono text-[#2d8cf0] font-bold uppercase">
                           <Calendar className="w-3.5 h-3.5" />
                           {startDate} — {endDate}
@@ -123,11 +123,11 @@ function Timeline() {
                         )}
                       </div>
 
-                      <h3 className="font-(family-name:--font-display) text-[24px] sm:text-[28px] font-bold text-black leading-tight pt-1">
+                      <h3 className="font-(family-name:--font-display) text-[24px] sm:text-[28px] font-bold text-black leading-tight pt-1 max-md:text-center">
                         {exp.title}
                       </h3>
 
-                      <div className="flex flex-wrap items-center gap-3 text-[14px] text-[#444] font-medium pt-1">
+                      <div className="experience-meta flex flex-wrap items-center gap-3 text-[14px] text-[#444] font-medium pt-1 max-md:justify-center">
                         <span className="inline-flex items-center gap-1.5">
                           <Briefcase className="w-4 h-4 text-[#2d8cf0]" />
                           {exp.company}
@@ -143,7 +143,7 @@ function Timeline() {
 
                     {/* Right Column: Detailed narrative & Tech badges */}
                     <div className="lg:col-span-7 flex flex-col justify-between">
-                      <p className="text-[15px] sm:text-[16px] text-[#444] leading-[1.8] font-normal mb-6">
+                      <p className="text-[15px] sm:text-[16px] text-[#444] leading-[1.8] font-normal mb-6 max-md:text-center">
                         {exp.description}
                       </p>
 
@@ -167,7 +167,7 @@ function Timeline() {
         >
           <Link
             to="/resume"
-            className="inline-flex items-center gap-2.5 px-6 py-3.5 bg-[#ADD8E6] text-black font-semibold rounded-full border-2 border-black shadow-[4px_4px_0_#000] hover:bg-[#2d8cf0] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0_#000] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all font-mono text-xs uppercase tracking-wider"
+            className="section-cta inline-flex items-center gap-2.5 px-6 py-3.5 bg-[#ADD8E6] text-black font-semibold rounded-full border-2 border-black shadow-[4px_4px_0_#000] hover:bg-[#2d8cf0] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0_#000] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all font-mono text-xs uppercase tracking-wider"
           >
             View Full Career History
             <ArrowRight className="w-4 h-4" />

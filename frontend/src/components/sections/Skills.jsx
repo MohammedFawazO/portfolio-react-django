@@ -60,6 +60,22 @@ function Skills() {
   const [skills, setSkills] = useState([])
   const [loading, setLoading] = useState(true)
   const [hoveredIdx, setHoveredIdx] = useState(null)
+  const [activeIdx, setActiveIdx] = useState(null)
+
+  const toggleActive = (index) => {
+    if (typeof window !== 'undefined' && window.innerWidth >= 768) return
+    setActiveIdx((prev) => (prev === index ? null : index))
+  }
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 768px)')
+    const onChange = (event) => {
+      setHoveredIdx(null)
+      if (event.matches) setActiveIdx(null)
+    }
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
 
   const ADJACENT_MAP = {
     0: [1, 6], 1: [0, 2, 6, 7], 2: [1, 3, 7, 8], 3: [2, 4, 8, 9], 4: [3, 5, 9, 10], 5: [4, 10],
@@ -154,20 +170,25 @@ function Skills() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: i * 0.05 }}
-                onMouseEnter={() => setHoveredIdx(globalIdx)}
-                onMouseLeave={() => setHoveredIdx(null)}
-                className={`group/card w-20 h-20 sm:w-24 sm:h-24 bg-white/20 backdrop-blur-md rounded-[16px] border border-white/40 shadow-[3px_3px_0_rgba(0,0,0,0.15)] flex flex-col items-center justify-center gap-1.5 text-black overflow-hidden p-2 perspective-[600px] transform-3d transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:-translate-y-3 hover:-rotate-2 hover:scale-105 hover:z-10 hover:shadow-[6px_6px_15px_rgba(0,0,0,0.15)] ${isRipple ? 'scale-105 -rotate-1 shadow-[6px_6px_15px_rgba(45,140,240,0.15)] -translate-y-0.5' : ''}`}
+                onMouseEnter={() => {
+                  if (window.innerWidth >= 768) setHoveredIdx(globalIdx)
+                }}
+                onMouseLeave={() => {
+                  if (window.innerWidth >= 768) setHoveredIdx(null)
+                }}
+                onClick={() => toggleActive(globalIdx)}
+                className={`group/card w-20 h-20 sm:w-24 sm:h-24 bg-white/20 max-md:cursor-pointer backdrop-blur-md rounded-[16px] border border-white/40 shadow-[3px_3px_0_rgba(0,0,0,0.15)] flex flex-col items-center justify-center gap-1.5 text-black overflow-hidden p-2 perspective-[600px] transform-3d transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:-translate-y-3 hover:-rotate-2 hover:scale-105 hover:z-10 hover:shadow-[6px_6px_15px_rgba(0,0,0,0.15)] ${isRipple ? 'scale-105 -rotate-1 shadow-[6px_6px_15px_rgba(45,140,240,0.15)] -translate-y-0.5' : ''}`}
               >
                 {tech.svg ? (
-                  <span className="w-7 h-7 flex items-center justify-center grayscale group-hover/card:grayscale-0 transition-all duration-300 ease-in-out group-hover/card:drop-shadow-[0_0_8px_#2d8cf0] group-hover/card:scale-110">{tech.svg}</span>
+                  <span className={`w-7 h-7 flex items-center justify-center group-hover/card:grayscale-0 transition-all duration-300 ease-in-out group-hover/card:drop-shadow-[0_0_8px_#2d8cf0] group-hover/card:scale-110 ${activeIdx === globalIdx ? 'grayscale-0 drop-shadow-[0_0_8px_#2d8cf0] scale-110' : 'grayscale'}`}>{tech.svg}</span>
                 ) : tech.name === 'Railway' ? (
                   <div className="w-8 h-8 rounded-full bg-black flex items-center justify-center overflow-hidden">
-                    <img src={tech.image} alt={tech.name} className="h-5 w-auto object-contain grayscale group-hover/card:grayscale-0 transition-all duration-300 ease-in-out group-hover/card:scale-110" />
+                    <img src={tech.image} alt={tech.name} className={`h-5 w-auto object-contain group-hover/card:grayscale-0 transition-all duration-300 ease-in-out group-hover/card:scale-110 ${activeIdx === globalIdx ? 'grayscale-0 scale-110' : 'grayscale'}`} />
                   </div>
                 ) : (
-                  <img src={tech.image} alt={tech.name} className="h-7 w-auto object-contain grayscale group-hover/card:grayscale-0 transition-all duration-300 ease-in-out group-hover/card:scale-110" />
+                  <img src={tech.image} alt={tech.name} className={`h-7 w-auto object-contain group-hover/card:grayscale-0 transition-all duration-300 ease-in-out group-hover/card:scale-110 ${activeIdx === globalIdx ? 'grayscale-0 scale-110' : 'grayscale'}`} />
                 )}
-                <span className="font-(family-name:--font-display) text-[10px] sm:text-[11px] font-bold text-center leading-tight group-hover/card:text-[#2d8cf0] transition-colors">{tech.name}</span>
+                <span className={`font-(family-name:--font-display) text-[10px] sm:text-[11px] font-bold text-center leading-tight group-hover/card:text-[#2d8cf0] transition-colors ${activeIdx === globalIdx ? 'text-[#2d8cf0]' : ''}`}>{tech.name}</span>
               </motion.div>
             )})}
           </div>
@@ -182,20 +203,25 @@ function Skills() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.3 + i * 0.05 }}
-                onMouseEnter={() => setHoveredIdx(globalIdx)}
-                onMouseLeave={() => setHoveredIdx(null)}
-                className={`group/card w-20 h-20 sm:w-24 sm:h-24 bg-white/20 backdrop-blur-md rounded-[16px] border border-white/40 shadow-[3px_3px_0_rgba(0,0,0,0.15)] flex flex-col items-center justify-center gap-1.5 text-black overflow-hidden p-2 perspective-[600px] transform-3d transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:-translate-y-3 hover:-rotate-2 hover:scale-105 hover:z-10 hover:shadow-[6px_6px_15px_rgba(0,0,0,0.15)] ${isRipple ? 'scale-105 -rotate-1 shadow-[6px_6px_15px_rgba(45,140,240,0.15)] -translate-y-0.5' : ''}`}
+                onMouseEnter={() => {
+                  if (window.innerWidth >= 768) setHoveredIdx(globalIdx)
+                }}
+                onMouseLeave={() => {
+                  if (window.innerWidth >= 768) setHoveredIdx(null)
+                }}
+                onClick={() => toggleActive(globalIdx)}
+                className={`group/card w-20 h-20 sm:w-24 sm:h-24 bg-white/20 max-md:cursor-pointer backdrop-blur-md rounded-[16px] border border-white/40 shadow-[3px_3px_0_rgba(0,0,0,0.15)] flex flex-col items-center justify-center gap-1.5 text-black overflow-hidden p-2 perspective-[600px] transform-3d transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:-translate-y-3 hover:-rotate-2 hover:scale-105 hover:z-10 hover:shadow-[6px_6px_15px_rgba(0,0,0,0.15)] ${isRipple ? 'scale-105 -rotate-1 shadow-[6px_6px_15px_rgba(45,140,240,0.15)] -translate-y-0.5' : ''}`}
               >
                 {tech.svg ? (
-                  <span className="w-7 h-7 flex items-center justify-center grayscale group-hover/card:grayscale-0 transition-all duration-300 ease-in-out group-hover/card:drop-shadow-[0_0_8px_#2d8cf0] group-hover/card:scale-110">{tech.svg}</span>
+                  <span className={`w-7 h-7 flex items-center justify-center group-hover/card:grayscale-0 transition-all duration-300 ease-in-out group-hover/card:drop-shadow-[0_0_8px_#2d8cf0] group-hover/card:scale-110 ${activeIdx === globalIdx ? 'grayscale-0 drop-shadow-[0_0_8px_#2d8cf0] scale-110' : 'grayscale'}`}>{tech.svg}</span>
                 ) : tech.name === 'Railway' ? (
                   <div className="w-8 h-8 rounded-full bg-black flex items-center justify-center overflow-hidden">
-                    <img src={tech.image} alt={tech.name} className="h-5 w-auto object-contain grayscale group-hover/card:grayscale-0 transition-all duration-300 ease-in-out group-hover/card:scale-110" />
+                    <img src={tech.image} alt={tech.name} className={`h-5 w-auto object-contain group-hover/card:grayscale-0 transition-all duration-300 ease-in-out group-hover/card:scale-110 ${activeIdx === globalIdx ? 'grayscale-0 scale-110' : 'grayscale'}`} />
                   </div>
                 ) : (
-                  <img src={tech.image} alt={tech.name} className="h-7 w-auto object-contain grayscale group-hover/card:grayscale-0 transition-all duration-300 ease-in-out group-hover/card:scale-110" />
+                  <img src={tech.image} alt={tech.name} className={`h-7 w-auto object-contain group-hover/card:grayscale-0 transition-all duration-300 ease-in-out group-hover/card:scale-110 ${activeIdx === globalIdx ? 'grayscale-0 scale-110' : 'grayscale'}`} />
                 )}
-                <span className="font-(family-name:--font-display) text-[10px] sm:text-[11px] font-bold text-center leading-tight group-hover/card:text-[#2d8cf0] transition-colors">{tech.name}</span>
+                <span className={`font-(family-name:--font-display) text-[10px] sm:text-[11px] font-bold text-center leading-tight group-hover/card:text-[#2d8cf0] transition-colors ${activeIdx === globalIdx ? 'text-[#2d8cf0]' : ''}`}>{tech.name}</span>
               </motion.div>
             )})}
           </div>
@@ -210,20 +236,25 @@ function Skills() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.5 + i * 0.05 }}
-                onMouseEnter={() => setHoveredIdx(globalIdx)}
-                onMouseLeave={() => setHoveredIdx(null)}
-                className={`group/card w-20 h-20 sm:w-24 sm:h-24 bg-white/20 backdrop-blur-md rounded-[16px] border border-white/40 shadow-[3px_3px_0_rgba(0,0,0,0.15)] flex flex-col items-center justify-center gap-1.5 text-black overflow-hidden p-2 perspective-[600px] transform-3d transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:-translate-y-3 hover:-rotate-2 hover:scale-105 hover:z-10 hover:shadow-[6px_6px_15px_rgba(0,0,0,0.15)] ${isRipple ? 'scale-105 -rotate-1 shadow-[6px_6px_15px_rgba(45,140,240,0.15)] -translate-y-0.5' : ''}`}
+                onMouseEnter={() => {
+                  if (window.innerWidth >= 768) setHoveredIdx(globalIdx)
+                }}
+                onMouseLeave={() => {
+                  if (window.innerWidth >= 768) setHoveredIdx(null)
+                }}
+                onClick={() => toggleActive(globalIdx)}
+                className={`group/card w-20 h-20 sm:w-24 sm:h-24 bg-white/20 max-md:cursor-pointer backdrop-blur-md rounded-[16px] border border-white/40 shadow-[3px_3px_0_rgba(0,0,0,0.15)] flex flex-col items-center justify-center gap-1.5 text-black overflow-hidden p-2 perspective-[600px] transform-3d transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:-translate-y-3 hover:-rotate-2 hover:scale-105 hover:z-10 hover:shadow-[6px_6px_15px_rgba(0,0,0,0.15)] ${isRipple ? 'scale-105 -rotate-1 shadow-[6px_6px_15px_rgba(45,140,240,0.15)] -translate-y-0.5' : ''}`}
               >
                 {tech.svg ? (
-                  <span className="w-7 h-7 flex items-center justify-center grayscale group-hover/card:grayscale-0 transition-all duration-300 ease-in-out group-hover/card:drop-shadow-[0_0_8px_#2d8cf0] group-hover/card:scale-110">{tech.svg}</span>
+                  <span className={`w-7 h-7 flex items-center justify-center group-hover/card:grayscale-0 transition-all duration-300 ease-in-out group-hover/card:drop-shadow-[0_0_8px_#2d8cf0] group-hover/card:scale-110 ${activeIdx === globalIdx ? 'grayscale-0 drop-shadow-[0_0_8px_#2d8cf0] scale-110' : 'grayscale'}`}>{tech.svg}</span>
                 ) : tech.name === 'Railway' ? (
                   <div className="w-8 h-8 rounded-full bg-black flex items-center justify-center overflow-hidden">
-                    <img src={tech.image} alt={tech.name} className="h-5 w-auto object-contain grayscale group-hover/card:grayscale-0 transition-all duration-300 ease-in-out group-hover/card:scale-110" />
+                    <img src={tech.image} alt={tech.name} className={`h-5 w-auto object-contain group-hover/card:grayscale-0 transition-all duration-300 ease-in-out group-hover/card:scale-110 ${activeIdx === globalIdx ? 'grayscale-0 scale-110' : 'grayscale'}`} />
                   </div>
                 ) : (
-                  <img src={tech.image} alt={tech.name} className="h-7 w-auto object-contain grayscale group-hover/card:grayscale-0 transition-all duration-300 ease-in-out group-hover/card:scale-110" />
+                  <img src={tech.image} alt={tech.name} className={`h-7 w-auto object-contain group-hover/card:grayscale-0 transition-all duration-300 ease-in-out group-hover/card:scale-110 ${activeIdx === globalIdx ? 'grayscale-0 scale-110' : 'grayscale'}`} />
                 )}
-                <span className="font-(family-name:--font-display) text-[10px] sm:text-[11px] font-bold text-center leading-tight group-hover/card:text-[#2d8cf0] transition-colors">{tech.name}</span>
+                <span className={`font-(family-name:--font-display) text-[10px] sm:text-[11px] font-bold text-center leading-tight group-hover/card:text-[#2d8cf0] transition-colors ${activeIdx === globalIdx ? 'text-[#2d8cf0]' : ''}`}>{tech.name}</span>
               </motion.div>
             )})}
           </div>
@@ -238,20 +269,25 @@ function Skills() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.8 + i * 0.05 }}
-                onMouseEnter={() => setHoveredIdx(globalIdx)}
-                onMouseLeave={() => setHoveredIdx(null)}
-                className={`group/card w-20 h-20 sm:w-24 sm:h-24 bg-white/20 backdrop-blur-md rounded-[16px] border border-white/40 shadow-[3px_3px_0_rgba(0,0,0,0.15)] flex flex-col items-center justify-center gap-1.5 text-black overflow-hidden p-2 perspective-[600px] transform-3d transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:-translate-y-3 hover:-rotate-2 hover:scale-105 hover:z-10 hover:shadow-[6px_6px_15px_rgba(0,0,0,0.15)] ${isRipple ? 'scale-105 -rotate-1 shadow-[6px_6px_15px_rgba(45,140,240,0.15)] -translate-y-0.5' : ''}`}
+                onMouseEnter={() => {
+                  if (window.innerWidth >= 768) setHoveredIdx(globalIdx)
+                }}
+                onMouseLeave={() => {
+                  if (window.innerWidth >= 768) setHoveredIdx(null)
+                }}
+                onClick={() => toggleActive(globalIdx)}
+                className={`group/card w-20 h-20 sm:w-24 sm:h-24 bg-white/20 max-md:cursor-pointer backdrop-blur-md rounded-[16px] border border-white/40 shadow-[3px_3px_0_rgba(0,0,0,0.15)] flex flex-col items-center justify-center gap-1.5 text-black overflow-hidden p-2 perspective-[600px] transform-3d transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:-translate-y-3 hover:-rotate-2 hover:scale-105 hover:z-10 hover:shadow-[6px_6px_15px_rgba(0,0,0,0.15)] ${isRipple ? 'scale-105 -rotate-1 shadow-[6px_6px_15px_rgba(45,140,240,0.15)] -translate-y-0.5' : ''}`}
               >
                 {tech.svg ? (
-                  <span className="w-7 h-7 flex items-center justify-center grayscale group-hover/card:grayscale-0 transition-all duration-300 ease-in-out group-hover/card:drop-shadow-[0_0_8px_#2d8cf0] group-hover/card:scale-110">{tech.svg}</span>
+                  <span className={`w-7 h-7 flex items-center justify-center group-hover/card:grayscale-0 transition-all duration-300 ease-in-out group-hover/card:drop-shadow-[0_0_8px_#2d8cf0] group-hover/card:scale-110 ${activeIdx === globalIdx ? 'grayscale-0 drop-shadow-[0_0_8px_#2d8cf0] scale-110' : 'grayscale'}`}>{tech.svg}</span>
                 ) : tech.name === 'Railway' ? (
                   <div className="w-8 h-8 rounded-full bg-black flex items-center justify-center overflow-hidden">
-                    <img src={tech.image} alt={tech.name} className="h-5 w-auto object-contain grayscale group-hover/card:grayscale-0 transition-all duration-300 ease-in-out group-hover/card:scale-110" />
+                    <img src={tech.image} alt={tech.name} className={`h-5 w-auto object-contain group-hover/card:grayscale-0 transition-all duration-300 ease-in-out group-hover/card:scale-110 ${activeIdx === globalIdx ? 'grayscale-0 scale-110' : 'grayscale'}`} />
                   </div>
                 ) : (
-                  <img src={tech.image} alt={tech.name} className="h-7 w-auto object-contain grayscale group-hover/card:grayscale-0 transition-all duration-300 ease-in-out group-hover/card:scale-110" />
+                  <img src={tech.image} alt={tech.name} className={`h-7 w-auto object-contain group-hover/card:grayscale-0 transition-all duration-300 ease-in-out group-hover/card:scale-110 ${activeIdx === globalIdx ? 'grayscale-0 scale-110' : 'grayscale'}`} />
                 )}
-                <span className="font-(family-name:--font-display) text-[10px] sm:text-[11px] font-bold text-center leading-tight group-hover/card:text-[#2d8cf0] transition-colors">{tech.name}</span>
+                <span className={`font-(family-name:--font-display) text-[10px] sm:text-[11px] font-bold text-center leading-tight group-hover/card:text-[#2d8cf0] transition-colors ${activeIdx === globalIdx ? 'text-[#2d8cf0]' : ''}`}>{tech.name}</span>
               </motion.div>
             )})}
           </div>
@@ -268,7 +304,7 @@ function Skills() {
         >
           <Link
             to="/about"
-            className="inline-flex items-center gap-2.5 px-6 py-3.5 bg-[#ADD8E6] text-black font-semibold rounded-full border-2 border-black shadow-[4px_4px_0_#000] hover:bg-[#2d8cf0] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0_#000] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all font-mono text-xs uppercase tracking-wider"
+            className="section-cta inline-flex items-center gap-2.5 px-6 py-3.5 bg-[#ADD8E6] text-black font-semibold rounded-full border-2 border-black shadow-[4px_4px_0_#000] hover:bg-[#2d8cf0] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0_#000] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all font-mono text-xs uppercase tracking-wider"
           >
             Explore Technical Background
             <ArrowRight className="w-4 h-4" />

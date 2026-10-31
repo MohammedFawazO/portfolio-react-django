@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
+import { useDesignMode } from '../../context/DesignModeContext'
 function vec2(x, y) {
   return {
     x, y,
@@ -69,7 +70,9 @@ export default function CustomCursor() {
   const cursorRef = useRef(null)
   const ctaRef = useRef(null)
   const menuBtnRef = useRef(null)
+  const { designModeActive } = useDesignMode()
   const [enabled, setEnabled] = useState(isCursorSupported)
+  const [modeHidden, setModeHidden] = useState(false)
 
   // Re-evaluate on resize / rotation so a window dragged across the desktop
   // breakpoint boundary (or a phone turning landscape) picks the cursor up or
@@ -85,10 +88,35 @@ export default function CustomCursor() {
     }
   }, [])
 
+  // About's test, matrix ("code") and design themes replace the pointer with
+  // their own visual language, so the cube steps aside there and the native
+  // cursor comes back. The two html classes are the same markers About already
+  // uses for those themes; design mode is context state.
+  useEffect(() => {
+    if (typeof document === 'undefined') return undefined
+    const root = document.documentElement
+    const sync = () => {
+      const hidden = enabled && (
+        designModeActive ||
+        root.classList.contains('about-test-nav') ||
+        root.classList.contains('about-matrix-nav')
+      )
+      setModeHidden(hidden)
+      root.classList.toggle('cube-cursor-active', enabled && !hidden)
+    }
+    sync()
+    const observer = new MutationObserver(sync)
+    observer.observe(root, { attributes: true, attributeFilter: ['class'] })
+    return () => {
+      observer.disconnect()
+      root.classList.remove('cube-cursor-active')
+    }
+  }, [enabled, designModeActive])
+
   useEffect(() => {
     // Disabled means the refs below were never rendered, so bail before
     // touching them.
-    if (!enabled) return undefined
+    if (!enabled || modeHidden) return undefined
     class CursorClass {
       constructor(targetEl) {
         this.el = targetEl
@@ -341,26 +369,19 @@ export default function CustomCursor() {
     }
 
     return init()
-  }, [enabled])
+  }, [enabled, modeHidden])
 
-  // Nothing at all on mobile: no markup, no stylesheet, so the native cursor
-  // and the native hover styles stay untouched.
-  if (!enabled) {
-    // Hide native cursor even before the cube appears, so nothing leaks.
-    return (
-      <style>{`
-        @media (min-width: 768px) {
-          *, *::before, *::after { cursor: none !important; }
-        }
-      `}</style>
-    )
-  }
+  // Nothing at all on mobile or in the About themes that opt out: no markup,
+  // no stylesheet, so the native cursor and its hover styles stay untouched.
+  if (!enabled || modeHidden) return null
 
   return (
     <>
       <style>{`
         @media (min-width: 768px) {
-          *, *::before, *::after { cursor: none !important; }
+          html.cube-cursor-active *,
+          html.cube-cursor-active *::before,
+          html.cube-cursor-active *::after { cursor: none !important; }
         }
         .cursor {
           width: 70.4px; height: 70.4px;

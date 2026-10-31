@@ -224,7 +224,7 @@ export default function DesignModeConnectButton({
         .design-connect-label {
           position: relative;
           z-index: 2;
-          font-family: "Comic Sans MS", "Segoe Print", "Bradley Hand", cursive;
+          font-family: "Comic Neue", "Comic Sans MS", "Segoe Print", "Bradley Hand", cursive;
           font-size: 42px;
           font-weight: 400;
           letter-spacing: -1.5px;
@@ -269,7 +269,7 @@ export default function DesignModeConnectButton({
           left: 184px;
           top: 151px;
           color: #8a8f91;
-          font-family: "Comic Sans MS", "Segoe Print", "Bradley Hand", cursive;
+          font-family: "Comic Neue", "Comic Sans MS", "Segoe Print", "Bradley Hand", cursive;
           font-size: 36px;
           font-weight: 400;
           transform: rotate(-2deg);
@@ -294,7 +294,7 @@ export default function DesignModeConnectButton({
           left: 435px;
           top: 180px;
           color: #f05b9b;
-          font-family: "Comic Sans MS", "Segoe Print", "Bradley Hand", cursive;
+          font-family: "Comic Neue", "Comic Sans MS", "Segoe Print", "Bradley Hand", cursive;
           font-size: 32px;
           font-weight: 600;
           white-space: nowrap;

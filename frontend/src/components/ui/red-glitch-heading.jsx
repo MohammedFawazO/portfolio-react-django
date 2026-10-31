@@ -103,7 +103,7 @@ export function RedGlitchHeading({
   variants = [
     'मोहम्मद फ़वाज़ ओ',
     'മുഹമ്മദ് ഫവാസ് ഒ',
-    'முகம்மது ஃபவாஸ் ஓ',
+    'محمد فواز أو',
   ],
   className = '',
   interval = 3200,
