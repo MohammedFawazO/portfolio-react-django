@@ -34,7 +34,7 @@ const TOUCH_SWIPE_FACTOR = 1.1
 const TOUCH_TAP_SLOP = 40
 const MOBILE_BREAKPOINT = 768
 const DESKTOP_INTRO_SRC = '/media/entry-intro.mp4'
-const MOBILE_INTRO_SRC = '/media/mobile%20intro%20.mp4'
+const MOBILE_INTRO_SRC = '/media/mobile-intro.mp4'
 // Temporary switch: the zoom into the scene is off on a phone while the
 // mobile overlays are sized by hand. Set it back to false when they are right.
 const MOBILE_ZOOM_OFF = false

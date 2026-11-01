@@ -6,7 +6,7 @@ import Container from '../ui/Container'
 /* Numbers mirror the stats band on the Projects page (Projects.jsx) and the
    Quick Info on the About page, so the two views never contradict each other. */
 const stats = [
-  { label: 'Projects Completed', value: '4', suffix: '' },
+  { label: 'Projects Completed', value: '3', suffix: '' },
   { label: 'Technologies Mastered', value: '16', suffix: '+' },
   { label: 'Years Freelance', value: '1', suffix: '+' },
   { label: 'Client Builds Live', value: '2', suffix: '' },

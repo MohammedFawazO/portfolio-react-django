@@ -571,7 +571,7 @@ function About() {
     preload('/media/design.png', designCanvasRef)
     preload('/media/test.png', testCanvasRef)
     const pt = new Image()
-    pt.src = '/media/about default.png'
+    pt.src = '/media/about-default.png'
     portraitImgRef.current = pt
     maskRef.current = document.createElement('canvas')
     inkRef.current = document.createElement('canvas')
@@ -1526,7 +1526,7 @@ key="default"
                     />
                   )}
                   <img
-                    src="/media/about%20default.png"
+                    src="/media/about-default.png"
                     alt="Mohammed Fawaz O"
                     className="relative z-20 w-full h-full min-h-95 sm:min-h-105 lg:min-h-100 object-cover cursor-pointer"
                   />

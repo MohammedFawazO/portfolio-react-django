@@ -3490,6 +3490,13 @@ select.ct-input option {
   left: 32%;
 }
 
+/* Lift the Personal Portfolio portrait higher so it clears the screenshot */
+.podium-object--portfolio {
+  bottom: 48%;
+  width: 34%;
+  left: 30%;
+}
+
 .podium-item.podium-left .podium-caption-eyebrow,
 .podium-item.podium-right .podium-caption-eyebrow {
   margin-top: 8px;
@@ -3779,7 +3786,7 @@ select.ct-input option {
   text-align: left;
 
   background-color: #0b1418;
-  background-image: url('/media/Cyan-Lit%20Minimalist%20Tech%20Workspace.webp');
+  background-image: url('/media/tech-workspace.webp');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

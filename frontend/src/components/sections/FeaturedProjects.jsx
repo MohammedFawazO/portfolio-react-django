@@ -17,7 +17,7 @@ const PROMINENT_PROJECT = {
     'CarCure is an automotive platform I built for the UAE market, covering spare parts, vehicle services, maintenance bookings, and customer enquiries. The project includes separate dashboards for customers and staff, vehicle management, and service request workflows, with each feature built around how the platform is actually used. The backend runs on Django and Django REST Framework, with Supabase handling authentication and cloud storage.',
   tags: ['Python', 'Django', 'Django REST Framework', 'Supabase', 'PostgreSQL', 'Render', 'Cloudflare'],
   preview: '/media/carcure.png',
-  images: ['/media/carcure.png', '/media/website img.png', '/media/carcure-2.png', '/media/carcure-3.png'],
+  images: ['/media/carcure.png', '/media/website-img.png', '/media/carcure-2.png', '/media/carcure-3.png'],
   live: 'https://carcure.ae/',
   github: '',
 }
@@ -30,8 +30,8 @@ const SUPPORTING_PROJECTS = [
     description:
       'A company website built for a marine machinery and engineering business in Fujairah, UAE. The site presents the company\'s services, technical capabilities, and business information in a clean, responsive layout that works across mobile and desktop. Designed to give visitors a clear picture of what the company does and make its services easy to explore.',
     tags: ['HTML5', 'CSS3', 'JavaScript', 'Responsive UI', 'UI/UX'],
-    preview: '/media/hull machine.png',
-    images: ['/media/hull machine.png', '/media/website img-2.png', '/media/alshamil-2.png', '/media/alshamil-3.png'],
+    preview: '/media/hull-machine.png',
+    images: ['/media/hull-machine.png', '/media/website-img-2.png', '/media/alshamil-2.png', '/media/alshamil-3.png'],
     live: 'https://alshamilturning.com/',
     github: '',
   },
@@ -42,8 +42,8 @@ const SUPPORTING_PROJECTS = [
     description:
       'My own portfolio, built with React to showcase my projects, skills, and development journey. Beyond a traditional portfolio, it features interactive 3D scenes and smooth animations. I built it to experiment with modern frontend techniques while creating a space that reflects my work and the way I approach development.',
     tags: ['React', 'Tailwind CSS', 'Framer Motion', 'Three.js', 'Vite'],
-    preview: '/media/about default.png',
-    images: ['/media/about default.png', '/media/home.png', '/media/about.png', '/media/projects.png'],
+    preview: '/media/about-default.png',
+    images: ['/media/about-default.png', '/media/home.png', '/media/about.png', '/media/projects.png'],
     live: '',
     github: 'https://github.com/MohammedFawazO/portfolio-react-django.git',
   },
@@ -91,8 +91,8 @@ const easeOutCubic = (value) => 1 - Math.pow(1 - value, 3)
 // Photos shot in 3:2 read as oversized next to the wide screenshots, so these
 // render at half the image box.
 const IMAGE_SCALES = {
-  '/media/hull machine.png': 0.5,
-  '/media/about default.png': 0.72,
+  '/media/hull-machine.png': 0.5,
+  '/media/about-default.png': 0.72,
 }
 
 const projectHref = (project) => {

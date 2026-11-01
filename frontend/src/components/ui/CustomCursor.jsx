@@ -88,10 +88,10 @@ export default function CustomCursor() {
     }
   }, [])
 
-  // About's test, matrix ("code") and design themes replace the pointer with
-  // their own visual language, so the cube steps aside there and the native
-  // cursor comes back. The two html classes are the same markers About already
-  // uses for those themes; design mode is context state.
+  // About's blueprint, test, matrix ("code") and design themes replace the
+  // pointer with their own visual language, so the cube steps aside there and
+  // the native cursor comes back. The html classes are the same markers About
+  // already uses for those themes; design mode is context state.
   useEffect(() => {
     if (typeof document === 'undefined') return undefined
     const root = document.documentElement
@@ -99,7 +99,8 @@ export default function CustomCursor() {
       const hidden = enabled && (
         designModeActive ||
         root.classList.contains('about-test-nav') ||
-        root.classList.contains('about-matrix-nav')
+        root.classList.contains('about-matrix-nav') ||
+        root.classList.contains('about-blueprint-nav')
       )
       setModeHidden(hidden)
       root.classList.toggle('cube-cursor-active', enabled && !hidden)
@@ -269,7 +270,7 @@ export default function CustomCursor() {
         })
 
         const hoverSelector =
-          'a, button, [role="button"], input, textarea, select, [data-hover], [data-hover-bounds], [class*="hover:"], [class*="cursor-pointer"]'
+          'a, button, [role="button"], input, textarea, select, .about-badge, [data-hover], [data-hover-bounds], [class*="hover:"], [class*="cursor-pointer"]'
 
         this.onPointerOver = (event) => {
           const target = event.target
@@ -411,9 +412,11 @@ export default function CustomCursor() {
           position: absolute;
           inset: 0;
           border: 2px solid rgba(0, 0, 0, 0.92);
-          background-color: #fff;
+          background-color: rgba(255, 255, 255, 0.15);
           opacity: 1;
           backface-visibility: hidden;
+          -webkit-backdrop-filter: invert(1);
+          backdrop-filter: invert(1);
         }
         /* front & back */
         .spinner > div:nth-of-type(1) {
@@ -424,12 +427,6 @@ export default function CustomCursor() {
           width: 60px; height: 60px;
           transform: translate(-50%, -50%) translateZ(-30px) rotateY(180deg);
         }
-        .spinner > div:nth-of-type(2) > .face {
-          -webkit-backdrop-filter: contrast(3) saturate(1.4);
-          backdrop-filter: contrast(3) saturate(1.4);
-          -webkit-backdrop-filter: url(#ct-posterize);
-          backdrop-filter: url(#ct-posterize);
-        }
         /* right & left */
         .spinner > div:nth-of-type(3) {
           width: var(--depth); height: 60px;
@@ -439,22 +436,10 @@ export default function CustomCursor() {
           width: var(--depth); height: 60px;
           transform: translate(-50%, -50%) rotateY(-90deg) translateZ(30px);
         }
-        .spinner > div:nth-of-type(4) > .face {
-          -webkit-backdrop-filter: blur(3px) contrast(3) saturate(1.5);
-          backdrop-filter: blur(3px) contrast(3) saturate(1.5);
-          -webkit-backdrop-filter: url(#ct-pixelate);
-          backdrop-filter: url(#ct-pixelate);
-        }
         /* top & bottom */
         .spinner > div:nth-of-type(5) {
           width: 60px; height: var(--depth);
           transform: translate(-50%, -50%) rotateX(90deg) translateZ(30px);
-        }
-        .spinner > div:nth-of-type(5) > .face {
-          -webkit-backdrop-filter: saturate(3) contrast(2);
-          backdrop-filter: saturate(3) contrast(2);
-          -webkit-backdrop-filter: url(#ct-glitch);
-          backdrop-filter: url(#ct-glitch);
         }
         .spinner > div:nth-of-type(6) {
           width: 60px; height: var(--depth);

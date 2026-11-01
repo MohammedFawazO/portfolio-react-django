@@ -29,8 +29,8 @@ function Hero() {
   // instead of navigating.
   const handleResumeDownload = () => {
     const a = document.createElement('a')
-    a.href = '/media/cv/it-software-support.pdf'
-    a.download = 'Mohammed-Fawaz-O-IT-Software-Support-CV.pdf'
+    a.href = '/media/cv/python-fullstack-developer.pdf'
+    a.download = 'Mohammed-Fawaz-O-Python-Fullstack-Developer-CV.pdf'
     document.body.appendChild(a)
     a.click()
     a.remove()

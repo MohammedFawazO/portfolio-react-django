@@ -20,6 +20,34 @@ const TECH_MAP = (() => {
   return map
 })()
 
+// Icons that live outside the hero marquee's list but are used by the
+// milestone stack marquees.
+TECH_MAP['bootstrap'] = {
+  name: 'Bootstrap',
+  image: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/bootstrap/bootstrap-original.svg',
+}
+TECH_MAP['drf'] = {
+  name: 'DRF',
+  image: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/djangorest/djangorest-plain.svg',
+}
+TECH_MAP['vite'] = {
+  name: 'Vite',
+  image: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/vitejs/vitejs-original.svg',
+}
+TECH_MAP['three.js'] = {
+  name: 'Three.js',
+  image: 'https://cdn.simpleicons.org/threedotjs/white',
+}
+TECH_MAP['framer motion'] = {
+  name: 'Framer Motion',
+  image: 'https://cdn.simpleicons.org/framer',
+}
+TECH_MAP['gsap'] = {
+  name: 'GSAP',
+  image: 'https://cdn.simpleicons.org/gsap',
+}
+TECH_MAP['tailwind css'] = TECH_MAP['tailwind']
+
 const ResponsiveDesignIcon = (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -95,6 +123,13 @@ const slideVariants = {
 // Unknown keys render nothing, so a missing icon degrades to plain text.
 const HIGHLIGHT_ICONS = {
   box: <path d="M21 8l-9-5-9 5m18 0l-9 5m9-5v8l-9 5m0-8L3 8m9 5v8" />,
+  vr: (
+    <>
+      <path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h13A2.5 2.5 0 0 1 21 8.5v7a2.5 2.5 0 0 1-2.5 2.5h-2.2l-2-2.5H9.7l-2 2.5H5.5A2.5 2.5 0 0 1 3 15.5v-7z" />
+      <circle cx="8" cy="12" r="1.8" />
+      <circle cx="16" cy="12" r="1.8" />
+    </>
+  ),
   bag: <path d="M6 7V6a6 6 0 0 1 12 0v1M5 7h14l-1 13H6L5 7zM9.5 11v1a2.5 2.5 0 0 0 5 0v-1" />,
   gear: (
     <>
@@ -217,11 +252,80 @@ function HighlightIcon({ name }) {
   )
 }
 
+// One item-set is repeated until it comfortably outruns the viewport, then
+// duplicated for a seamless loop. Duration is derived from the measured width
+// so every milestone marquee scrolls at the same pixel-per-second speed.
+const MARQUEE_SPEED = 60
+
+function ProjectTechMarquee({ stack }) {
+  const trackRef = useRef(null)
+  const [duration, setDuration] = useState(null)
+  const repeats = Math.max(1, Math.ceil(12 / stack.length))
+  const items = Array.from({ length: repeats }, () => stack).flat()
+
+  useEffect(() => {
+    const track = trackRef.current
+    if (!track) return undefined
+    const measure = () => {
+      const half = track.scrollWidth / 2
+      if (half > 0) setDuration(half / MARQUEE_SPEED)
+    }
+    measure()
+    if (typeof ResizeObserver === 'undefined') return undefined
+    const observer = new ResizeObserver(measure)
+    observer.observe(track)
+    return () => observer.disconnect()
+  }, [items.length])
+
+  return (
+    <div className="relative overflow-hidden py-4">
+      <div
+        ref={trackRef}
+        className="flex w-max animate-marquee gap-12 whitespace-nowrap"
+        style={{
+          maskImage: 'linear-gradient(to right, transparent 0%, #000 8%, #000 92%, transparent 100%)',
+          WebkitMaskImage: 'linear-gradient(to right, transparent 0%, #000 8%, #000 92%, transparent 100%)',
+          animationDuration: duration ? `${duration}s` : undefined,
+        }}
+      >
+        {[...items, ...items].map((tech, i) => {
+          const match = TECH_MAP[tech.toLowerCase()]
+          return (
+            <div key={i} className="flex items-center gap-1.5">
+              {tech.toLowerCase() === 'responsive design' ? (
+                <span className="opacity-60">{ResponsiveDesignIcon}</span>
+              ) : match ? (
+                match.svg ? (
+                  <span className="opacity-60">{match.svg}</span>
+                ) : (
+                  <img
+                    src={match.image}
+                    alt={match.name}
+                    className="h-5 w-auto opacity-60"
+                    style={
+                      ['GitHub', 'Django', 'DRF', 'Vercel'].includes(match.name)
+                        ? { filter: 'invert(1)' }
+                        : undefined
+                    }
+                  />
+                )
+              ) : null}
+              <span className="text-[#59636E] text-sm font-medium tracking-wide">
+                {tech}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 const projectDetails = {
   'CarCure': {
     description:
       'An automotive marketplace and service platform for UAE drivers, pairing a genuine spare-parts catalogue with enquiry handling and maintenance scheduling. Django and DRF carry the backend, role-separated dashboards keep customers and staff on the same records, and Supabase handles accounts and file storage.',
-    tags: ['Python', 'Django', 'DRF', 'Bootstrap', 'Supabase', 'PostgreSQL', 'Render', 'Cloudflare'],
+    tags: ['Python', 'Django', 'DRF', 'Bootstrap', 'Supabase', 'PostgreSQL', 'Render', 'Vercel', 'Responsive Design'],
     highlights: [
       { icon: 'gear', title: 'Parts Catalogue', text: 'Genuine spares browsable by make, model and year.' },
       { icon: 'search', title: 'Enquiry Handling', text: 'Customers raise a parts enquiry, staff answer from the same thread.' },
@@ -275,9 +379,9 @@ const projectDetails = {
 const MILESTONES = [
   {
 id: 'jar',
-      title: 'Coming Soon!',
+      title: 'Coming Soon',
       badge: '',
-      milestone: '/media/jar-coming soon.png',
+      milestone: '/media/jar-coming-soon.png',
       tilt: false,
       front: null,
       caption: true,
@@ -287,7 +391,7 @@ id: 'jar',
     title: 'CarCure',
     eyebrow: 'E-commerce',
     badge: 'Featured',
-    milestone: '/media/website img.png',
+    milestone: '/media/website-img.png',
     tilt: true,
     front: '/media/carcure.png',
     caption: true,
@@ -297,9 +401,19 @@ id: 'jar',
     title: 'AL Shamil Turning',
     eyebrow: 'Portfolio',
     badge: '',
-    milestone: '/media/website img-2.png',
+    milestone: '/media/website-img-2.png',
     tilt: true,
-    front: '/media/hull machine.png',
+    front: '/media/hull-machine.png',
+    caption: true,
+  },
+  {
+    id: 'portfolio',
+    title: 'Personal Portfolio',
+    eyebrow: 'Portfolio',
+    badge: '',
+    milestone: '/media/home.png',
+    tilt: true,
+    front: '/media/about-default.png',
     caption: true,
   },
 ]
@@ -318,7 +432,7 @@ const PROJECT_INFO = {
       { icon: 'layout', title: 'UI Prototyping', text: 'Layouts explored and reviewed before implementation.' },
       { icon: 'layers', title: 'Stack Selection', text: 'Chosen for what the project actually needs.' },
     ],
-    stack: ['React', 'Node', 'PostgreSQL'],
+    stack: ['Coming Soon'],
     live: '#',
     repo: '#',
   },
@@ -338,13 +452,29 @@ const PROJECT_INFO = {
     num: '03',
     name: 'AL Shamil Turning',
     category: 'Corporate Portfolio',
-description:
+ description:
         'A corporate portfolio for a Fujairah engineering firm, rebuilt for clarity and full responsiveness: faster to load, easier to read, and finally up to the standard of their work.',
     highlights: projectDetails['Al Shamil Turning LLC'].highlights,
     stack: projectDetails['Al Shamil Turning LLC'].tags,
     live: 'https://alshamilturning.com/',
     repo: '',
     repoNote: 'Client repo · private',
+  },
+  portfolio: {
+    num: '04',
+    name: 'Personal Portfolio',
+    category: 'Portfolio · Interactive',
+    description: 'My personal portfolio site built with React, featuring interactive 3D scenes, smooth animations, and a modern responsive layout.',
+    highlights: [
+      { icon: 'vr', title: 'Interactive 3D Scenes', text: 'Three.js scenes and custom shaders bring the hero to life without blocking the page.' },
+      { icon: 'layers', title: 'Reusable Components', text: 'A component-driven React structure keeps every section consistent and easy to extend.' },
+      { icon: 'zap', title: 'Smooth Animations', text: 'Framer Motion and GSAP choreograph transitions that stay fluid on every interaction.' },
+      { icon: 'monitor', title: 'Responsive Layout', text: 'Breakpoints tuned for phones, tablets and desktop, from navigation to 3D scenes.' },
+    ],
+    stack: ['React', 'Vite', 'Tailwind CSS', 'Framer Motion', 'GSAP', 'Three.js', 'Vercel', 'Responsive Design'],
+    live: '',
+    repo: 'https://github.com/MohammedFawazO/portfolio-react-django.git',
+    repoNote: 'Open source',
   },
 }
 
@@ -510,7 +640,7 @@ function Projects() {
            {/* Hands layer */}
           <div className="absolute inset-0 pointer-events-none">
             {/* Robot */}
-            <div className="hand-robot absolute -left-16 top-[65%] max-md:top-[21rem] -translate-y-1/2 pointer-events-none">
+            <div className="hand-robot absolute -left-16 top-[65%] max-md:top-84 -translate-y-1/2 pointer-events-none">
               <motion.img
                 src="/media/robot.png"
                 alt=""
@@ -519,7 +649,7 @@ function Projects() {
               />
             </div>
             {/* Human */}
-            <div className="hand-human absolute -right-16 top-[65%] max-md:top-[21rem] -translate-y-1/2 pointer-events-none">
+            <div className="hand-human absolute -right-16 top-[65%] max-md:top-84 -translate-y-1/2 pointer-events-none">
               <motion.img
                 src="/media/human.png"
                 alt=""
@@ -966,7 +1096,7 @@ function Projects() {
                           <img
                             src={p.front}
                             alt={p.title}
-                            className={`podium-object${p.id === 'carcure2' ? ' podium-object--raised' : ''}`}
+                            className={`podium-object${p.id === 'carcure2' ? ' podium-object--raised' : ''}${p.id === 'portfolio' ? ' podium-object--portfolio' : ''}`}
                           />
                         )}
 
@@ -1003,44 +1133,7 @@ function Projects() {
                     exit={{ opacity: 0 }}
                     transition={{ duration: SWITCH_DURATION, ease: SWITCH_EASE }}
                   >
-                    <div className="relative overflow-hidden py-4">
-                      <div
-                        className="flex w-max animate-marquee gap-12 whitespace-nowrap"
-                        style={{
-                          maskImage: 'linear-gradient(to right, transparent 0%, #000 8%, #000 92%, transparent 100%)',
-                          WebkitMaskImage: 'linear-gradient(to right, transparent 0%, #000 8%, #000 92%, transparent 100%)',
-                        }}
-                      >
-                        {[...info.stack, ...info.stack].map((tech, i) => {
-                          const match = TECH_MAP[tech.toLowerCase()]
-                          return (
-                            <div key={i} className="flex items-center gap-1.5">
-                              {tech.toLowerCase() === 'responsive design' ? (
-                            <span className="opacity-60">{ResponsiveDesignIcon}</span>
-                          ) : match ? (
-                                match.svg ? (
-                                  <span className="opacity-60">{match.svg}</span>
-                                ) : (
-                                  <img
-                                    src={match.image}
-                                    alt={match.name}
-                                    className="h-5 w-auto opacity-60"
-                                    style={
-                                      match.name === 'GitHub' || match.name === 'Django'
-                                        ? { filter: 'invert(1)' }
-                                        : undefined
-                                    }
-                                  />
-                                )
-                              ) : null}
-                              <span className="text-[#59636E] text-sm font-medium tracking-wide">
-                                {tech}
-                              </span>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    </div>
+                    <ProjectTechMarquee stack={info.stack} />
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -1157,28 +1250,15 @@ function Projects() {
                   teams who need the result to hold up.
                 </p>
                 <div className="milestone-cta-actions">
-                  {/* Two routes to the same person: the dedicated contact page,
-                      and the form embedded on the home page. Both are react-router
-                      Links; the second relies on the hash-scroll handler in
-                      MainLayout to land on the form instead of the page top.
+                  {/* Lands on the contact form embedded in the home page CTA
+                      section. React-router Link; the hash-scroll handler in
+                      MainLayout lands on the form instead of the page top.
 
                       The arrow svg matches the console buttons - same 24 viewBox,
                       14px, currentColor stroke. It sits at zero width until hover,
                       which is what .milestone-cta-arrow animates open. */}
-                  <Link to="/contact" className="console-btn console-btn--primary">
+                  <Link to="/#home-contact" className="console-btn console-btn--primary">
                     Get in touch
-                    <svg
-                      className="milestone-cta-arrow"
-                      viewBox="0 0 24 24"
-                      width="14"
-                      height="14"
-                      aria-hidden="true"
-                    >
-                      <path d="M5 12h14M13 6l6 6-6 6" />
-                    </svg>
-                  </Link>
-                  <Link to="/#home-contact" className="console-btn">
-                    Contact us
                     <svg
                       className="milestone-cta-arrow"
                       viewBox="0 0 24 24"
