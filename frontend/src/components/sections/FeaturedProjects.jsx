@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
 import gsap from 'gsap'
@@ -228,7 +228,7 @@ function MobileGallery({ project }) {
   )
 }
 
-function StickyShowcase({ trackRefs }) {
+function StickyShowcase({ trackRefs, galleryRef }) {
   const [displayedIndex, setDisplayedIndex] = useState(0)
   const [progress, setProgress] = useState(0)
   const [swapFrom, setSwapFrom] = useState(null)
@@ -245,6 +245,11 @@ function StickyShowcase({ trackRefs }) {
   const cardRef = useRef(null)
   const blackoutRef = useRef(null)
   const transitionRef = useRef(false)
+
+  const assignCardRef = useCallback((element) => {
+    cardRef.current = element
+    if (galleryRef) galleryRef.current = element
+  }, [galleryRef])
 
   // Once the screen is black, hand off to the project in the same tab so the
   // expansion and fade remain visible before navigation.
@@ -437,7 +442,7 @@ function StickyShowcase({ trackRefs }) {
       )}
       <div className="flex h-full items-center justify-center">
         <div className="w-full">
-          <div ref={cardRef} className="ct-panel relative flex h-[82vh] w-full flex-col overflow-hidden bg-[#ADD8E6]">
+          <div ref={assignCardRef} className="ct-panel relative flex h-[82vh] w-full flex-col overflow-hidden bg-[#ADD8E6]">
             <div className="flex items-center justify-between gap-4 border-b-2 border-black bg-[#E8EEF2] px-4 py-3">
               <span className="shrink-0 whitespace-nowrap font-mono text-[11px] font-semibold uppercase tracking-[0.22em] text-[#2d8cf0]">
                 {String(displayedIndex + 1).padStart(2, '0')} / {PROJECTS.length}
@@ -538,7 +543,7 @@ function ProjectActions({ project, compact = false }) {
   )
 }
 
-function ProjectStory({ project, index, trackRef }) {
+function ProjectStory({ project, index, trackRef, eyebrowRef, onRevealProgress, revealApiRef }) {
   const trackElementRef = useRef(null)
 
   const setTrackElement = (element) => {
@@ -561,7 +566,7 @@ function ProjectStory({ project, index, trackRef }) {
           {String(index + 1).padStart(2, '0')}
         </span>
         <span className="h-px w-5 shrink-0 bg-black/20 sm:w-10" />
-        <span className="min-w-0 font-mono text-[clamp(8px,2.3vw,10px)] sm:text-[13px] uppercase tracking-wider font-semibold text-[#2d8cf0] sm:tracking-[0.2em] whitespace-nowrap">
+        <span ref={eyebrowRef} className="min-w-0 font-mono text-[clamp(8px,2.3vw,10px)] sm:text-[13px] uppercase tracking-wider font-semibold text-[#2d8cf0] sm:tracking-[0.2em] whitespace-nowrap">
           {project.eyebrow}
         </span>
       </div>
@@ -571,7 +576,12 @@ function ProjectStory({ project, index, trackRef }) {
       </h3>
 
       <div ref={setTrackElement}>
-        <ScrollReveal text={project.description} trackRef={trackElementRef} />
+        <ScrollReveal
+          text={project.description}
+          trackRef={trackElementRef}
+          onProgress={onRevealProgress}
+          apiRef={revealApiRef}
+        />
         <ProjectActions project={project} />
       </div>
     </motion.article>
@@ -580,6 +590,170 @@ function ProjectStory({ project, index, trackRef }) {
 
 function FeaturedProjects() {
   const trackRefs = useRef([])
+  const lastRevealApiRef = useRef(null)
+  const lastEyebrowRef = useRef(null)
+  const galleryRef = useRef(null)
+  const revealGateRef = useRef({
+    phase: 'idle',
+    armed: false,
+    startY: 0,
+    endY: 0,
+    lockY: 0,
+    distance: 1,
+    progress: 0,
+  })
+
+  const handleLastRevealProgress = useCallback((current) => {
+    const gate = revealGateRef.current
+    if (gate.phase !== 'locked' || current < 0.999) return
+    gate.phase = 'holding'
+    if (typeof window !== 'undefined') window.__lenis?.start()
+  }, [])
+
+  useEffect(() => {
+    const advance = (deltaPx) => {
+      const gate = revealGateRef.current
+      const api = lastRevealApiRef.current
+      if (gate.phase !== 'locked' || !api) return
+      gate.progress = Math.min(1, Math.max(0, gate.progress + deltaPx / gate.distance))
+      api.setProgress(gate.progress)
+    }
+
+    const releaseOnReverse = () => {
+      const gate = revealGateRef.current
+      if (gate.phase !== 'locked') return
+      gate.phase = 'releasing'
+      if (typeof window !== 'undefined') window.__lenis?.start()
+    }
+
+    const onWheel = (event) => {
+      const gate = revealGateRef.current
+      if (gate.phase !== 'locked') return
+      let delta = event.deltaY
+      if (event.deltaMode === 1) delta *= 16
+      else if (event.deltaMode === 2) delta *= window.innerHeight
+      if (delta < 0 && gate.progress <= 0) {
+        releaseOnReverse()
+        return
+      }
+      event.preventDefault()
+      advance(delta)
+    }
+
+    let touchY = null
+    const onTouchStart = (event) => {
+      if (revealGateRef.current.phase !== 'locked') return
+      touchY = event.touches[0]?.clientY ?? null
+    }
+    const onTouchMove = (event) => {
+      const gate = revealGateRef.current
+      if (gate.phase !== 'locked') return
+      const y = event.touches[0]?.clientY
+      if (y == null) return
+      if (touchY != null) {
+        const delta = touchY - y
+        if (delta < 0 && gate.progress <= 0) {
+          releaseOnReverse()
+          touchY = y
+          return
+        }
+        event.preventDefault()
+        advance(delta)
+      }
+      touchY = y
+    }
+
+    const onKeyDown = (event) => {
+      const gate = revealGateRef.current
+      if (gate.phase !== 'locked') return
+      const step = window.innerHeight * 0.75
+      if (event.key === 'ArrowDown' || event.key === 'PageDown' || event.key === ' ') {
+        event.preventDefault()
+        advance(step)
+      } else if (event.key === 'ArrowUp' || event.key === 'PageUp') {
+        if (gate.progress <= 0) {
+          releaseOnReverse()
+          return
+        }
+        event.preventDefault()
+        advance(-step)
+      }
+    }
+
+    const onScroll = () => {
+      const gate = revealGateRef.current
+      const api = lastRevealApiRef.current
+      if (gate.phase === 'holding') {
+        const y = window.scrollY
+        if (y >= gate.endY - 1 || y <= gate.startY + 1) {
+          gate.phase = 'idle'
+          gate.armed = false
+          api?.clearProgress()
+        }
+        return
+      }
+      if (gate.phase === 'releasing') {
+        if (window.scrollY <= gate.startY + 1 || window.scrollY >= gate.lockY + 1) {
+          gate.phase = 'idle'
+          gate.armed = false
+          api?.clearProgress()
+        }
+        return
+      }
+      if (gate.phase !== 'idle' || !api) return
+      if (window.innerWidth < 1024) return
+      const eyebrow = lastEyebrowRef.current
+      const gallery = galleryRef.current
+      const track = trackRefs.current[PROJECTS.length - 1]
+      if (!eyebrow || !gallery || !track) return
+      const eyebrowRect = eyebrow.getBoundingClientRect()
+      const galleryRect = gallery.getBoundingClientRect()
+      if (galleryRect.height <= 0) return
+      if (eyebrowRect.top > galleryRect.top) {
+        gate.armed = true
+        return
+      }
+      if (!gate.armed) return
+      const alignedY = window.scrollY + eyebrowRect.top - galleryRect.top
+      const rect = track.getBoundingClientRect()
+      const eyeLevel = window.innerHeight * 0.62
+      gate.startY = rect.top + window.scrollY - eyeLevel
+      gate.lockY = alignedY
+      gate.distance = Math.max(rect.height, 1)
+      gate.endY = gate.startY + gate.distance
+      gate.progress = clamp01((alignedY - gate.startY) / gate.distance)
+      gate.phase = 'locked'
+      gate.armed = false
+      if (typeof window !== 'undefined' && window.__lenis) {
+        window.__lenis.stop()
+        window.__lenis.scrollTo(alignedY, { immediate: true, force: true })
+      } else {
+        window.scrollTo(0, alignedY)
+      }
+      api.setProgress(gate.progress)
+    }
+
+    window.addEventListener('wheel', onWheel, { passive: false })
+    window.addEventListener('touchstart', onTouchStart, { passive: true })
+    window.addEventListener('touchmove', onTouchMove, { passive: false })
+    window.addEventListener('keydown', onKeyDown)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      window.removeEventListener('wheel', onWheel)
+      window.removeEventListener('touchstart', onTouchStart)
+      window.removeEventListener('touchmove', onTouchMove)
+      window.removeEventListener('keydown', onKeyDown)
+      window.removeEventListener('scroll', onScroll)
+    }
+  }, [])
+
+  useEffect(() => () => {
+    const gate = revealGateRef.current
+    if (gate.phase !== 'idle') {
+      gate.phase = 'idle'
+      if (typeof window !== 'undefined') window.__lenis?.start()
+    }
+  }, [])
 
   // Warm every gallery frame as soon as the page mounts. The section is far
   // enough down the page that the browser has time to fetch them before the
@@ -634,7 +808,7 @@ function FeaturedProjects() {
 
         <div className="grid gap-4 lg:grid-cols-[60%_minmax(0,1fr)]">
           <div className="relative">
-            <StickyShowcase trackRefs={trackRefs} />
+            <StickyShowcase trackRefs={trackRefs} galleryRef={galleryRef} />
           </div>
 
           <div>
@@ -643,6 +817,9 @@ function FeaturedProjects() {
                 key={project.id}
                 project={project}
                 index={index}
+                eyebrowRef={index === PROJECTS.length - 1 ? lastEyebrowRef : undefined}
+                onRevealProgress={index === PROJECTS.length - 1 ? handleLastRevealProgress : undefined}
+                revealApiRef={index === PROJECTS.length - 1 ? lastRevealApiRef : undefined}
                 trackRef={(element) => {
                   trackRefs.current[index] = element
                 }}

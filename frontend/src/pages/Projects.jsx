@@ -627,7 +627,7 @@ function Projects() {
       </Helmet>
 
       {/* Hero Section : pinned during scroll animation */}
-      <div ref={heroRef} className="h-[1400vh] flex flex-col">
+      <div ref={heroRef} className="h-[1400vh] md:h-[600vh] flex flex-col">
       <motion.section className="projects-hero sticky top-0 h-screen shrink-0 min-h-175 bg-[#050505] overflow-hidden">
       {/* Background : static, subtle central glow (behind text) */}
       <div className="absolute inset-0 z-0">

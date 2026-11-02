@@ -1749,6 +1749,47 @@ export function BooksShowcase({
     };
     if (detailPanel) detailPanel.addEventListener('scroll', onPanelScroll, { passive: true });
 
+    let panelScrollTarget = null;
+    let panelScrollRaf = 0;
+    const easePanelScroll = () => {
+      if (!detailPanel || state.mode !== 'detail') {
+        panelScrollRaf = 0;
+        return;
+      }
+      const max = detailPanel.scrollHeight - detailPanel.clientHeight;
+      if (max <= 0 || panelScrollTarget === null) {
+        panelScrollTarget = detailPanel.scrollTop;
+        panelScrollRaf = 0;
+        return;
+      }
+      panelScrollTarget = Math.min(Math.max(panelScrollTarget, 0), max);
+      const diff = panelScrollTarget - detailPanel.scrollTop;
+      if (Math.abs(diff) < 0.5) {
+        detailPanel.scrollTop = panelScrollTarget;
+        panelScrollRaf = 0;
+        return;
+      }
+      detailPanel.scrollTop += diff * 0.2;
+      panelScrollRaf = requestAnimationFrame(easePanelScroll);
+    };
+    const onPanelWheel = (event) => {
+      if (!detailPanel || state.mode !== 'detail' || event.ctrlKey) return;
+      let delta = event.deltaY;
+      if (!delta) return;
+      if (event.deltaMode === 1) delta *= 16;
+      else if (event.deltaMode === 2) delta *= detailPanel.clientHeight;
+      const max = detailPanel.scrollHeight - detailPanel.clientHeight;
+      if (max <= 0) return;
+      if (!panelScrollRaf) panelScrollTarget = detailPanel.scrollTop;
+      const next = Math.min(Math.max((panelScrollTarget ?? 0) + delta, 0), max);
+      if (next === panelScrollTarget) return;
+      event.preventDefault();
+      event.stopPropagation();
+      panelScrollTarget = next;
+      if (!panelScrollRaf) panelScrollRaf = requestAnimationFrame(easePanelScroll);
+    };
+    if (detailPanel) detailPanel.addEventListener('wheel', onPanelWheel, { passive: false });
+
     // If a document was open when this scene was rebuilt, reopen it so the
     // detail view is sticky: the only way back to the shelf is close().
     const restoreOpenDoc = () => {
@@ -1772,6 +1813,8 @@ export function BooksShowcase({
       detailPanelRo.disconnect();
       if (scrollIdleTimer) clearTimeout(scrollIdleTimer);
       if (detailPanel) detailPanel.removeEventListener('scroll', onPanelScroll);
+      if (detailPanel) detailPanel.removeEventListener('wheel', onPanelWheel);
+      if (panelScrollRaf) cancelAnimationFrame(panelScrollRaf);
       window.removeEventListener('resize', onWindowResize);
       window.removeEventListener('orientationchange', onOrientation);
       if (visualViewportHandler && window.visualViewport) {
@@ -1982,7 +2025,7 @@ export function BooksShowcase({
         <div
           ref={dpRef}
           aria-live="polite"
-          className={`bs-detail-scroll absolute right-[7%] top-1/2 z-[15] w-[min(560px,42%)] max-h-[88%] -translate-y-1/2 overflow-x-hidden overflow-y-auto overscroll-contain scroll-py-[6cqw] px-[clamp(20px,1.8cqw,30px)] py-[clamp(18px,1.6cqw,26px)] pointer-events-auto @max-[760px]:right-auto @max-[760px]:left-1/2 @max-[760px]:top-auto @max-[760px]:bottom-[3.5%] @max-[760px]:max-h-[46%] @max-[760px]:w-[min(560px,92cqw)] @max-[760px]:-translate-x-1/2 @max-[760px]:translate-y-0 @max-[760px]:px-4! @max-[760px]:py-4 @max-[760px]:scroll-py-4 ${panelVisible ? 'visible' : 'invisible delay-[500ms]'
+          className={`bs-detail-scroll absolute right-[7%] top-1/2 z-[15] w-[min(560px,42%)] max-h-[88%] -translate-y-1/2 overflow-x-hidden overflow-y-auto scroll-py-[6cqw] px-[clamp(20px,1.8cqw,30px)] py-[clamp(18px,1.6cqw,26px)] pointer-events-auto @max-[760px]:right-auto @max-[760px]:left-1/2 @max-[760px]:top-auto @max-[760px]:bottom-[3.5%] @max-[760px]:max-h-[46%] @max-[760px]:w-[min(560px,92cqw)] @max-[760px]:-translate-x-1/2 @max-[760px]:translate-y-0 @max-[760px]:px-4! @max-[760px]:py-4 @max-[760px]:scroll-py-4 ${panelVisible ? 'visible' : 'invisible delay-[500ms]'
             }`}
         >
           <h1 className={`m-0 break-words text-balance text-[var(--bs-focus-fg)] text-[clamp(44px,4.7cqw,76px)] font-extrabold leading-[0.98] tracking-[-0.015em] @max-[760px]:text-center @max-[760px]:text-[clamp(26px,7cqw,38px)] @max-[760px]:leading-[1.02] ${dpChild(50)}`}>
